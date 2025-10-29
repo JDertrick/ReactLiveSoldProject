@@ -1,0 +1,52 @@
+### .NET Core ###
+# Ignora los artefactos de compilación más comunes
+[Bb]in/
+[Oo]bj/
+
+# Ignora los directorios de publicación
+[Pp]ublish/
+[Dd]ist/
+
+# Ignora los resultados de pruebas
+[Tt]est[Rr]esult*/
+*.trx
+
+# Ignora archivos de usuario de EF Core
+*.efba*
+
+### Visual Studio ###
+# Ignora la carpeta de configuración específica de Visual Studio
+.vs/
+
+# Ignora archivos de configuración de usuario y opciones
+*.user
+*.userprefs
+*.suo
+*.sln.docstates
+
+### VS Code ###
+# Ignora la carpeta de configuración específica de VS Code
+.vscode/
+
+### Dependencias ###
+# Ignora paquetes de NuGet antiguos (si usas packages.config)
+packages/
+# Ignora dependencias de front-end
+node_modules/
+
+### Archivos de Secretos ###
+# Ignora archivos de secretos, que NUNCA deben ir al repositorio
+*.secrets.json
+secrets.json
+appsettings.Development.json
+# (Descomenta la línea de arriba si NO quieres compartir la configuración de desarrollo)
+
+### Archivos del Sistema Operativo ###
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
+._*
