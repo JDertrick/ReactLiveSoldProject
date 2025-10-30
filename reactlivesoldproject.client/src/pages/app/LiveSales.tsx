@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { useGetProducts, useSearchProducts } from '../../hooks/useProducts';
+import { useGetProducts } from '../../hooks/useProducts';
 import { useGetCustomers } from '../../hooks/useCustomers';
+import { useCreateSalesOrder } from '../../hooks/useSalesOrders';
 import { Product, ProductVariant } from '../../types/product.types';
 import { Customer } from '../../types/customer.types';
 
 interface CartItem {
   productId: string;
   productName: string;
-  variantId?: string;
-  variant?: ProductVariant;
+  variantId: string;
+  variant: ProductVariant;
   quantity: number;
   price: number;
 }
@@ -16,11 +17,13 @@ interface CartItem {
 const LiveSalesPage = () => {
   const { data: products } = useGetProducts(false); // Only published products
   const { data: customers } = useGetCustomers();
+  const createSalesOrder = useCreateSalesOrder();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
   const filteredProducts = searchTerm
     ? products?.filter(p =>
@@ -29,15 +32,20 @@ const LiveSalesPage = () => {
       )
     : products;
 
-  const handleAddToCart = (product: Product, variant?: ProductVariant) => {
-    const price = variant?.price && variant.price > 0 ? variant.price : product.basePrice;
+  const handleAddToCart = (product: Product, variant: ProductVariant) => {
+    if (!variant) {
+      alert('Please select a variant');
+      return;
+    }
+
+    const price = variant.price && variant.price > 0 ? variant.price : product.basePrice;
     const existingItem = cart.find(
-      item => item.productId === product.id && item.variantId === variant?.id
+      item => item.productId === product.id && item.variantId === variant.id
     );
 
     if (existingItem) {
       setCart(cart.map(item =>
-        item.productId === product.id && item.variantId === variant?.id
+        item.productId === product.id && item.variantId === variant.id
           ? { ...item, quantity: item.quantity + 1 }
           : item
       ));
@@ -45,7 +53,7 @@ const LiveSalesPage = () => {
       setCart([...cart, {
         productId: product.id,
         productName: product.name,
-        variantId: variant?.id,
+        variantId: variant.id,
         variant,
         quantity: 1,
         price,
@@ -81,13 +89,56 @@ const LiveSalesPage = () => {
       return;
     }
 
-    // TODO: Implement order creation API call
-    alert(`Order placed for ${selectedCustomer.firstName} ${selectedCustomer.lastName}\nTotal: $${calculateTotal().toFixed(2)}`);
-    handleClearCart();
+    // Check wallet balance
+    const total = calculateTotal();
+    if (total > (selectedCustomer.wallet?.balance || 0)) {
+      alert('Insufficient wallet balance. Please add funds to the customer wallet first.');
+      return;
+    }
+
+    try {
+      const orderData = {
+        customerId: selectedCustomer.id,
+        items: cart.map(item => ({
+          productVariantId: item.variantId,
+          quantity: item.quantity,
+          customUnitPrice: item.price !== item.variant.price ? item.price : undefined,
+        })),
+      };
+
+      await createSalesOrder.mutateAsync(orderData);
+
+      setOrderSuccess(true);
+      setTimeout(() => setOrderSuccess(false), 3000);
+
+      handleClearCart();
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Failed to create order. Please try again.');
+    }
   };
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex gap-4">
+    <div className="space-y-4">
+      {/* Success Banner */}
+      {orderSuccess && (
+        <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-green-700">
+                Order placed successfully! The wallet has been debited and inventory updated.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="h-[calc(100vh-12rem)] flex gap-4">
       {/* Left Column - Product Search */}
       <div className="w-1/3 bg-white shadow rounded-lg flex flex-col">
         <div className="p-4 border-b">
@@ -325,12 +376,10 @@ const LiveSalesPage = () => {
                   ))}
                 </div>
               ) : (
-                <button
-                  onClick={() => handleAddToCart(selectedProduct)}
-                  className="w-full px-4 py-3 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
-                >
-                  Add to Cart
-                </button>
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-500">No variants available for this product</p>
+                  <p className="text-xs text-gray-400 mt-1">Products must have at least one variant to be sold</p>
+                </div>
               )}
 
               <button
@@ -402,6 +451,7 @@ const LiveSalesPage = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

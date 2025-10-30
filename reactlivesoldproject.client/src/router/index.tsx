@@ -18,6 +18,7 @@ import AppDashboard from '../pages/app/Dashboard';
 import CustomersPage from '../pages/app/Customers';
 import ProductsPage from '../pages/app/Products';
 import LiveSalesPage from '../pages/app/LiveSales';
+import WalletPage from '../pages/app/Wallet';
 
 // Portal Pages (Customer)
 import CustomerDashboard from '../pages/portal/Dashboard';
@@ -92,6 +93,10 @@ export const router = createBrowserRouter([
       {
         path: 'live-sales',
         element: <LiveSalesPage />,
+      },
+      {
+        path: 'wallet',
+        element: <WalletPage />,
       },
     ],
   },
