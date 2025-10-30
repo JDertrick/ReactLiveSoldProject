@@ -1,4 +1,6 @@
-﻿using ReactLiveSoldProject.ServerBL.Models.Authentication;
+﻿using System.ComponentModel.DataAnnotations;
+using ReactLiveSoldProject.ServerBL.Base;
+using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 
 namespace ReactLiveSoldProject.ServerBL.Models.Sales
@@ -6,27 +8,33 @@ namespace ReactLiveSoldProject.ServerBL.Models.Sales
     public class SalesOrder
     {
         public Guid Id { get; set; }
-        
+
+        [Required(ErrorMessage = "El ID de la organización es obligatorio")]
         public Guid OrganizationId { get; set; }
-        
+
         public virtual Organization Organization { get; set; }
-        
+
+        [Required(ErrorMessage = "El ID del cliente es obligatorio")]
         public Guid CustomerId { get; set; }
-        
+
         public virtual Customer Customer { get; set; }
-        
+
         public Guid? CreatedByUserId { get; set; }
-        
+
         public virtual User? CreatedByUser { get; set; }
-        
-        public string Status { get; set; } = "draft"; // "draft", "completed", "cancelled"
-        
+
+        [Required(ErrorMessage = "El estado de la orden es obligatorio")]
+        public OrderStatus Status { get; set; } = OrderStatus.Draft;
+
+        [Required(ErrorMessage = "El monto total es obligatorio")]
+        [Range(0, double.MaxValue, ErrorMessage = "El monto total debe ser mayor o igual a 0")]
         public decimal TotalAmount { get; set; } = 0.00m;
-        
+
+        [MaxLength(2000, ErrorMessage = "Las notas no pueden exceder los 2000 caracteres")]
         public string? Notes { get; set; }
-        
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        
+
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Propiedades de navegación

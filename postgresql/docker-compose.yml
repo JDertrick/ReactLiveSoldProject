@@ -1,0 +1,45 @@
+name: postgresql
+
+services:
+  postgresql:
+    image: pgvector/pgvector:pg16
+    container_name: postgresql
+    environment:
+      POSTGRES_DB: danovadb
+      POSTGRES_USER: danovauser
+      POSTGRES_PASSWORD: 12345
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      - red_compartida
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U danovauser -d danovadb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_web
+    environment:
+      PGADMIN_DEFAULT_EMAIL: jdertrick@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: 12345
+    ports:
+      - "8080:80"
+    volumes:
+      # Esta línea es nueva:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgresql
+    networks:
+      - red_compartida
+     
+volumes:
+  postgresql_data:
+  pgadmin_data:
+  
+networks:
+  red_compartida:
+     external: true

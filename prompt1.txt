@@ -1,0 +1,159 @@
+Prompt 1: Tarea para Desarrollador Backend (.NET)
+
+Contexto del Proyecto
+
+Eres un desarrollador de backend senior de .NET 8. Vamos a construir una plataforma SaaS "Multi-Tenant" para la gestión de inventarios y ventas en vivo (tipo TikTok).
+
+La arquitectura de la base de datos ya está definida usando un enfoque de "Persistence Ignorance" (modelos POCO limpios) y la configuración de relaciones se maneja con Fluent API en el DbContext. Tu tarea es implementar la capa de API (controladores), la lógica de negocio (servicios) y la seguridad, respetando estrictamente los modelos ya creados (Organization, User, Customer, Product, ProductVariant, SalesOrder, etc.).
+
+Requerimientos Clave
+
+1. Seguridad y Autenticación (JWT)
+
+Implementa autenticación basada en JWT (Bearer Token).
+
+El endpoint de login recibirá un email y password y devolverá un token.
+
+El token debe contener "claims" (reclamaciones) esenciales:
+
+UserId
+
+OrganizationId (si no es SuperAdmin, esto es crucial)
+
+Role (ej: "seller", "owner", "superadmin")
+
+2. Roles y Autorización (Multi-Tenant)
+
+Define políticas de autorización basadas en estos roles:
+
+SuperAdmin (User.IsSuperAdmin == true):
+
+Acceso global, sin OrganizationId.
+
+Puede: Gestionar (CRUD) entidades Organization.
+
+No puede: Ver datos de ninguna organización (productos, clientes, etc.).
+
+OrgOwner (OrganizationMember.Role == "owner"):
+
+Acceso limitado a su propia OrganizationId.
+
+Puede: Gestionar (CRUD) Products, ProductVariants, Tags de su organización.
+
+Puede: Gestionar (CRUD) OrganizationMembers (invitar/eliminar Users de su organización).
+
+Puede: Realizar todas las acciones de un Seller.
+
+Seller (OrganizationMember.Role == "seller"):
+
+Acceso limitado a su propia OrganizationId.
+
+Puede: Gestionar (CRUD) Customers de su organización.
+
+Puede: Gestionar (CRUD) SalesOrders y SalesOrderItems.
+
+Puede: Crear WalletTransactions (tipo 'deposit') para recargar saldos.
+
+3. Lógica de Negocio (Multi-Tenant OBLIGATORIO)
+
+Aislamiento de Datos: Toda la lógica de negocio debe ser Multi-Tenant. Casi todas las consultas a la base de datos (lecturas, escrituras, actualizaciones) deben estar filtradas por la OrganizationId del usuario autenticado.
+
+Un Seller de la 'Organización A' nunca debe poder ver, modificar o acceder a datos de la 'Organización B'.
+
+Tareas a Implementar (Controladores y Servicios)
+
+Crea los Controladores (Controllers), Servicios (Services), y DTOs (Data Transfer Objects) necesarios para las siguientes funcionalidades:
+
+1. Módulo de Autenticación (AuthController)
+
+POST /api/auth/login: Autentica un User y devuelve un JWT.
+
+GET /api/auth/me: Devuelve el perfil del User autenticado (y su OrganizationId y Role si aplica).
+
+2. Módulo de SuperAdmin (SuperAdminController)
+
+GET /api/superadmin/organizations
+
+POST /api/superadmin/organizations
+
+PUT /api/superadmin/organizations/{id}
+
+DELETE /api/superadmin/organizations/{id}
+
+3. Módulo de Inventario (ProductController)
+
+GET /api/products: Devuelve productos filtrados por el OrganizationId del token.
+
+POST /api/products: Crea un Product (y sus ProductVariants) para el OrganizationId del token.
+
+PUT /api/products/{id}
+
+DELETE /api/products/{id}
+
+(Rutas similares para Tags)
+
+4. Módulo de Clientes (CustomerController)
+
+GET /api/customers: Devuelve clientes filtrados por el OrganizationId del token.
+
+GET /api/customers/{id}: Devuelve un cliente específico.
+
+POST /api/customers: Crea un Customer y su Wallet asociado (con balance 0).
+
+PUT /api/customers/{id}
+
+5. Módulo de Billetera (WalletController)
+
+POST /api/wallets/deposit:
+
+Recibe: { customerId, amount, notes }.
+
+Lógica: Busca el Wallet del cliente, crea una WalletTransaction (tipo 'deposit'), y actualiza el Wallet.Balance.
+
+Auditoría: El campo AuthorizedByUserId de la transacción debe ser el UserId del Seller que hizo la llamada.
+
+Debe estar protegido por Seller o OrgOwner.
+
+6. Módulo de Venta LIVE (SalesOrderController)
+
+POST /api/salesorders:
+
+Recibe: { customerId }.
+
+Lógica: Crea una SalesOrder en estado 'draft'.
+
+POST /api/salesorders/{orderId}/items:
+
+Recibe: { productVariantId, quantity, unitPrice }.
+
+Lógica Clave: Permite especificar un unit_price diferente al ProductVariant.Price de lista.
+
+Lógica: Crea un SalesOrderItem y recalcula el SalesOrder.TotalAmount.
+
+DELETE /api/salesorders/{orderId}/items/{itemId}
+
+POST /api/salesorders/{orderId}/finalize:
+
+Lógica Crítica:
+
+Cambia el SalesOrder.Status a 'completed'.
+
+Obtiene el Wallet del Customer.
+
+Verifica si Wallet.Balance >= SalesOrder.TotalAmount.
+
+Si hay fondos:
+
+Resta el total del Wallet.Balance.
+
+Crea una WalletTransaction (tipo 'withdrawal') asociada a esta SalesOrder.
+
+Si no hay fondos, devuelve un error.
+
+7. Módulo de Auditoría (Implementación de Servicio)
+
+Crea un AuditLogService que pueda ser inyectado en otros servicios.
+
+Debe tener un método: LogAsync(AuditLog logEntry).
+
+Asegúrate de que el DbContext se sobreescriba (SaveChanges o SaveChangesAsync) para interceptar cambios importantes (ej: UPDATE en Wallets, DELETE en Products) y registrarlos automáticamente en la tabla AuditLog.

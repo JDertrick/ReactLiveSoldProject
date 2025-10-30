@@ -62,7 +62,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(o => o.Name).HasColumnName("name").IsRequired();
                 e.Property(o => o.LogoUrl).HasColumnName("logo_url");
                 e.Property(o => o.PrimaryContactEmail).HasColumnName("primary_contact_email").IsRequired();
-                e.Property(o => o.PlanType).HasColumnName("plan_type").IsRequired().HasDefaultValue("standard");
+                e.Property(o => o.PlanType).HasColumnName("plan_type").HasConversion<string>().IsRequired().HasDefaultValue("Standard");
                 e.Property(o => o.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
                 e.Property(o => o.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(o => o.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
@@ -90,7 +90,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(om => om.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 e.Property(om => om.OrganizationId).HasColumnName("organization_id").IsRequired();
                 e.Property(om => om.UserId).HasColumnName("user_id").IsRequired();
-                e.Property(om => om.Role).HasColumnName("role").IsRequired().HasDefaultValue("seller");
+                e.Property(om => om.Role).HasColumnName("role").HasConversion<string>().IsRequired().HasDefaultValue("Seller");
                 e.Property(om => om.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
                 e.HasIndex(om => new { om.OrganizationId, om.UserId }).IsUnique();
@@ -168,12 +168,13 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(wt => wt.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 e.Property(wt => wt.OrganizationId).HasColumnName("organization_id").IsRequired();
                 e.Property(wt => wt.WalletId).HasColumnName("wallet_id").IsRequired();
-                e.Property(wt => wt.Type).HasColumnName("type").IsRequired();
+                e.Property(wt => wt.Type).HasColumnName("type").HasConversion<string>().IsRequired();
                 e.Property(wt => wt.Amount).HasColumnName("amount").HasColumnType("decimal(10, 2)").IsRequired();
                 e.Property(wt => wt.RelatedSalesOrderId).HasColumnName("related_sales_order_id");
                 e.Property(wt => wt.AuthorizedByUserId).HasColumnName("authorized_by_user_id");
                 e.Property(wt => wt.Notes).HasColumnName("notes");
                 e.Property(wt => wt.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
 
                 e.HasOne(wt => wt.Organization)
                     .WithMany()
@@ -219,7 +220,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(p => p.OrganizationId).HasColumnName("organization_id").IsRequired();
                 e.Property(p => p.Name).HasColumnName("name").IsRequired();
                 e.Property(p => p.Description).HasColumnName("description");
-                e.Property(p => p.ProductType).HasColumnName("product_type").IsRequired().HasDefaultValue("simple");
+                e.Property(p => p.ProductType).HasColumnName("product_type").HasConversion<string>().IsRequired().HasDefaultValue("Simple");
                 e.Property(p => p.IsPublished).HasColumnName("is_published").IsRequired().HasDefaultValue(true);
                 e.Property(p => p.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(p => p.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
@@ -286,7 +287,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(so => so.OrganizationId).HasColumnName("organization_id").IsRequired();
                 e.Property(so => so.CustomerId).HasColumnName("customer_id").IsRequired();
                 e.Property(so => so.CreatedByUserId).HasColumnName("created_by_user_id");
-                e.Property(so => so.Status).HasColumnName("status").IsRequired().HasDefaultValue("draft");
+                e.Property(so => so.Status).HasColumnName("status").HasConversion<string>().IsRequired().HasDefaultValue("Draft");
                 e.Property(so => so.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(10, 2)").IsRequired().HasDefaultValue(0.00m);
                 e.Property(so => so.Notes).HasColumnName("notes");
                 e.Property(so => so.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
@@ -351,11 +352,12 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(al => al.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 e.Property(al => al.OrganizationId).HasColumnName("organization_id");
                 e.Property(al => al.UserId).HasColumnName("user_id");
-                e.Property(al => al.ActionType).HasColumnName("action_type").IsRequired();
+                e.Property(al => al.ActionType).HasColumnName("action_type").HasConversion<string>().IsRequired();
                 e.Property(al => al.TargetTable).HasColumnName("target_table").IsRequired();
                 e.Property(al => al.TargetRecordId).HasColumnName("target_record_id");
                 e.Property(al => al.Changes).HasColumnName("changes").HasColumnType("jsonb");
                 e.Property(al => al.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
 
                 e.HasIndex(al => al.OrganizationId);
                 e.HasIndex(al => al.UserId);
