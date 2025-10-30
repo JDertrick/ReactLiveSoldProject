@@ -2,9 +2,12 @@ Prompt 1: Tarea para Desarrollador Backend (.NET)
 
 Contexto del Proyecto
 
-Eres un desarrollador de backend senior de .NET 8. Vamos a construir una plataforma SaaS "Multi-Tenant" para la gestión de inventarios y ventas en vivo (tipo TikTok).
+Eres un desarrollador de backend senior de .NET 9. Vamos a construir una plataforma SaaS "Multi-Tenant" para la gestión de inventarios y ventas en vivo (tipo TikTok).
 
 La arquitectura de la base de datos ya está definida usando un enfoque de "Persistence Ignorance" (modelos POCO limpios) y la configuración de relaciones se maneja con Fluent API en el DbContext. Tu tarea es implementar la capa de API (controladores), la lógica de negocio (servicios) y la seguridad, respetando estrictamente los modelos ya creados (Organization, User, Customer, Product, ProductVariant, SalesOrder, etc.).
+
+Novedad Arquitectónica (Portal de Cliente):
+El portal del cliente funcionará con rutas dinámicas por organización (ej: /portal/tienda-de-juan/login). Esto requiere un nuevo endpoint público para obtener la información de la marca (logo) y una lógica de login de cliente más robusta.
 
 Requerimientos Clave
 
@@ -21,6 +24,14 @@ UserId
 OrganizationId (si no es SuperAdmin, esto es crucial)
 
 Role (ej: "seller", "owner", "superadmin")
+
+Token de Empleado (Seller/Owner/SuperAdmin):
+
+Debe contener: UserId, OrganizationId (si no es SuperAdmin), Role.
+
+Token de Cliente (Customer):
+
+Debe contener: CustomerId, OrganizationId (crucial para saber a qué tienda pertenece), Role: "customer".
 
 2. Roles y Autorización (Multi-Tenant)
 
@@ -54,6 +65,12 @@ Puede: Gestionar (CRUD) SalesOrders y SalesOrderItems.
 
 Puede: Crear WalletTransactions (tipo 'deposit') para recargar saldos.
 
+Customer (Autenticado desde el portal):
+
+Acceso limitado a sus propios datos (identificados por CustomerId y OrganizationId en el JWT).
+
+Puede: Leer su Wallet y SalesOrders.
+
 3. Lógica de Negocio (Multi-Tenant OBLIGATORIO)
 
 Aislamiento de Datos: Toda la lógica de negocio debe ser Multi-Tenant. Casi todas las consultas a la base de datos (lecturas, escrituras, actualizaciones) deben estar filtradas por la OrganizationId del usuario autenticado.
@@ -66,7 +83,7 @@ Crea los Controladores (Controllers), Servicios (Services), y DTOs (Data Transfe
 
 1. Módulo de Autenticación (AuthController)
 
-POST /api/auth/login: Autentica un User y devuelve un JWT.
+POST /api/auth/employee-login: Para Users (Sellers, Owners, SuperAdmins). Devuelve JWT de Empleado.
 
 GET /api/auth/me: Devuelve el perfil del User autenticado (y su OrganizationId y Role si aplica).
 
@@ -74,13 +91,51 @@ GET /api/auth/me: Devuelve el perfil del User autenticado (y su OrganizationId y
 
 GET /api/superadmin/organizations
 
-POST /api/superadmin/organizations
+POST /api/superadmin/organizations (Aquí deberías crear el slug único).
 
 PUT /api/superadmin/organizations/{id}
 
 DELETE /api/superadmin/organizations/{id}
 
-3. Módulo de Inventario (ProductController)
+3. Módulo Público (¡NUEVO!) (PublicController)
+
+GET /api/public/organization-by-slug/{slug}:
+
+Endpoint PÚBLICO (sin autenticación).
+
+Busca una Organization por su slug.
+
+Devuelve: Solo datos seguros para la marca: name, logo_url. Nunca devuelvas emails de contacto, claves, o información sensible.
+
+4. Módulo de Portal de Cliente (¡NUEVO!) (CustomerPortalController)
+
+Endpoint de Login:
+
+POST /api/portal/login:
+
+Recibe: { email, password, organizationSlug }.
+
+Lógica:
+
+Busca la Organization por el organizationSlug. Si no existe, devuelve error.
+
+Busca al Customer por email.
+
+Validación Crítica: Verifica que Customer.OrganizationId == Organization.Id.
+
+Si todo coincide, genera y devuelve un JWT de Customer (con CustomerId y OrganizationId).
+
+Endpoints Protegidos (Requieren JWT de Cliente):
+
+GET /api/portal/my-wallet:
+
+Lógica: Usa el CustomerId y OrganizationId del token para buscar el Wallet del cliente y su historial de WalletTransactions.
+
+GET /api/portal/my-orders:
+
+Lógica: Usa el CustomerId y OrganizationId del token para buscar las SalesOrders del cliente.
+
+5. Módulo de Inventario (ProductController)
 
 GET /api/products: Devuelve productos filtrados por el OrganizationId del token.
 
@@ -92,7 +147,7 @@ DELETE /api/products/{id}
 
 (Rutas similares para Tags)
 
-4. Módulo de Clientes (CustomerController)
+6. Módulo de Clientes (CustomerController)
 
 GET /api/customers: Devuelve clientes filtrados por el OrganizationId del token.
 
@@ -102,7 +157,7 @@ POST /api/customers: Crea un Customer y su Wallet asociado (con balance 0).
 
 PUT /api/customers/{id}
 
-5. Módulo de Billetera (WalletController)
+7. Módulo de Billetera (WalletController)
 
 POST /api/wallets/deposit:
 
@@ -114,7 +169,7 @@ Auditoría: El campo AuthorizedByUserId de la transacción debe ser el UserId de
 
 Debe estar protegido por Seller o OrgOwner.
 
-6. Módulo de Venta LIVE (SalesOrderController)
+8. Módulo de Venta LIVE (SalesOrderController)
 
 POST /api/salesorders:
 
@@ -150,7 +205,7 @@ Crea una WalletTransaction (tipo 'withdrawal') asociada a esta SalesOrder.
 
 Si no hay fondos, devuelve un error.
 
-7. Módulo de Auditoría (Implementación de Servicio)
+9. Módulo de Auditoría (Implementación de Servicio)
 
 Crea un AuditLogService que pueda ser inyectado en otros servicios.
 

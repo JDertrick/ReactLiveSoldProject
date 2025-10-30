@@ -60,12 +60,16 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasKey(o => o.Id);
                 e.Property(o => o.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 e.Property(o => o.Name).HasColumnName("name").IsRequired();
+                e.Property(o => o.Slug).HasColumnName("slug").IsRequired();
                 e.Property(o => o.LogoUrl).HasColumnName("logo_url");
                 e.Property(o => o.PrimaryContactEmail).HasColumnName("primary_contact_email").IsRequired();
                 e.Property(o => o.PlanType).HasColumnName("plan_type").HasConversion<string>().IsRequired().HasDefaultValue("Standard");
                 e.Property(o => o.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
                 e.Property(o => o.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(o => o.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                // Índice único para el slug (necesario para rutas del portal)
+                e.HasIndex(o => o.Slug).IsUnique();
             });
 
             modelBuilder.Entity<User>(e =>
@@ -116,16 +120,16 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(c => c.OrganizationId).HasColumnName("organization_id").IsRequired();
                 e.Property(c => c.FirstName).HasColumnName("first_name");
                 e.Property(c => c.LastName).HasColumnName("last_name");
-                e.Property(c => c.Email).HasColumnName("email");
+                e.Property(c => c.Email).HasColumnName("email").IsRequired();
                 e.Property(c => c.Phone).HasColumnName("phone");
-                e.Property(c => c.PasswordHash).HasColumnName("password_hash");
+                e.Property(c => c.PasswordHash).HasColumnName("password_hash").IsRequired();
                 e.Property(c => c.AssignedSellerId).HasColumnName("assigned_seller_id");
                 e.Property(c => c.Notes).HasColumnName("notes");
                 e.Property(c => c.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(c => c.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
                 e.HasIndex(c => new { c.OrganizationId, c.Email }).IsUnique();
-                e.HasIndex(c => new { c.OrganizationId, c.Phone }).IsUnique();
+                e.HasIndex(c => new { c.OrganizationId, c.Phone }).IsUnique().HasFilter("\"phone\" IS NOT NULL");
 
                 e.HasOne(c => c.Organization)
                     .WithMany(o => o.Customers)

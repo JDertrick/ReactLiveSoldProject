@@ -15,6 +15,11 @@ namespace ReactLiveSoldProject.ServerBL.Models.Authentication
         [MaxLength(200, ErrorMessage = "El nombre no puede exceder los 200 caracteres")]
         public string Name { get; set; }
 
+        [Required(ErrorMessage = "El slug es obligatorio")]
+        [MaxLength(100, ErrorMessage = "El slug no puede exceder los 100 caracteres")]
+        [RegularExpression(@"^[a-z0-9-]+$", ErrorMessage = "El slug solo puede contener letras minúsculas, números y guiones")]
+        public string Slug { get; set; }
+
         [Url(ErrorMessage = "La URL del logo debe ser válida")]
         [MaxLength(500, ErrorMessage = "La URL del logo no puede exceder los 500 caracteres")]
         public string? LogoUrl { get; set; }
