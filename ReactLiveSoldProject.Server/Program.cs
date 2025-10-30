@@ -72,6 +72,10 @@ builder.Services.AddCors(options =>
 // Services
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IAuthService, ReactLiveSoldProject.ServerBL.Services.AuthService>();
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IOrganizationService, ReactLiveSoldProject.ServerBL.Services.OrganizationService>();
+builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.ICustomerService, ReactLiveSoldProject.ServerBL.Services.CustomerService>();
+builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IProductService, ReactLiveSoldProject.ServerBL.Services.ProductService>();
+builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IWalletService, ReactLiveSoldProject.ServerBL.Services.WalletService>();
+builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.ISalesOrderService, ReactLiveSoldProject.ServerBL.Services.SalesOrderService>();
 
 // Helpers
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();
