@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet ef migrations add:*)",
+      "Read(//mnt/c/**)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef migrations add:*)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" tool install --global dotnet-ef)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" add package Microsoft.EntityFrameworkCore.Design)",
+      "Bash(docker ps:*)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef database update --project ../ReactLiveSoldProject.ServerBL)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" run)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

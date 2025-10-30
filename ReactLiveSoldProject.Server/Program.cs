@@ -69,8 +69,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Services (to be added later)
-// builder.Services.AddScoped<IAuthService, AuthService>();
+// Services
+builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IAuthService, ReactLiveSoldProject.ServerBL.Services.AuthService>();
+builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IOrganizationService, ReactLiveSoldProject.ServerBL.Services.OrganizationService>();
+
+// Helpers
+builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();
 
 builder.Services.AddControllers();
 
@@ -113,6 +117,17 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Seed database on startup (development only)
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<LiveSoldDbContext>();
+        var seeder = new ReactLiveSoldProject.ServerBL.Helpers.DatabaseSeeder(dbContext);
+        await seeder.SeedAsync();
+    }
+}
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
