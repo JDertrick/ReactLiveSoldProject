@@ -1,214 +1,173 @@
-Prompt 1: Tarea para Desarrollador Backend (.NET)
+Prompt 2: Tarea para Desarrollador Frontend (React)
 
 Contexto del Proyecto
 
-Eres un desarrollador de backend senior de .NET 9. Vamos a construir una plataforma SaaS "Multi-Tenant" para la gestión de inventarios y ventas en vivo (tipo TikTok).
+Eres un desarrollador de frontend senior especializado en React, TypeScript y Tailwind CSS. Tu tarea es diseñar y maquetar las pantallas principales para una plataforma SaaS "Multi-Tenant" de gestión de inventario y ventas.
 
-La arquitectura de la base de datos ya está definida usando un enfoque de "Persistence Ignorance" (modelos POCO limpios) y la configuración de relaciones se maneja con Fluent API en el DbContext. Tu tarea es implementar la capa de API (controladores), la lógica de negocio (servicios) y la seguridad, respetando estrictamente los modelos ya creados (Organization, User, Customer, Product, ProductVariant, SalesOrder, etc.).
+La aplicación es una SPA (Single Page Application) que se comunica con una API de .NET. La API maneja la lógica de negocio y la seguridad basada en roles (SuperAdmin, OrgOwner, Seller) y un Portal de Cliente separado.
 
 Novedad Arquitectónica (Portal de Cliente):
-El portal del cliente funcionará con rutas dinámicas por organización (ej: /portal/tienda-de-juan/login). Esto requiere un nuevo endpoint público para obtener la información de la marca (logo) y una lógica de login de cliente más robusta.
+
+El portal del cliente debe funcionar con rutas dinámicas por organización (ej: /portal/tienda-de-juan/login). El frontend es responsable de leer esta ruta, buscar la marca (logo) y gestionar el estado del portal.
 
 Requerimientos Clave
 
-1. Seguridad y Autenticación (JWT)
+Tecnología: React 18+, TypeScript, Tailwind CSS.
 
-Implementa autenticación basada en JWT (Bearer Token).
+Enrutamiento (Routing): Usa react-router-dom. La app debe soportar rutas dinámicas por organización, ej: /portal/:orgSlug/login y /portal/:orgSlug/dashboard.
 
-El endpoint de login recibirá un email y password y devolverá un token.
+Estado: Usa React Context o Zustand para el estado global. Necesitarás gestionar:
 
-El token debe contener "claims" (reclamaciones) esenciales:
+Estado de Autenticación: (Datos del usuario logueado, JWT).
 
-UserId
+Estado de Marca del Portal: (Los datos públicos de la organización: name, logo_url).
 
-OrganizationId (si no es SuperAdmin, esto es crucial)
+Estilo: Diseño profesional, limpio, minimalista y totalmente responsive (mobile-first).
 
-Role (ej: "seller", "owner", "superadmin")
+Componentes: Usa componentes funcionales con Hooks.
 
-Token de Empleado (Seller/Owner/SuperAdmin):
+API: Prepara "hooks" de API (ej: usando react-query o swr) para consumir los endpoints de la API backend (ej: useGetProducts(), useCreateCustomer()).
 
-Debe contener: UserId, OrganizationId (si no es SuperAdmin), Role.
+Lista de Pantallas a Diseñar y Maquetar
 
-Token de Cliente (Customer):
+A. Flujo de Autenticación (Público)
 
-Debe contener: CustomerId, OrganizationId (crucial para saber a qué tienda pertenece), Role: "customer".
+Pantalla de Login de Empleados (Vendedores/Admins):
 
-2. Roles y Autorización (Multi-Tenant)
+Ruta: /login (Ruta simple, no es específica de una organización).
 
-Define políticas de autorización basadas en estos roles:
+Campos: Email, Password.
 
-SuperAdmin (User.IsSuperAdmin == true):
+Llama a POST /api/auth/employee-login.
 
-Acceso global, sin OrganizationId.
+Redirige a /superadmin o /app según el rol.
 
-Puede: Gestionar (CRUD) entidades Organization.
+Pantalla de Login de Clientes (¡MODIFICADA!):
 
-No puede: Ver datos de ninguna organización (productos, clientes, etc.).
+Ruta: /portal/:orgSlug/login
 
-OrgOwner (OrganizationMember.Role == "owner"):
+Lógica de Carga:
 
-Acceso limitado a su propia OrganizationId.
+La página debe leer el parámetro :orgSlug de la URL (ej: "tienda-de-juan").
 
-Puede: Gestionar (CRUD) Products, ProductVariants, Tags de su organización.
+Debe llamar al endpoint público: GET /api/public/organization-by-slug/{orgSlug}.
 
-Puede: Gestionar (CRUD) OrganizationMembers (invitar/eliminar Users de su organización).
+Debe guardar el name y logo_url recibidos en el estado global "Estado de Marca del Portal".
 
-Puede: Realizar todas las acciones de un Seller.
+La página debe mostrar dinámicamente el logo y nombre de la organización. Si el orgSlug es inválido, muestra un error 404.
 
-Seller (OrganizationMember.Role == "seller"):
+Lógica de Login:
 
-Acceso limitado a su propia OrganizationId.
+Campos: Email, Password.
 
-Puede: Gestionar (CRUD) Customers de su organización.
+Al enviar, debe llamar a POST /api/portal/login enviando: { email, password, organizationSlug: orgSlug }.
 
-Puede: Gestionar (CRUD) SalesOrders y SalesOrderItems.
+Almacena el JWT de Cliente y redirige a /portal/:orgSlug/dashboard.
 
-Puede: Crear WalletTransactions (tipo 'deposit') para recargar saldos.
+B. Panel de Super Administrador (Rol: SuperAdmin)
 
-Customer (Autenticado desde el portal):
+Ruta base: /superadmin
 
-Acceso limitado a sus propios datos (identificados por CustomerId y OrganizationId en el JWT).
+Dashboard:
 
-Puede: Leer su Wallet y SalesOrders.
+Resumen simple (ej: "X Organizaciones Activas").
 
-3. Lógica de Negocio (Multi-Tenant OBLIGATORIO)
+Gestión de Organizaciones:
 
-Aislamiento de Datos: Toda la lógica de negocio debe ser Multi-Tenant. Casi todas las consultas a la base de datos (lecturas, escrituras, actualizaciones) deben estar filtradas por la OrganizationId del usuario autenticado.
+Tabla de Organizations.
 
-Un Seller de la 'Organización A' nunca debe poder ver, modificar o acceder a datos de la 'Organización B'.
+Columnas: Nombre, Email de Contacto, Plan, Estado (Activa/Inactiva).
 
-Tareas a Implementar (Controladores y Servicios)
+Acciones: Botones para "Crear Nueva", "Editar", "Activar/Desactivar".
 
-Crea los Controladores (Controllers), Servicios (Services), y DTOs (Data Transfer Objects) necesarios para las siguientes funcionalidades:
+Modal/Formulario para crear/editar una Organization.
 
-1. Módulo de Autenticación (AuthController)
+C. Panel de Tienda (Roles: OrgOwner, Seller)
 
-POST /api/auth/employee-login: Para Users (Sellers, Owners, SuperAdmins). Devuelve JWT de Empleado.
+Ruta base: /app
 
-GET /api/auth/me: Devuelve el perfil del User autenticado (y su OrganizationId y Role si aplica).
+Dashboard de Tienda:
 
-2. Módulo de SuperAdmin (SuperAdminController)
+Resumen de ventas del día, clientes con más saldo, etc. (Datos filtrados por su OrganizationId).
 
-GET /api/superadmin/organizations
+Gestión de Clientes (Customers):
 
-POST /api/superadmin/organizations (Aquí deberías crear el slug único).
+Tabla de clientes de la organización.
 
-PUT /api/superadmin/organizations/{id}
+Columnas: Nombre, Email, Teléfono, Saldo de Billetera.
 
-DELETE /api/superadmin/organizations/{id}
+Acciones: "Crear Cliente", "Editar", "Ver Detalles".
 
-3. Módulo Público (¡NUEVO!) (PublicController)
+Detalle de Cliente (Modal o Página):
 
-GET /api/public/organization-by-slug/{slug}:
+Pestaña 1 (Perfil): Ver/Editar datos del cliente (FirstName, LastName, Email, Notes).
 
-Endpoint PÚBLICO (sin autenticación).
+Pestaña 2 (Billetera):
 
-Busca una Organization por su slug.
+Muestra el Wallet.Balance actual.
 
-Devuelve: Solo datos seguros para la marca: name, logo_url. Nunca devuelvas emails de contacto, claves, o información sensible.
+Formulario simple para "Agregar Fondos" (llama a POST /api/wallets/deposit). Campos: Monto, Notas de la transacción.
 
-4. Módulo de Portal de Cliente (¡NUEVO!) (CustomerPortalController)
+Historial de WalletTransactions (depósitos y gastos).
 
-Endpoint de Login:
+Pestaña 3 (Historial de Compras): Lista de SalesOrders del cliente.
 
-POST /api/portal/login:
+Gestión de Inventario (Products):
 
-Recibe: { email, password, organizationSlug }.
+Vista de cuadrícula o tabla de Products.
 
-Lógica:
+Acciones: "Crear Producto", "Editar".
 
-Busca la Organization por el organizationSlug. Si no existe, devuelve error.
+Formulario de Producto (Modal o Página):
 
-Busca al Customer por email.
+Campos para Product (Nombre, Descripción, Tipo).
 
-Validación Crítica: Verifica que Customer.OrganizationId == Organization.Id.
+Sección para ProductVariants:
 
-Si todo coincide, genera y devuelve un JWT de Customer (con CustomerId y OrganizationId).
+Si el tipo es "simple", un solo formulario (SKU, Precio, Stock).
 
-Endpoints Protegidos (Requieren JWT de Cliente):
+Si el tipo es "variable", una lista dinámica para agregar múltiples variantes (ej: Atributos: { "talla": "M", "color": "Rojo" }, SKU, Precio, Stock).
 
-GET /api/portal/my-wallet:
+Pantalla de Venta LIVE (¡La más importante!):
 
-Lógica: Usa el CustomerId y OrganizationId del token para buscar el Wallet del cliente y su historial de WalletTransactions.
+Layout de dos o tres columnas.
 
-GET /api/portal/my-orders:
+Columna 1: Selector de Customer (buscador rápido de clientes de la organización).
 
-Lógica: Usa el CustomerId y OrganizationId del token para buscar las SalesOrders del cliente.
+Columna 2: Detalles de la SalesOrder activa ('draft').
 
-5. Módulo de Inventario (ProductController)
+Muestra el Customer seleccionado y su Wallet.Balance.
 
-GET /api/products: Devuelve productos filtrados por el OrganizationId del token.
+Lista de SalesOrderItems en el carrito.
 
-POST /api/products: Crea un Product (y sus ProductVariants) para el OrganizationId del token.
+Muestra el SalesOrder.TotalAmount.
 
-PUT /api/products/{id}
+Columna 3: Buscador de Inventario.
 
-DELETE /api/products/{id}
+Input para buscar ProductVariants por SKU o nombre.
 
-(Rutas similares para Tags)
+Al seleccionar un producto, pide quantity y unitPrice (permitiendo editar el precio de lista).
 
-6. Módulo de Clientes (CustomerController)
+Botón "Agregar al Carrito".
 
-GET /api/customers: Devuelve clientes filtrados por el OrganizationId del token.
+Botón principal (grande y claro): "FINALIZAR VENTA" (llama a POST /api/salesorders/{id}/finalize).
 
-GET /api/customers/{id}: Devuelve un cliente específico.
+Gestión de Equipo (Solo para OrgOwner):
 
-POST /api/customers: Crea un Customer y su Wallet asociado (con balance 0).
+Tabla de OrganizationMembers (los Users de su tienda).
 
-PUT /api/customers/{id}
+Acciones: "Invitar Usuario" (por email), "Cambiar Rol", "Eliminar".
 
-7. Módulo de Billetera (WalletController)
+D. Portal del Cliente (Rol: Customer)
 
-POST /api/wallets/deposit:
+Ruta base: /portal
 
-Recibe: { customerId, amount, notes }.
+Dashboard Simple:
 
-Lógica: Busca el Wallet del cliente, crea una WalletTransaction (tipo 'deposit'), y actualiza el Wallet.Balance.
+Muestra su nombre y su Wallet.Balance actual.
 
-Auditoría: El campo AuthorizedByUserId de la transacción debe ser el UserId del Seller que hizo la llamada.
+Historial de Compras:
 
-Debe estar protegido por Seller o OrgOwner.
+Lista de sus SalesOrders (solo las 'completed').
 
-8. Módulo de Venta LIVE (SalesOrderController)
-
-POST /api/salesorders:
-
-Recibe: { customerId }.
-
-Lógica: Crea una SalesOrder en estado 'draft'.
-
-POST /api/salesorders/{orderId}/items:
-
-Recibe: { productVariantId, quantity, unitPrice }.
-
-Lógica Clave: Permite especificar un unit_price diferente al ProductVariant.Price de lista.
-
-Lógica: Crea un SalesOrderItem y recalcula el SalesOrder.TotalAmount.
-
-DELETE /api/salesorders/{orderId}/items/{itemId}
-
-POST /api/salesorders/{orderId}/finalize:
-
-Lógica Crítica:
-
-Cambia el SalesOrder.Status a 'completed'.
-
-Obtiene el Wallet del Customer.
-
-Verifica si Wallet.Balance >= SalesOrder.TotalAmount.
-
-Si hay fondos:
-
-Resta el total del Wallet.Balance.
-
-Crea una WalletTransaction (tipo 'withdrawal') asociada a esta SalesOrder.
-
-Si no hay fondos, devuelve un error.
-
-9. Módulo de Auditoría (Implementación de Servicio)
-
-Crea un AuditLogService que pueda ser inyectado en otros servicios.
-
-Debe tener un método: LogAsync(AuditLog logEntry).
-
-Asegúrate de que el DbContext se sobreescriba (SaveChanges o SaveChangesAsync) para interceptar cambios importantes (ej: UPDATE en Wallets, DELETE en Products) y registrarlos automáticamente en la tabla AuditLog.
+Al hacer clic, muestra un detalle simple de la orden (qué compró y a qué precio).

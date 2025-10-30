@@ -1,12 +1,2 @@
-// tailwind.config.js
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-    content: [
-        "./src/**/*.{js,jsx,ts,tsx}", // ¡Esta es la línea clave!
-        "./public/index.html"
-    ],
-    theme: {
-        extend: {},
-    },
-    plugins: [],
-}
+// Tailwind CSS v4 - la configuraciÃ³n ahora se hace en CSS
+export default {}

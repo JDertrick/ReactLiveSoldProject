@@ -9,7 +9,10 @@
       "Bash(docker ps:*)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef database update --project ../ReactLiveSoldProject.ServerBL)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build)",
-      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" run)"
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" run)",
+      "Bash(cat:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []
