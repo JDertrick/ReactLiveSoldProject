@@ -25,7 +25,7 @@ namespace ReactLiveSoldProject.ServerBL.Models.Authentication
 
         // Propiedades de navegación
         public virtual ICollection<OrganizationMember> Members { get; set; } = new List<OrganizationMember>();
-
+        
         public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
         
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
@@ -35,5 +35,6 @@ namespace ReactLiveSoldProject.ServerBL.Models.Authentication
         public virtual ICollection<SalesOrder> SalesOrders { get; set; } = new List<SalesOrder>();
         
         public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+
     }
 }

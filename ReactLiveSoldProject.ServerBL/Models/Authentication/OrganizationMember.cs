@@ -1,4 +1,8 @@
-﻿namespace ReactLiveSoldProject.ServerBL.Models.Authentication
+﻿using ReactLiveSoldProject.ServerBL.Models.Audit;
+using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
+using ReactLiveSoldProject.ServerBL.Models.Sales;
+
+namespace ReactLiveSoldProject.ServerBL.Models.Authentication
 {
     public class OrganizationMember
     {
