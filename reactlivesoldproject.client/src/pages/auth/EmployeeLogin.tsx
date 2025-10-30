@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEmployeeLogin } from '../../hooks/useAuth';
 import { LoginRequest } from '../../types/auth.types';
+import { useAuthStore } from '../../store/authStore';
 
 const EmployeeLogin = () => {
   const navigate = useNavigate();
@@ -16,14 +17,18 @@ const EmployeeLogin = () => {
     e.preventDefault();
 
     try {
-      await employeeLogin.mutateAsync(formData);
+      const response = await employeeLogin.mutateAsync(formData);
 
-      // Redirect based on role (handled in the hook, but we navigate here)
-      const user = JSON.parse(localStorage.getItem('auth-storage') || '{}').state?.user;
+      console.log('Login response:', response);
+      console.log('User role:', response.user.role);
+      console.log('Auth store state:', useAuthStore.getState());
 
-      if (user?.role === 'SuperAdmin') {
+      // Use the response directly to determine where to navigate
+      if (response.user.role === 'SuperAdmin') {
+        console.log('Navigating to /superadmin');
         navigate('/superadmin');
       } else {
+        console.log('Navigating to /app');
         navigate('/app');
       }
     } catch (error) {

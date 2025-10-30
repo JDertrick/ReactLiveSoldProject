@@ -20,12 +20,12 @@ export const useEmployeeLogin = () => {
     },
     onSuccess: (data) => {
       const user = {
-        id: data.userId || '',
-        email: data.email,
-        firstName: data.name?.split(' ')[0],
-        lastName: data.name?.split(' ').slice(1).join(' '),
-        role: data.role,
-        organizationId: data.organizationId,
+        id: data.user.id,
+        email: data.user.email,
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        role: data.user.role,
+        organizationId: data.user.organizationId,
       };
       login(data.token, user);
     },
@@ -43,12 +43,12 @@ export const useCustomerPortalLogin = () => {
     },
     onSuccess: (data) => {
       const user = {
-        id: data.userId || '',
-        email: data.email,
-        firstName: data.name?.split(' ')[0],
-        lastName: data.name?.split(' ').slice(1).join(' '),
-        role: 'Customer',
-        organizationId: data.organizationId,
+        id: data.user.id,
+        email: data.user.email,
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        role: data.user.role,
+        organizationId: data.user.organizationId,
       };
       login(data.token, user);
     },

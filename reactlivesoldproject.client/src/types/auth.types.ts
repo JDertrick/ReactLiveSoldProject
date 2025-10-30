@@ -12,10 +12,15 @@ export interface CustomerPortalLoginRequest {
 
 export interface LoginResponse {
   token: string;
-  email: string;
-  role: string;
-  organizationId?: string;
-  name?: string;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    organizationId?: string;
+    isSuperAdmin: boolean;
+  };
 }
 
 export interface UserProfile {
