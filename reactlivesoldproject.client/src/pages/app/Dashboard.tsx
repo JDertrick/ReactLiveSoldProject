@@ -1,12 +1,14 @@
 import { useGetCustomers } from '../../hooks/useCustomers';
 import { useGetProducts } from '../../hooks/useProducts';
+import { useGetSalesOrders } from '../../hooks/useSalesOrders';
 import { Link } from 'react-router-dom';
 
 const AppDashboard = () => {
   const { data: customers, isLoading: customersLoading } = useGetCustomers();
   const { data: products, isLoading: productsLoading } = useGetProducts(false);
+  const { data: salesOrders, isLoading: ordersLoading } = useGetSalesOrders();
 
-  const isLoading = customersLoading || productsLoading;
+  const isLoading = customersLoading || productsLoading || ordersLoading;
 
   const activeCustomers = customers?.filter((c) => c.isActive).length || 0;
   const totalProducts = products?.length || 0;
@@ -16,6 +18,11 @@ const AppDashboard = () => {
   const totalWalletBalance = customers?.reduce((sum, customer) => {
     return sum + (customer.wallet?.balance || 0);
   }, 0) || 0;
+
+  // Calculate sales statistics
+  const totalOrders = salesOrders?.length || 0;
+  const totalRevenue = salesOrders?.reduce((sum, order) => sum + order.totalAmount, 0) || 0;
+  const recentOrders = salesOrders?.slice(0, 5) || [];
 
   if (isLoading) {
     return (
@@ -37,7 +44,7 @@ const AppDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -169,6 +176,74 @@ const AppDashboard = () => {
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
                       ${totalWalletBalance.toFixed(2)}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-6 w-6 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  />
+                </svg>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Total Orders
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {totalOrders}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-6 w-6 text-indigo-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Total Revenue
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      ${totalRevenue.toFixed(2)}
                     </div>
                   </dd>
                 </dl>
@@ -339,6 +414,57 @@ const AppDashboard = () => {
                   View all customers <span aria-hidden="true">&rarr;</span>
                 </Link>
               </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Orders */}
+      <div className="mt-8">
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Recent Orders
+            </h3>
+          </div>
+          <div className="px-4 py-5 sm:p-6">
+            {recentOrders.length > 0 ? (
+              <div className="flow-root">
+                <ul className="-my-5 divide-y divide-gray-200">
+                  {recentOrders.map((order) => (
+                    <li key={order.id} className="py-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-900">
+                              Order #{order.orderNumber || order.id.slice(0, 8)}
+                            </p>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                order.status === 'Finalized'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}
+                            >
+                              {order.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {order.customerName} • {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="ml-4 flex-shrink-0">
+                          <span className="text-sm font-semibold text-gray-900">
+                            ${order.totalAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No orders yet. Start your first live sale to create orders.</p>
             )}
           </div>
         </div>

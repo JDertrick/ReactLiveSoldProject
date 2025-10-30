@@ -1,13 +1,29 @@
 import { useAuthStore } from '../../store/authStore';
 import { usePortalBrandStore } from '../../store/portalBrandStore';
+import { useGetCustomerWallet } from '../../hooks/useWallet';
+import { useGetCustomerOrders } from '../../hooks/useSalesOrders';
 
 const CustomerDashboard = () => {
   const { user } = useAuthStore();
   const { organizationName } = usePortalBrandStore();
 
-  // TODO: Fetch customer data and wallet transactions from API
-  const walletBalance = 0; // Placeholder
-  const recentOrders = []; // Placeholder
+  const { data: wallet, isLoading: walletLoading } = useGetCustomerWallet(user?.id || '');
+  const { data: orders, isLoading: ordersLoading } = useGetCustomerOrders(user?.id || '');
+
+  const walletBalance = wallet?.balance || 0;
+  const recentOrders = orders?.slice(0, 5) || [];
+  const totalSpent = orders?.reduce((sum, order) => sum + order.totalAmount, 0) || 0;
+  const totalItems = orders?.reduce((sum, order) => sum + (order.items?.length || 0), 0) || 0;
+
+  const isLoading = walletLoading || ordersLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -79,7 +95,7 @@ const CustomerDashboard = () => {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {recentOrders.length}
+                      {orders?.length || 0}
                     </div>
                   </dd>
                 </dl>
@@ -113,7 +129,7 @@ const CustomerDashboard = () => {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      $0.00
+                      ${totalSpent.toFixed(2)}
                     </div>
                   </dd>
                 </dl>
@@ -147,7 +163,7 @@ const CustomerDashboard = () => {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      0
+                      {totalItems}
                     </div>
                   </dd>
                 </dl>
@@ -203,7 +219,36 @@ const CustomerDashboard = () => {
           {recentOrders.length > 0 ? (
             <div className="flow-root">
               <ul className="-my-5 divide-y divide-gray-200">
-                {/* Order items would go here */}
+                {recentOrders.map((order: any) => (
+                  <li key={order.id} className="py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-gray-900">
+                            Order #{order.orderNumber || order.id.slice(0, 8)}
+                          </p>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              order.status === 'Finalized'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            {order.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {new Date(order.createdAt).toLocaleDateString()} - {order.items?.length || 0} items
+                        </p>
+                      </div>
+                      <div className="ml-4 flex-shrink-0">
+                        <span className="text-sm font-semibold text-gray-900">
+                          ${order.totalAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
               </ul>
             </div>
           ) : (

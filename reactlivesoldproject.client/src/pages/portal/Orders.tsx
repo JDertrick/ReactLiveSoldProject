@@ -1,6 +1,17 @@
+import { useAuthStore } from '../../store/authStore';
+import { useGetCustomerOrders } from '../../hooks/useSalesOrders';
+
 const CustomerOrders = () => {
-  // TODO: Fetch customer orders from API
-  const orders: any[] = []; // Placeholder
+  const { user } = useAuthStore();
+  const { data: orders, isLoading } = useGetCustomerOrders(user?.id || '');
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -14,7 +25,7 @@ const CustomerOrders = () => {
       </div>
 
       <div className="mt-8">
-        {orders.length > 0 ? (
+        {orders && orders.length > 0 ? (
           <div className="space-y-6">
             {orders.map((order: any) => (
               <div key={order.id} className="bg-white shadow rounded-lg overflow-hidden">
