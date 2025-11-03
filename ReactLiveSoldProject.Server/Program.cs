@@ -80,7 +80,12 @@ builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.ISalesOrderSer
 // Helpers
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configurar enums para que se serialicen como strings en lugar de números
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // Swagger/OpenAPI with JWT support
 builder.Services.AddEndpointsApiExplorer();

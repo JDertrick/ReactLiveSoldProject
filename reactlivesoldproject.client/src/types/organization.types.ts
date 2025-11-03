@@ -22,3 +22,11 @@ export interface CreateOrganizationDto {
   primaryContactEmail: string;
   planType: string;
 }
+
+export interface UpdateOrganizationDto {
+  name: string;
+  slug?: string;
+  logoUrl?: string;
+  primaryContactEmail: string;
+  planType: string;
+}
