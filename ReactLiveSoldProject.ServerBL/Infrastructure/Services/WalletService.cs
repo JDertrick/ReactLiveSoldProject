@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 
-namespace ReactLiveSoldProject.ServerBL.Services
+namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class WalletService : IWalletService
     {

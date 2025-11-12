@@ -1,6 +1,6 @@
 using ReactLiveSoldProject.ServerBL.DTOs;
 
-namespace ReactLiveSoldProject.ServerBL.Services
+namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
 {
     public interface IWalletService
     {

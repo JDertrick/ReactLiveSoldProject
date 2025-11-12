@@ -2,9 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Helpers;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
 
-namespace ReactLiveSoldProject.ServerBL.Services
+namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class OrganizationService : IOrganizationService
     {

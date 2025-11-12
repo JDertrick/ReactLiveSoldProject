@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 
-namespace ReactLiveSoldProject.ServerBL.Services
+namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class ProductService : IProductService
     {
@@ -53,7 +54,7 @@ namespace ReactLiveSoldProject.ServerBL.Services
                     .ThenInclude(pt => pt.Tag)
                 .Where(p => p.OrganizationId == organizationId &&
                     (p.Name.ToLower().Contains(normalizedSearch) ||
-                     (p.Description != null && p.Description.ToLower().Contains(normalizedSearch))))
+                     p.Description != null && p.Description.ToLower().Contains(normalizedSearch)))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 

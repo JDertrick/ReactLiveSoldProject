@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ReactLiveSoldProject.ServerBL.Base;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,12 +72,12 @@ builder.Services.AddCors(options =>
 });
 
 // Services
-builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IAuthService, ReactLiveSoldProject.ServerBL.Services.AuthService>();
-builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IOrganizationService, ReactLiveSoldProject.ServerBL.Services.OrganizationService>();
-builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.ICustomerService, ReactLiveSoldProject.ServerBL.Services.CustomerService>();
-builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IProductService, ReactLiveSoldProject.ServerBL.Services.ProductService>();
-builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.IWalletService, ReactLiveSoldProject.ServerBL.Services.WalletService>();
-builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Services.ISalesOrderService, ReactLiveSoldProject.ServerBL.Services.SalesOrderService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
 
 // Helpers
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();

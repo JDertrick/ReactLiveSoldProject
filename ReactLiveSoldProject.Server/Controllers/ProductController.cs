@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReactLiveSoldProject.ServerBL.DTOs;
-using ReactLiveSoldProject.ServerBL.Services;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 
 namespace ReactLiveSoldProject.Server.Controllers
 {

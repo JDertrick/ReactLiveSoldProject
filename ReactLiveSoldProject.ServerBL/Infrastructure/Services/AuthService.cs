@@ -2,8 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Helpers;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 
-namespace ReactLiveSoldProject.ServerBL.Services
+namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class AuthService : IAuthService
     {

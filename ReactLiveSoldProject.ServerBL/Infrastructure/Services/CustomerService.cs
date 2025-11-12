@@ -2,9 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Helpers;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 
-namespace ReactLiveSoldProject.ServerBL.Services
+namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class CustomerService : ICustomerService
     {
@@ -46,9 +47,9 @@ namespace ReactLiveSoldProject.ServerBL.Services
                 .Include(c => c.AssignedSeller)
                 .Where(c => c.OrganizationId == organizationId &&
                     (c.Email.ToLower().Contains(normalizedSearch) ||
-                     (c.FirstName != null && c.FirstName.ToLower().Contains(normalizedSearch)) ||
-                     (c.LastName != null && c.LastName.ToLower().Contains(normalizedSearch)) ||
-                     (c.Phone != null && c.Phone.Contains(normalizedSearch))))
+                     c.FirstName != null && c.FirstName.ToLower().Contains(normalizedSearch) ||
+                     c.LastName != null && c.LastName.ToLower().Contains(normalizedSearch) ||
+                     c.Phone != null && c.Phone.Contains(normalizedSearch)))
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
 
