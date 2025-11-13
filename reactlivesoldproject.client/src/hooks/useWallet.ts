@@ -43,7 +43,9 @@ export const useCreateWalletTransaction = () => {
 
   return useMutation({
     mutationFn: async (data: CreateWalletTransactionDto): Promise<WalletTransaction> => {
-      const response = await apiClient.post('/wallet/transaction', data);
+      // Determine endpoint based on transaction type
+      const endpoint = data.type.toLowerCase() === 'deposit' ? '/wallet/deposit' : '/wallet/withdrawal';
+      const response = await apiClient.post(endpoint, data);
       return response.data;
     },
     onSuccess: (_, variables) => {

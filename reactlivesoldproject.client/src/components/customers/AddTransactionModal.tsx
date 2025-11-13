@@ -19,7 +19,9 @@ export const AddTransactionModal = ({
   onClose,
   customer,
 }: AddTransactionModalProps) => {
-  const [transactionType, setTransactionType] = useState<"Credit" | "Debit">("Credit");
+  const [transactionType, setTransactionType] = useState<
+    "Deposit" | "Withdrawal"
+  >("Deposit");
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ amount?: string; notes?: string }>({});
@@ -60,7 +62,7 @@ export const AddTransactionModal = ({
       setAmount("");
       setNotes("");
       setErrors({});
-      setTransactionType("Credit");
+      setTransactionType("Deposit");
       onClose();
     } catch (error) {
       console.error("Error creating transaction:", error);
@@ -72,14 +74,14 @@ export const AddTransactionModal = ({
       setAmount("");
       setNotes("");
       setErrors({});
-      setTransactionType("Credit");
+      setTransactionType("Deposit");
       onClose();
     }
   };
 
   const currentBalance = customer.wallet?.balance ?? 0;
   const projectedBalance =
-    transactionType === "Credit"
+    transactionType === "Deposit"
       ? currentBalance + (parseFloat(amount) || 0)
       : currentBalance - (parseFloat(amount) || 0);
 
@@ -109,8 +111,18 @@ export const AddTransactionModal = ({
                     disabled={createTransaction.isPending}
                     className="text-white/80 hover:text-white transition-colors disabled:opacity-50"
                   >
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -128,18 +140,28 @@ export const AddTransactionModal = ({
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setTransactionType("Credit")}
+                      onClick={() => setTransactionType("Deposit")}
                       className={`relative flex items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition-all ${
-                        transactionType === "Credit"
+                        transactionType === "Deposit"
                           ? "bg-green-600 text-white shadow-lg shadow-green-600/50 scale-105"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                       Add Funds
-                      {transactionType === "Credit" && (
+                      {transactionType === "Deposit" && (
                         <span className="absolute -top-1 -right-1 flex h-3 w-3">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
@@ -149,18 +171,28 @@ export const AddTransactionModal = ({
 
                     <button
                       type="button"
-                      onClick={() => setTransactionType("Debit")}
+                      onClick={() => setTransactionType("Withdrawal")}
                       className={`relative flex items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition-all ${
-                        transactionType === "Debit"
+                        transactionType === "Withdrawal"
                           ? "bg-red-600 text-white shadow-lg shadow-red-600/50 scale-105"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M20 12H4"
+                        />
                       </svg>
                       Deduct Funds
-                      {transactionType === "Debit" && (
+                      {transactionType === "Withdrawal" && (
                         <span className="absolute -top-1 -right-1 flex h-3 w-3">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -172,12 +204,17 @@ export const AddTransactionModal = ({
 
                 {/* Amount Input */}
                 <div>
-                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="amount"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Amount
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-gray-500 text-lg font-semibold">$</span>
+                      <span className="text-gray-500 text-lg font-semibold">
+                        $
+                      </span>
                     </div>
                     <input
                       type="number"
@@ -201,8 +238,16 @@ export const AddTransactionModal = ({
                   </div>
                   {errors.amount && (
                     <p className="mt-2 text-sm text-red-600 flex items-center">
-                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 mr-1"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       {errors.amount}
                     </p>
@@ -214,26 +259,53 @@ export const AddTransactionModal = ({
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2 animate-fadeIn">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Current Balance:</span>
-                      <span className="font-semibold text-gray-900">${currentBalance.toFixed(2)}</span>
+                      <span className="font-semibold text-gray-900">
+                        ${currentBalance.toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">
-                        {transactionType === "Credit" ? "Adding:" : "Deducting:"}
+                        {transactionType === "Deposit"
+                          ? "Adding:"
+                          : "Deducting:"}
                       </span>
-                      <span className={`font-semibold ${transactionType === "Credit" ? "text-green-600" : "text-red-600"}`}>
-                        {transactionType === "Credit" ? "+" : "-"}${parseFloat(amount).toFixed(2)}
+                      <span
+                        className={`font-semibold ${
+                          transactionType === "Deposit"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {transactionType === "Deposit" ? "+" : "-"}$
+                        {parseFloat(amount).toFixed(2)}
                       </span>
                     </div>
                     <div className="pt-2 border-t border-gray-300 flex justify-between">
-                      <span className="text-sm font-semibold text-gray-900">New Balance:</span>
-                      <span className={`text-lg font-bold ${projectedBalance >= 0 ? "text-indigo-600" : "text-red-600"}`}>
+                      <span className="text-sm font-semibold text-gray-900">
+                        New Balance:
+                      </span>
+                      <span
+                        className={`text-lg font-bold ${
+                          projectedBalance >= 0
+                            ? "text-indigo-600"
+                            : "text-red-600"
+                        }`}
+                      >
                         ${projectedBalance.toFixed(2)}
                       </span>
                     </div>
                     {projectedBalance < 0 && (
                       <div className="flex items-center text-xs text-amber-700 bg-amber-50 rounded-md px-3 py-2 mt-2">
-                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         Warning: This will result in a negative balance
                       </div>
@@ -243,8 +315,14 @@ export const AddTransactionModal = ({
 
                 {/* Notes */}
                 <div>
-                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                    Notes <span className="text-gray-400 font-normal">(optional)</span>
+                  <label
+                    htmlFor="notes"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Notes{" "}
+                    <span className="text-gray-400 font-normal">
+                      (optional)
+                    </span>
                   </label>
                   <textarea
                     id="notes"
@@ -267,24 +345,45 @@ export const AddTransactionModal = ({
               <div className="bg-gray-50 px-6 py-4 flex flex-row-reverse gap-3">
                 <button
                   type="submit"
-                  disabled={createTransaction.isPending || !amount || parseFloat(amount) <= 0}
+                  disabled={
+                    createTransaction.isPending ||
+                    !amount ||
+                    parseFloat(amount) <= 0
+                  }
                   className={`inline-flex justify-center items-center rounded-lg px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                    transactionType === "Credit"
+                    transactionType === "Deposit"
                       ? "bg-green-600 hover:bg-green-700 hover:shadow-green-600/50"
                       : "bg-red-600 hover:bg-red-700 hover:shadow-red-600/50"
                   }`}
                 >
                   {createTransaction.isPending ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Processing...
                     </>
                   ) : (
                     <>
-                      {transactionType === "Credit" ? "Add Funds" : "Deduct Funds"}
+                      {transactionType === "Deposit"
+                        ? "Add Funds"
+                        : "Deduct Funds"}
                     </>
                   )}
                 </button>
