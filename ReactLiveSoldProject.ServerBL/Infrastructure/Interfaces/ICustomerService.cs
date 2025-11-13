@@ -33,5 +33,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// Elimina un cliente (solo si no tiene órdenes o transacciones)
         /// </summary>
         Task DeleteCustomerAsync(Guid customerId, Guid organizationId);
+
+        /// <summary>
+        /// Registra un nuevo cliente desde el portal público usando el slug de la organización
+        /// </summary>
+        Task<CustomerDto> RegisterCustomerAsync(RegisterCustomerDto dto);
     }
 }

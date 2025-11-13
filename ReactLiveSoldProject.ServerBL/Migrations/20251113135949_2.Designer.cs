@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReactLiveSoldProject.ServerBL.Base;
@@ -11,9 +12,11 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    partial class LiveSoldDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251113135949_2")]
+    partial class _2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -317,12 +320,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("decimal(10, 2)")
                         .HasDefaultValue(0.00m)
                         .HasColumnName("balance");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid")

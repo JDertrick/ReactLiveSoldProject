@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useCustomerPortalLogin } from "../../hooks/useAuth";
 import { usePortalBrandStore } from "../../store/portalBrandStore";
 import apiClient from "../../services/api";
@@ -221,6 +221,15 @@ const CustomerPortalLogin = () => {
                 "Sign in"
               )}
             </button>
+          </div>
+
+          <div className="text-center">
+            <Link
+              to={`/portal/${orgSlug}/register`}
+              className="text-sm text-indigo-600 hover:text-indigo-500"
+            >
+              Don't have an account? Create one
+            </Link>
           </div>
         </form>
       </div>

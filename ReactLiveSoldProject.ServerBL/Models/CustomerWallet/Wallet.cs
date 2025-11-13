@@ -21,6 +21,8 @@ namespace ReactLiveSoldProject.ServerBL.Models.CustomerWallet
         [Range(0, double.MaxValue, ErrorMessage = "El balance no puede ser negativo")]
         public decimal Balance { get; set; } = 0.00m;
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Propiedades de navegación

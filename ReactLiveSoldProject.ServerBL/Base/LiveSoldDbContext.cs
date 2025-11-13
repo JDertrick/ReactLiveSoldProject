@@ -150,6 +150,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(w => w.OrganizationId).HasColumnName("organization_id").IsRequired();
                 e.Property(w => w.CustomerId).HasColumnName("customer_id").IsRequired();
                 e.Property(w => w.Balance).HasColumnName("balance").HasColumnType("decimal(10, 2)").IsRequired().HasDefaultValue(0.00m);
+                e.Property(w => w.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(w => w.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
                 e.HasIndex(w => w.CustomerId).IsUnique(); // Relación 1-a-1
@@ -226,6 +227,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(p => p.Description).HasColumnName("description");
                 e.Property(p => p.ProductType).HasColumnName("product_type").HasConversion<string>().IsRequired().HasDefaultValue(ProductType.Simple);
                 e.Property(p => p.IsPublished).HasColumnName("is_published").IsRequired().HasDefaultValue(true);
+                e.Property(p => p.ImageUrl).HasColumnName("image_url").IsRequired(false);
+                e.Property(p => p.BasePrice).HasColumnName("base_price").HasDefaultValue(0);
                 e.Property(p => p.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(p => p.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
@@ -264,6 +267,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(pv => pv.Price).HasColumnName("price").HasColumnType("decimal(10, 2)").IsRequired().HasDefaultValue(0.00m);
                 e.Property(pv => pv.StockQuantity).HasColumnName("stock_quantity").IsRequired().HasDefaultValue(0);
                 e.Property(pv => pv.Attributes).HasColumnName("attributes").HasColumnType("jsonb");
+                e.Property(pv => pv.ImageUrl).HasColumnName("image_url");
+                e.Property(pv => pv.Size).HasColumnName("size").IsRequired(false);
+                e.Property(pv => pv.Color).HasColumnName("color").IsRequired(false);
                 e.Property(pv => pv.ImageUrl).HasColumnName("image_url");
                 e.Property(pv => pv.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(pv => pv.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");

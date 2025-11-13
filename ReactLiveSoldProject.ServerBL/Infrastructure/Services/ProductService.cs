@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -9,10 +10,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class ProductService : IProductService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public ProductService(LiveSoldDbContext dbContext)
+        public ProductService(LiveSoldDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         public async Task<List<ProductDto>> GetProductsByOrganizationAsync(Guid organizationId, bool includeUnpublished = false)
@@ -30,7 +33,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return products.Select(p => MapToDto(p)).ToList();
+            return _mapper.Map<List<ProductDto>>(products);
         }
 
         public async Task<ProductDto?> GetProductByIdAsync(Guid productId, Guid organizationId)
@@ -41,7 +44,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .ThenInclude(pt => pt.Tag)
                 .FirstOrDefaultAsync(p => p.Id == productId && p.OrganizationId == organizationId);
 
-            return product != null ? MapToDto(product) : null;
+            return product != null ? _mapper.Map<ProductDto>(product) : null;
         }
 
         public async Task<List<ProductDto>> SearchProductsAsync(Guid organizationId, string searchTerm)
@@ -58,7 +61,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return products.Select(p => MapToDto(p)).ToList();
+            return _mapper.Map<List<ProductDto>>(products);
         }
 
         public async Task<ProductDto> CreateProductAsync(Guid organizationId, CreateProductDto dto)
@@ -103,22 +106,18 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
                 _dbContext.Products.Add(product);
 
-                // Crear las variantes
+                // Crear las variantes usando AutoMapper
                 foreach (var variantDto in dto.Variants)
                 {
-                    var variant = new ProductVariant
-                    {
-                        Id = Guid.NewGuid(),
-                        OrganizationId = organizationId,
-                        ProductId = productId,
-                        Sku = variantDto.Sku,
-                        Price = variantDto.Price,
-                        StockQuantity = variantDto.StockQuantity,
-                        Attributes = variantDto.Attributes,
-                        ImageUrl = variantDto.ImageUrl,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
+                    var variant = _mapper.Map<ProductVariant>(variantDto);
+                    variant.Id = Guid.NewGuid();
+                    variant.OrganizationId = organizationId;
+                    variant.ProductId = productId;
+                    variant.CreatedAt = DateTime.UtcNow;
+                    variant.UpdatedAt = DateTime.UtcNow;
+
+                    // Parsear attributes para Size y Color
+                    ParseVariantAttributes(variant);
 
                     _dbContext.ProductVariants.Add(variant);
                 }
@@ -144,7 +143,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                         .ThenInclude(pt => pt.Tag)
                     .FirstAsync(p => p.Id == productId);
 
-                return MapToDto(createdProduct);
+                return _mapper.Map<ProductDto>(createdProduct);
             }
             catch (Exception ex)
             {
@@ -155,68 +154,108 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
         public async Task<ProductDto> UpdateProductAsync(Guid productId, Guid organizationId, UpdateProductDto dto)
         {
-            var product = await _dbContext.Products
+            try
+            {
+                var product = await _dbContext.Products
                 .Include(p => p.Variants)
                 .Include(p => p.TagLinks)
                     .ThenInclude(pt => pt.Tag)
                 .FirstOrDefaultAsync(p => p.Id == productId && p.OrganizationId == organizationId);
 
-            if (product == null)
-                throw new KeyNotFoundException("Producto no encontrado");
+                if (product == null)
+                    throw new KeyNotFoundException("Producto no encontrado");
 
-            // Validar ProductType
-            if (!Enum.TryParse<ProductType>(dto.ProductType, out var productType))
-                throw new InvalidOperationException($"Tipo de producto inválido: {dto.ProductType}");
+                // Validar ProductType
+                if (!Enum.TryParse<ProductType>(dto.ProductType, out var productType))
+                    throw new InvalidOperationException($"Tipo de producto inválido: {dto.ProductType}");
 
-            // Verificar que los tags existan
-            if (dto.TagIds.Any())
-            {
-                var existingTagIds = await _dbContext.Tags
-                    .Where(t => t.OrganizationId == organizationId && dto.TagIds.Contains(t.Id))
-                    .Select(t => t.Id)
+                // Verificar que los tags existan
+                if (dto.TagIds.Any())
+                {
+                    var existingTagIds = await _dbContext.Tags
+                        .Where(t => t.OrganizationId == organizationId && dto.TagIds.Contains(t.Id))
+                        .Select(t => t.Id)
+                        .ToListAsync();
+
+                    var invalidTagIds = dto.TagIds.Except(existingTagIds).ToList();
+                    if (invalidTagIds.Any())
+                        throw new InvalidOperationException($"Tags no encontrados: {string.Join(", ", invalidTagIds)}");
+                }
+
+                // Actualizar campos
+                product.Name = dto.Name;
+                product.Description = dto.Description;
+                product.ProductType = productType;
+                product.BasePrice = dto.BasePrice;
+                product.ImageUrl = dto.ImageUrl;
+                product.IsPublished = dto.IsPublished;
+                product.UpdatedAt = DateTime.UtcNow;
+
+                // Actualizar tags (eliminar existentes y agregar nuevos)
+                var existingProductTags = await _dbContext.ProductTags
+                    .Where(pt => pt.ProductId == productId)
                     .ToListAsync();
 
-                var invalidTagIds = dto.TagIds.Except(existingTagIds).ToList();
-                if (invalidTagIds.Any())
-                    throw new InvalidOperationException($"Tags no encontrados: {string.Join(", ", invalidTagIds)}");
-            }
+                _dbContext.ProductTags.RemoveRange(existingProductTags);
 
-            // Actualizar campos
-            product.Name = dto.Name;
-            product.Description = dto.Description;
-            product.ProductType = productType;
-            product.BasePrice = dto.BasePrice;
-            product.IsPublished = dto.IsPublished;
-            product.UpdatedAt = DateTime.UtcNow;
-
-            // Actualizar tags (eliminar existentes y agregar nuevos)
-            var existingProductTags = await _dbContext.ProductTags
-                .Where(pt => pt.ProductId == productId)
-                .ToListAsync();
-
-            _dbContext.ProductTags.RemoveRange(existingProductTags);
-
-            foreach (var tagId in dto.TagIds)
-            {
-                var productTag = new ProductTag
+                foreach (var tagId in dto.TagIds)
                 {
-                    ProductId = productId,
-                    TagId = tagId
-                };
+                    var productTag = new ProductTag
+                    {
+                        ProductId = productId,
+                        TagId = tagId
+                    };
 
-                _dbContext.ProductTags.Add(productTag);
+                    _dbContext.ProductTags.Add(productTag);
+                }
+
+                // Actualizar variantes si se proporcionaron
+                if (dto.Variants != null)
+                {
+                    // Eliminar todas las variantes existentes
+                    if (product.Variants != null && product.Variants.Any())
+                    {
+                        _dbContext.ProductVariants.RemoveRange(product.Variants);
+                    }
+
+                    // Agregar las nuevas variantes usando AutoMapper
+                    foreach (var variantDto in dto.Variants)
+                    {
+                        var variant = _mapper.Map<ProductVariant>(variantDto);
+                        variant.Id = Guid.NewGuid();
+                        variant.OrganizationId = organizationId;
+                        variant.ProductId = productId;
+                        variant.CreatedAt = DateTime.UtcNow;
+                        variant.UpdatedAt = DateTime.UtcNow;
+
+                        // Parsear attributes para Size y Color
+                        ParseVariantAttributes(variant);
+
+                        _dbContext.ProductVariants.Add(variant);
+                    }
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                // Recargar con relaciones actualizadas
+                await _dbContext.Entry(product).Collection(p => p.TagLinks).LoadAsync();
+                foreach (var tagLink in product.TagLinks)
+                {
+                    await _dbContext.Entry(tagLink).Reference(pt => pt.Tag).LoadAsync();
+                }
+
+                // Recargar variantes si se actualizaron
+                if (dto.Variants != null)
+                {
+                    await _dbContext.Entry(product).Collection(p => p.Variants).LoadAsync();
+                }
+
+                return _mapper.Map<ProductDto>(product);
             }
-
-            await _dbContext.SaveChangesAsync();
-
-            // Recargar con relaciones actualizadas
-            await _dbContext.Entry(product).Collection(p => p.TagLinks).LoadAsync();
-            foreach (var tagLink in product.TagLinks)
+            catch (Exception ex)
             {
-                await _dbContext.Entry(tagLink).Reference(pt => pt.Tag).LoadAsync();
-            }
-
-            return MapToDto(product);
+                throw ex;
+            }            
         }
 
         public async Task DeleteProductAsync(Guid productId, Guid organizationId)
@@ -407,38 +446,27 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        private static ProductDto MapToDto(Product product)
+        /// <summary>
+        /// Helper method para parsear attributes JSON y asignar Size y Color
+        /// </summary>
+        private static void ParseVariantAttributes(ProductVariant variant)
         {
-            return new ProductDto
+            if (!string.IsNullOrEmpty(variant.Attributes))
             {
-                Id = product.Id,
-                OrganizationId = product.OrganizationId,
-                Name = product.Name,
-                Description = product.Description,
-                ProductType = product.ProductType.ToString(),
-                IsPublished = product.IsPublished,
-                BasePrice = product.BasePrice,
-                Tags = product.TagLinks?.Select(pt => new TagDto
+                try
                 {
-                    Id = pt.Tag.Id,
-                    OrganizationId = pt.Tag.OrganizationId,
-                    Name = pt.Tag.Name
-                }).ToList() ?? new List<TagDto>(),
-                Variants = product.Variants?.Select(v => new ProductVariantDto
+                    var attrs = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(variant.Attributes);
+                    if (attrs != null)
+                    {
+                        variant.Size = attrs.ContainsKey("size") ? attrs["size"] : null;
+                        variant.Color = attrs.ContainsKey("color") ? attrs["color"] : null;
+                    }
+                }
+                catch
                 {
-                    Id = v.Id,
-                    ProductId = v.ProductId,
-                    Sku = v.Sku,
-                    Price = v.Price,
-                    StockQuantity = v.StockQuantity,
-                    Attributes = v.Attributes,
-                    ImageUrl = v.ImageUrl,
-                    CreatedAt = v.CreatedAt,
-                    UpdatedAt = v.UpdatedAt
-                }).ToList() ?? new List<ProductVariantDto>(),
-                CreatedAt = product.CreatedAt,
-                UpdatedAt = product.UpdatedAt
-            };
+                    // Si falla el parsing, continuar sin size/color
+                }
+            }
         }
     }
 }

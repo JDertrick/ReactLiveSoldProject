@@ -8,6 +8,7 @@ import PortalLayout from "../components/common/PortalLayout";
 // Auth Pages
 import EmployeeLogin from "../pages/auth/EmployeeLogin";
 import CustomerPortalLogin from "../pages/auth/CustomerPortalLogin";
+import CustomerPortalRegister from "../pages/auth/CustomerPortalRegister";
 
 // SuperAdmin Pages
 import SuperAdminDashboard from "../pages/superadmin/Dashboard";
@@ -58,6 +59,10 @@ export const router = createBrowserRouter([
   {
     path: "/portal/:orgSlug/login",
     element: <CustomerPortalLogin />,
+  },
+  {
+    path: "/portal/:orgSlug/register",
+    element: <CustomerPortalRegister />,
   },
   {
     path: "/superadmin",

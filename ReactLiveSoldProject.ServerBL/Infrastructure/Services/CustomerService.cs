@@ -211,6 +211,73 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task<CustomerDto> RegisterCustomerAsync(RegisterCustomerDto dto)
+        {
+            // Obtener la organización por slug
+            var organization = await _dbContext.Organizations
+                .FirstOrDefaultAsync(o => o.Slug == dto.OrganizationSlug);
+
+            if (organization == null)
+                throw new KeyNotFoundException("Organización no encontrada");
+
+            // Verificar que no exista un cliente con el mismo email en esta organización
+            var existingCustomer = await _dbContext.Customers
+                .FirstOrDefaultAsync(c => c.OrganizationId == organization.Id && c.Email == dto.Email);
+
+            if (existingCustomer != null)
+                throw new InvalidOperationException("Ya existe una cuenta con este email");
+
+            // Si tiene teléfono, verificar que tampoco exista
+            if (!string.IsNullOrWhiteSpace(dto.Phone))
+            {
+                var existingPhone = await _dbContext.Customers
+                    .FirstOrDefaultAsync(c => c.OrganizationId == organization.Id && c.Phone == dto.Phone);
+
+                if (existingPhone != null)
+                    throw new InvalidOperationException("Ya existe una cuenta con este teléfono");
+            }
+
+            // Crear el cliente
+            var customerId = Guid.NewGuid();
+            var customer = new Customer
+            {
+                Id = customerId,
+                OrganizationId = organization.Id,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                PasswordHash = PasswordHelper.HashPassword(dto.Password),
+                AssignedSellerId = null, // No hay vendedor asignado en registro público
+                Notes = null,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.Customers.Add(customer);
+
+            // Crear automáticamente el wallet para el cliente
+            var wallet = new Wallet
+            {
+                Id = Guid.NewGuid(),
+                OrganizationId = organization.Id,
+                CustomerId = customerId,
+                Balance = 0.00m,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.Wallets.Add(wallet);
+
+            await _dbContext.SaveChangesAsync();
+
+            // Recargar con wallet incluido
+            var createdCustomer = await _dbContext.Customers
+                .Include(c => c.Wallet)
+                .FirstAsync(c => c.Id == customerId);
+
+            return MapToDto(createdCustomer);
+        }
+
         private static CustomerDto MapToDto(Customer customer)
         {
             return new CustomerDto

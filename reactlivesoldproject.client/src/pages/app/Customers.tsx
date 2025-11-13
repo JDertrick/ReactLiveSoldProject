@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/react";
 import {
   useGetCustomers,
   useCreateCustomer,
@@ -32,10 +37,8 @@ const CustomersPage = () => {
     firstName: "",
     lastName: "",
     email: "",
-    phoneNumber: "",
+    phone: "",
     password: "",
-    dateOfBirth: "",
-    shippingAddress: "",
     isActive: true,
   });
 
@@ -46,9 +49,7 @@ const CustomersPage = () => {
         firstName: customer.firstName,
         lastName: customer.lastName,
         email: customer.email,
-        phoneNumber: customer.phoneNumber,
-        dateOfBirth: customer.dateOfBirth || "",
-        shippingAddress: customer.shippingAddress || "",
+        phone: customer.phone,
         isActive: customer.isActive,
       });
     } else {
@@ -57,10 +58,8 @@ const CustomersPage = () => {
         firstName: "",
         lastName: "",
         email: "",
-        phoneNumber: "",
+        phone: "",
         password: "",
-        dateOfBirth: "",
-        shippingAddress: "",
         isActive: true,
       });
     }
@@ -190,13 +189,13 @@ const CustomersPage = () => {
                                 {customer.firstName} {customer.lastName}
                               </div>
                               <div className="text-gray-500">
-                                {customer.email}
+                                {customer?.email}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {customer.phoneNumber}
+                          {customer.phone}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium">
                           ${(customer.wallet?.balance ?? 0).toFixed(2)}
@@ -247,7 +246,11 @@ const CustomersPage = () => {
       </div>
 
       {/* Create/Edit Modal */}
-      <Dialog open={isModalOpen} onClose={handleCloseModal} className="relative z-10">
+      <Dialog
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        className="relative z-10"
+      >
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
@@ -261,7 +264,10 @@ const CustomersPage = () => {
             >
               <form onSubmit={handleSubmit}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
-                  <DialogTitle as="h3" className="text-lg leading-6 font-medium text-gray-900">
+                  <DialogTitle
+                    as="h3"
+                    className="text-lg leading-6 font-medium text-gray-900"
+                  >
                     {editingCustomer ? "Edit Customer" : "Create Customer"}
                   </DialogTitle>
                   <div className="mt-6 space-y-4">
@@ -333,7 +339,7 @@ const CustomersPage = () => {
                         name="phoneNumber"
                         id="phoneNumber"
                         required
-                        value={formData.phoneNumber}
+                        value={formData.phone}
                         onChange={handleChange}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                       />
@@ -358,40 +364,6 @@ const CustomersPage = () => {
                         />
                       </div>
                     )}
-
-                    <div>
-                      <label
-                        htmlFor="dateOfBirth"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Date of Birth (optional)
-                      </label>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        id="dateOfBirth"
-                        value={formData.dateOfBirth}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="shippingAddress"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Shipping Address (optional)
-                      </label>
-                      <textarea
-                        name="shippingAddress"
-                        id="shippingAddress"
-                        rows={2}
-                        value={formData.shippingAddress}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-                      />
-                    </div>
 
                     <div className="flex items-center">
                       <input
@@ -439,7 +411,11 @@ const CustomersPage = () => {
       </Dialog>
 
       {/* Customer Detail Modal */}
-      <Dialog open={isDetailModalOpen} onClose={handleCloseDetailModal} className="relative z-10">
+      <Dialog
+        open={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+        className="relative z-10"
+      >
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
@@ -453,7 +429,10 @@ const CustomersPage = () => {
             >
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="flex justify-between items-start mb-4">
-                  <DialogTitle as="h3" className="text-lg leading-6 font-medium text-gray-900">
+                  <DialogTitle
+                    as="h3"
+                    className="text-lg leading-6 font-medium text-gray-900"
+                  >
                     {selectedCustomer?.firstName} {selectedCustomer?.lastName}
                   </DialogTitle>
                   <button
@@ -521,7 +500,7 @@ const CustomersPage = () => {
                           Email
                         </p>
                         <p className="mt-1 text-sm text-gray-900">
-                          {selectedCustomer.email}
+                          {selectedCustomer?.email}
                         </p>
                       </div>
                       <div>
@@ -529,10 +508,10 @@ const CustomersPage = () => {
                           Phone Number
                         </p>
                         <p className="mt-1 text-sm text-gray-900">
-                          {selectedCustomer.phoneNumber}
+                          {selectedCustomer?.phone}
                         </p>
                       </div>
-                      {selectedCustomer.dateOfBirth && (
+                      {/* {selectedCustomer.dateOfBirth && (
                         <div>
                           <p className="text-sm font-medium text-gray-500">
                             Date of Birth
@@ -553,7 +532,7 @@ const CustomersPage = () => {
                             {selectedCustomer.shippingAddress}
                           </p>
                         </div>
-                      )}
+                      )} */}
                       <div>
                         <p className="text-sm font-medium text-gray-500">
                           Status
@@ -561,12 +540,12 @@ const CustomersPage = () => {
                         <p className="mt-1">
                           <span
                             className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                              selectedCustomer.isActive
+                              selectedCustomer?.isActive
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {selectedCustomer.isActive ? "Active" : "Inactive"}
+                            {selectedCustomer?.isActive ? "Active" : "Inactive"}
                           </span>
                         </p>
                       </div>
@@ -578,8 +557,7 @@ const CustomersPage = () => {
                       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white mb-4">
                         <p className="text-sm opacity-90">Current Balance</p>
                         <p className="text-3xl font-bold mt-2">
-                          $
-                          {(selectedCustomer.wallet?.balance ?? 0).toFixed(2)}
+                          ${(selectedCustomer.wallet?.balance ?? 0).toFixed(2)}
                         </p>
                       </div>
                       <div>

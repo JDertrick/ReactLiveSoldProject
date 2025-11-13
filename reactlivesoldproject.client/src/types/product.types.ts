@@ -61,10 +61,12 @@ export interface UpdateProductDto {
   imageUrl: string;
   isPublished: boolean;
   tagIds: string[];
+  variants?: CreateProductVariantDto[];
 }
 
 // Helper type for variant form input
 export interface ProductVariantDto {
+  id?: string; // Optional - only present for existing variants
   sku: string;
   size?: string;
   color?: string;

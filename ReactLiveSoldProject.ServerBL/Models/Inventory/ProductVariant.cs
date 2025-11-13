@@ -35,6 +35,12 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         [MaxLength(500, ErrorMessage = "La URL de la imagen no puede exceder los 500 caracteres")]
         public string? ImageUrl { get; set; }
 
+        [MaxLength(100, ErrorMessage = "El Size no puede exceder los 100 caracteres")]
+        public string? Size { get; set; }
+
+        [MaxLength(100, ErrorMessage = "El Color no puede exceder los 100 caracteres")]
+        public string? Color { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

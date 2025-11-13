@@ -1,3 +1,5 @@
+import { Wallet } from "./wallet.types";
+
 // Customer Types
 export interface Customer {
   id: string;
@@ -12,6 +14,8 @@ export interface Customer {
   walletBalance: number;
   createdAt: string;
   updatedat: string;
+  isActive: boolean;
+  wallet: Wallet;
 }
 
 export interface CreateCustomerDto {
@@ -20,8 +24,11 @@ export interface CreateCustomerDto {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  dateOfBirth?: string;
+  shippingAddress?: string;
   assignedSellerId?: string;
   notes?: string;
+  isActive: boolean
 }
 
 export interface UpdateCustomerDto {
@@ -32,4 +39,5 @@ export interface UpdateCustomerDto {
   phone?: string;
   assignedSellerId?: string;
   notes?: string;
+  isActive: boolean;
 }
