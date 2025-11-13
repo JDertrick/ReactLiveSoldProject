@@ -1,6 +1,16 @@
-import { useState } from 'react';
-import { useGetProducts, useCreateProduct, useUpdateProduct, useGetTags } from '../../hooks/useProducts';
-import { CreateProductDto, UpdateProductDto, Product, ProductVariantDto } from '../../types/product.types';
+import { useState } from "react";
+import {
+  useGetProducts,
+  useCreateProduct,
+  useUpdateProduct,
+  useGetTags,
+} from "../../hooks/useProducts";
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  Product,
+  ProductVariantDto,
+} from "../../types/product.types";
 
 const ProductsPage = () => {
   const { data: products, isLoading } = useGetProducts(true); // Include unpublished
@@ -10,20 +20,22 @@ const ProductsPage = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState<CreateProductDto | UpdateProductDto>({
-    name: '',
-    description: '',
-    basePrice: 0,
-    imageUrl: '',
-    isPublished: true,
-    variants: [],
-    tagIds: [],
-  });
+  const [formData, setFormData] = useState<CreateProductDto | UpdateProductDto>(
+    {
+      name: "",
+      description: "",
+      basePrice: 0,
+      imageUrl: "",
+      isPublished: true,
+      variants: [],
+      tagIds: [],
+    }
+  );
 
   const [variantInput, setVariantInput] = useState<ProductVariantDto>({
-    sku: '',
-    size: '',
-    color: '',
+    sku: "",
+    size: "",
+    color: "",
     stock: 0,
     price: 0,
   });
@@ -33,20 +45,20 @@ const ProductsPage = () => {
       setEditingProduct(product);
       setFormData({
         name: product.name,
-        description: product.description || '',
+        description: product.description || "",
         basePrice: product.basePrice,
-        imageUrl: product.imageUrl || '',
+        imageUrl: product.imageUrl || "",
         isPublished: product.isPublished,
         variants: product.variants || [],
-        tagIds: product.tags?.map(t => t.id) || [],
+        tagIds: product.tags?.map((t) => t.id) || [],
       });
     } else {
       setEditingProduct(null);
       setFormData({
-        name: '',
-        description: '',
+        name: "",
+        description: "",
         basePrice: 0,
-        imageUrl: '',
+        imageUrl: "",
         isPublished: true,
         variants: [],
         tagIds: [],
@@ -58,7 +70,7 @@ const ProductsPage = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
-    setVariantInput({ sku: '', size: '', color: '', stock: 0, price: 0 });
+    setVariantInput({ sku: "", size: "", color: "", stock: 0, price: 0 });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,16 +87,22 @@ const ProductsPage = () => {
       }
       handleCloseModal();
     } catch (error) {
-      console.error('Error saving product:', error);
+      console.error("Error saving product:", error);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value, type } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked :
-               type === 'number' ? parseFloat(value) || 0 : value,
+      [name]:
+        type === "checkbox"
+          ? (e.target as HTMLInputElement).checked
+          : type === "number"
+          ? parseFloat(value) || 0
+          : value,
     });
   };
 
@@ -94,7 +112,7 @@ const ProductsPage = () => {
         ...formData,
         variants: [...(formData.variants || []), variantInput],
       });
-      setVariantInput({ sku: '', size: '', color: '', stock: 0, price: 0 });
+      setVariantInput({ sku: "", size: "", color: "", stock: 0, price: 0 });
     }
   };
 
@@ -109,7 +127,7 @@ const ProductsPage = () => {
     if (currentTags.includes(tagId)) {
       setFormData({
         ...formData,
-        tagIds: currentTags.filter(id => id !== tagId),
+        tagIds: currentTags.filter((id) => id !== tagId),
       });
     } else {
       setFormData({
@@ -150,9 +168,13 @@ const ProductsPage = () => {
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {products && products.length > 0 ? (
           products.map((product) => {
-            const totalStock = product.variants?.reduce((sum, v) => sum + v.stock, 0) || 0;
+            const totalStock =
+              product.variants?.reduce((sum, v) => sum + v.stock, 0) || 0;
             return (
-              <div key={product.id} className="bg-white overflow-hidden shadow rounded-lg">
+              <div
+                key={product.id}
+                className="bg-white overflow-hidden shadow rounded-lg"
+              >
                 {product.imageUrl && (
                   <div className="h-48 w-full overflow-hidden bg-gray-200">
                     <img
@@ -163,30 +185,52 @@ const ProductsPage = () => {
                   </div>
                 )}
                 <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg font-medium text-gray-900 truncate">{product.name}</h3>
+                  <h3 className="text-lg font-medium text-gray-900 truncate">
+                    {product.name}
+                  </h3>
                   {product.description && (
-                    <p className="mt-1 text-sm text-gray-500 line-clamp-2">{product.description}</p>
+                    <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+                      {product.description}
+                    </p>
                   )}
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xl font-bold text-gray-900">${product.basePrice.toFixed(2)}</span>
+                    <span className="text-xl font-bold text-gray-900">
+                      ${product.basePrice.toFixed(2)}
+                    </span>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        product.isPublished ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        product.isPublished
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {product.isPublished ? 'Published' : 'Draft'}
+                      {product.isPublished ? "Published" : "Draft"}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center text-sm text-gray-500">
-                    <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    <svg
+                      className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                      />
                     </svg>
-                    {totalStock} units in stock • {product.variants?.length || 0} variants
+                    {totalStock} units in stock •{" "}
+                    {product.variants?.length || 0} variants
                   </div>
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
-                      {product.tags.map(tag => (
-                        <span key={tag.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                      {product.tags.map((tag) => (
+                        <span
+                          key={tag.id}
+                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800"
+                        >
                           {tag.name}
                         </span>
                       ))}
@@ -206,7 +250,9 @@ const ProductsPage = () => {
           })
         ) : (
           <div className="col-span-full text-center py-12">
-            <p className="text-sm text-gray-500">No products found. Add your first product to get started.</p>
+            <p className="text-sm text-gray-500">
+              No products found. Add your first product to get started.
+            </p>
           </div>
         )}
       </div>
@@ -215,20 +261,26 @@ const ProductsPage = () => {
       {isModalOpen && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
+            <div
+              className="fixed inset-0 bg-gray-500/75 transition-opacity"
+              onClick={handleCloseModal}
+            ></div>
 
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6 max-h-screen overflow-y-auto">
               <form onSubmit={handleSubmit}>
                 <div>
                   <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    {editingProduct ? 'Edit Product' : 'Create Product'}
+                    {editingProduct ? "Edit Product" : "Create Product"}
                   </h3>
 
                   <div className="grid grid-cols-2 gap-6">
                     {/* Left Column */}
                     <div className="space-y-4">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Product Name
                         </label>
                         <input
@@ -243,7 +295,10 @@ const ProductsPage = () => {
                       </div>
 
                       <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="description"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Description
                         </label>
                         <textarea
@@ -257,7 +312,10 @@ const ProductsPage = () => {
                       </div>
 
                       <div>
-                        <label htmlFor="basePrice" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="basePrice"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Base Price
                         </label>
                         <input
@@ -274,7 +332,10 @@ const ProductsPage = () => {
                       </div>
 
                       <div>
-                        <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="imageUrl"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           Image URL
                         </label>
                         <input
@@ -296,7 +357,10 @@ const ProductsPage = () => {
                           onChange={handleChange}
                           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                         />
-                        <label htmlFor="isPublished" className="ml-2 block text-sm text-gray-900">
+                        <label
+                          htmlFor="isPublished"
+                          className="ml-2 block text-sm text-gray-900"
+                        >
                           Published (visible to customers)
                         </label>
                       </div>
@@ -308,15 +372,15 @@ const ProductsPage = () => {
                             Tags
                           </label>
                           <div className="flex flex-wrap gap-2">
-                            {tags.map(tag => (
+                            {tags.map((tag) => (
                               <button
                                 key={tag.id}
                                 type="button"
                                 onClick={() => handleTagToggle(tag.id)}
                                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                                   (formData.tagIds || []).includes(tag.id)
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    ? "bg-indigo-600 text-white"
+                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                                 }`}
                               >
                                 {tag.name}
@@ -329,7 +393,9 @@ const ProductsPage = () => {
 
                     {/* Right Column - Variants */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Product Variants</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">
+                        Product Variants
+                      </h4>
 
                       {/* Variant Input */}
                       <div className="bg-gray-50 p-4 rounded-lg mb-4">
@@ -338,21 +404,36 @@ const ProductsPage = () => {
                             type="text"
                             placeholder="SKU"
                             value={variantInput.sku}
-                            onChange={(e) => setVariantInput({ ...variantInput, sku: e.target.value })}
+                            onChange={(e) =>
+                              setVariantInput({
+                                ...variantInput,
+                                sku: e.target.value,
+                              })
+                            }
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                           />
                           <input
                             type="text"
                             placeholder="Size (optional)"
                             value={variantInput.size}
-                            onChange={(e) => setVariantInput({ ...variantInput, size: e.target.value })}
+                            onChange={(e) =>
+                              setVariantInput({
+                                ...variantInput,
+                                size: e.target.value,
+                              })
+                            }
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                           />
                           <input
                             type="text"
                             placeholder="Color (optional)"
                             value={variantInput.color}
-                            onChange={(e) => setVariantInput({ ...variantInput, color: e.target.value })}
+                            onChange={(e) =>
+                              setVariantInput({
+                                ...variantInput,
+                                color: e.target.value,
+                              })
+                            }
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                           />
                           <input
@@ -360,7 +441,12 @@ const ProductsPage = () => {
                             placeholder="Stock"
                             min="0"
                             value={variantInput.stock}
-                            onChange={(e) => setVariantInput({ ...variantInput, stock: parseInt(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              setVariantInput({
+                                ...variantInput,
+                                stock: parseInt(e.target.value) || 0,
+                              })
+                            }
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                           />
                           <input
@@ -369,7 +455,12 @@ const ProductsPage = () => {
                             step="0.01"
                             min="0"
                             value={variantInput.price}
-                            onChange={(e) => setVariantInput({ ...variantInput, price: parseFloat(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              setVariantInput({
+                                ...variantInput,
+                                price: parseFloat(e.target.value) || 0,
+                              })
+                            }
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                           />
                         </div>
@@ -386,17 +477,23 @@ const ProductsPage = () => {
                       <div className="space-y-2 max-h-96 overflow-y-auto">
                         {formData.variants && formData.variants.length > 0 ? (
                           formData.variants.map((variant, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                            >
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">{variant.sku}</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {variant.sku}
+                                </p>
                                 <p className="text-xs text-gray-500">
                                   {variant.size && `Size: ${variant.size}`}
-                                  {variant.size && variant.color && ' • '}
+                                  {variant.size && variant.color && " • "}
                                   {variant.color && `Color: ${variant.color}`}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
                                   Stock: {variant.stock}
-                                  {variant.price > 0 && ` • Price: $${variant.price.toFixed(2)}`}
+                                  {variant.price > 0 &&
+                                    ` • Price: $${variant.price.toFixed(2)}`}
                                 </p>
                               </div>
                               <button
@@ -404,14 +501,26 @@ const ProductsPage = () => {
                                 onClick={() => handleRemoveVariant(index)}
                                 className="ml-2 text-red-600 hover:text-red-800"
                               >
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                  className="h-5 w-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
                                 </svg>
                               </button>
                             </div>
                           ))
                         ) : (
-                          <p className="text-sm text-gray-500 text-center py-4">No variants added yet</p>
+                          <p className="text-sm text-gray-500 text-center py-4">
+                            No variants added yet
+                          </p>
                         )}
                       </div>
                     </div>
@@ -421,10 +530,14 @@ const ProductsPage = () => {
                 <div className="mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                   <button
                     type="submit"
-                    disabled={createProduct.isPending || updateProduct.isPending}
+                    disabled={
+                      createProduct.isPending || updateProduct.isPending
+                    }
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
                   >
-                    {createProduct.isPending || updateProduct.isPending ? 'Saving...' : 'Save Product'}
+                    {createProduct.isPending || updateProduct.isPending
+                      ? "Saving..."
+                      : "Save Product"}
                   </button>
                   <button
                     type="button"
