@@ -16,11 +16,28 @@ import {
   Customer,
 } from "../../types/customer.types";
 import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
 import {
   CustomerProfileTab,
   CustomerWalletTab,
   CustomerOrdersTab,
 } from "../../components/customers";
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+
+const columnHelper = createColumnHelper<Customer>();
 
 const CustomersPage = () => {
   const { data: customers, isLoading } = useGetCustomers();
@@ -117,6 +134,72 @@ const CustomersPage = () => {
     });
   };
 
+  const columns = [
+    columnHelper.accessor(
+      (row) => `${row.firstName} ${row.lastName}`,
+      {
+        id: "customer",
+        header: "Customer",
+        cell: (info) => (
+          <div>
+            <div className="font-medium">{info.getValue()}</div>
+            <div className="text-sm text-muted-foreground">
+              {info.row.original.email}
+            </div>
+          </div>
+        ),
+      }
+    ),
+    columnHelper.accessor("phone", {
+      header: "Contact",
+      cell: (info) => <div className="text-sm">{info.getValue()}</div>,
+    }),
+    columnHelper.accessor("wallet.balance", {
+      header: "Wallet",
+      cell: (info) => (
+        <div className="font-medium">
+          ${(info.getValue() ?? 0).toFixed(2)}
+        </div>
+      ),
+    }),
+    columnHelper.accessor("isActive", {
+      header: "Status",
+      cell: (info) => (
+        <Badge variant={info.getValue() ? "default" : "destructive"}>
+          {info.getValue() ? "Active" : "Inactive"}
+        </Badge>
+      ),
+    }),
+    columnHelper.display({
+      id: "actions",
+      header: "Actions",
+      cell: (info) => (
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleOpenDetailModal(info.row.original)}
+          >
+            View
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleOpenModal(info.row.original)}
+          >
+            Edit
+          </Button>
+        </div>
+      ),
+    }),
+  ];
+
+  const table = useReactTable({
+    data: customers || [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -135,121 +218,57 @@ const CustomersPage = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <button
-            type="button"
-            onClick={() => handleOpenModal()}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-          >
-            Add Customer
-          </button>
-          <Button onClick={() => handleOpenModal()}>Test</Button>
+          <Button onClick={() => handleOpenModal()}>Add Customer</Button>
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col">
-        <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                    >
-                      Customer
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                    >
-                      Contact
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                    >
-                      Wallet
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                    >
-                      Status
-                    </th>
-                    <th
-                      scope="col"
-                      className="relative py-3.5 pl-3 pr-4 sm:pr-6"
-                    >
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {customers && customers.length > 0 ? (
-                    customers.map((customer) => (
-                      <tr key={customer.id}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                          <div className="flex items-center">
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {customer.firstName} {customer.lastName}
-                              </div>
-                              <div className="text-gray-500">
-                                {customer?.email}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {customer.phone}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium">
-                          ${(customer.wallet?.balance ?? 0).toFixed(2)}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                              customer.isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {customer.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </td>
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <button
-                            onClick={() => handleOpenDetailModal(customer)}
-                            className="text-indigo-600 hover:text-indigo-900 mr-4"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleOpenModal(customer)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="px-3 py-4 text-sm text-gray-500 text-center"
-                      >
-                        No customers found. Add your first customer to get
-                        started.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      <div className="mt-8 rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No customers found. Add your first customer to get started.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Create/Edit Modal */}
