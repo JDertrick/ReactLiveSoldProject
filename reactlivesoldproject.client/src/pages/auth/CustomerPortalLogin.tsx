@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useCustomerPortalLogin } from '../../hooks/useAuth';
-import { usePortalBrandStore } from '../../store/portalBrandStore';
-import apiClient from '../../services/api';
-import { CustomerPortalLoginRequest } from '../../types/auth.types';
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useCustomerPortalLogin } from "../../hooks/useAuth";
+import { usePortalBrandStore } from "../../store/portalBrandStore";
+import apiClient from "../../services/api";
+import { CustomerPortalLoginRequest } from "../../types/auth.types";
 
 const CustomerPortalLogin = () => {
   const navigate = useNavigate();
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const customerLogin = useCustomerPortalLogin();
-  const { organizationName, logoUrl, setOrganizationBrand } = usePortalBrandStore();
+  const { organizationName, logoUrl, setBrand } = usePortalBrandStore();
 
   const [formData, setFormData] = useState<CustomerPortalLoginRequest>({
-    organizationSlug: orgSlug || '',
-    email: '',
-    password: '',
+    organizationSlug: orgSlug || "",
+    email: "",
+    password: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -24,25 +24,28 @@ const CustomerPortalLogin = () => {
   useEffect(() => {
     const loadOrganizationBrand = async () => {
       if (!orgSlug) {
-        setOrgError('Organization not found');
+        setOrgError("Organization not found");
         setLoading(false);
         return;
       }
 
       try {
-        const response = await apiClient.get(`/public/organization/${orgSlug}`);
+        const response = await apiClient.get(
+          `/public/organization-by-slug/${orgSlug}`
+        );
         const org = response.data;
+        console.log(org.name);
 
-        setOrganizationBrand(orgSlug, org.name, org.logoUrl || '');
+        setBrand(orgSlug, org.name, "");
         setLoading(false);
       } catch (error) {
-        setOrgError('Organization not found or inactive');
+        setOrgError("Organization not found or inactive");
         setLoading(false);
       }
     };
 
     loadOrganizationBrand();
-  }, [orgSlug, setOrganizationBrand]);
+  }, [orgSlug, setBrand]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +54,7 @@ const CustomerPortalLogin = () => {
       await customerLogin.mutateAsync(formData);
       navigate(`/portal/${orgSlug}/dashboard`);
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
     }
   };
 
@@ -83,9 +86,7 @@ const CustomerPortalLogin = () => {
                 <h3 className="text-sm font-medium text-red-800">
                   Organization Not Found
                 </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  {orgError}
-                </div>
+                <div className="mt-2 text-sm text-red-700">{orgError}</div>
               </div>
             </div>
           </div>
@@ -100,7 +101,11 @@ const CustomerPortalLogin = () => {
         <div>
           {logoUrl && (
             <div className="flex justify-center mb-4">
-              <img src={logoUrl} alt={organizationName} className="h-16 w-auto" />
+              <img
+                src={logoUrl}
+                alt={organizationName}
+                className="h-16 w-auto"
+              />
             </div>
           )}
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -157,7 +162,7 @@ const CustomerPortalLogin = () => {
                   <div className="mt-2 text-sm text-red-700">
                     {customerLogin.error instanceof Error
                       ? customerLogin.error.message
-                      : 'Invalid email or password. Please try again.'}
+                      : "Invalid email or password. Please try again."}
                   </div>
                 </div>
               </div>
@@ -172,18 +177,33 @@ const CustomerPortalLogin = () => {
             >
               {customerLogin.isPending ? (
                 <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Signing in...
                 </span>
               ) : (
-                'Sign in'
+                "Sign in"
               )}
             </button>
           </div>
-
         </form>
       </div>
     </div>
