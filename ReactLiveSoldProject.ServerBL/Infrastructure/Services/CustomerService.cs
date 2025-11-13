@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -10,10 +11,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class CustomerService : ICustomerService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public CustomerService(LiveSoldDbContext dbContext)
+        public CustomerService(LiveSoldDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         public async Task<List<CustomerDto>> GetCustomersByOrganizationAsync(Guid organizationId)
@@ -25,7 +28,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
 
-            return customers.Select(c => MapToDto(c)).ToList();
+            var c = _mapper.Map<List<CustomerDto>>(customers);
+
+            return c;
         }
 
         public async Task<CustomerDto?> GetCustomerByIdAsync(Guid customerId, Guid organizationId)
@@ -35,7 +40,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Include(c => c.AssignedSeller)
                 .FirstOrDefaultAsync(c => c.Id == customerId && c.OrganizationId == organizationId);
 
-            return customer != null ? MapToDto(customer) : null;
+            return customer != null ? _mapper.Map<CustomerDto>(customer) : null;
         }
 
         public async Task<List<CustomerDto>> SearchCustomersAsync(Guid organizationId, string searchTerm)
@@ -87,20 +92,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             // Crear el cliente
             var customerId = Guid.NewGuid();
-            var customer = new Customer
-            {
-                Id = customerId,
-                OrganizationId = organizationId,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                Email = dto.Email,
-                Phone = dto.Phone,
-                PasswordHash = PasswordHelper.HashPassword(dto.Password),
-                AssignedSellerId = dto.AssignedSellerId,
-                Notes = dto.Notes,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+
+            var customer = _mapper.Map<Customer>(dto);
+            customer.Id = customerId;
+            customer.PasswordHash = PasswordHelper.HashPassword(dto.Password);
+            customer.CreatedAt = DateTime.UtcNow;
+            customer.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.Customers.Add(customer);
 
@@ -168,12 +165,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             }
 
             // Actualizar campos
-            customer.FirstName = dto.FirstName;
-            customer.LastName = dto.LastName;
-            customer.Email = dto.Email;
-            customer.Phone = dto.Phone;
-            customer.AssignedSellerId = dto.AssignedSellerId;
-            customer.Notes = dto.Notes;
+            customer = _mapper.Map<Customer>(dto);
             customer.UpdatedAt = DateTime.UtcNow;
 
             // Actualizar contraseña solo si se proporciona una nueva

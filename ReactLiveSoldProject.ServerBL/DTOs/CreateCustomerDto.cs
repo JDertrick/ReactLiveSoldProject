@@ -28,5 +28,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
 
         [MaxLength(500)]
         public string? Notes { get; set; }
+
+        public bool IsActive { get; set; }
     }
 }

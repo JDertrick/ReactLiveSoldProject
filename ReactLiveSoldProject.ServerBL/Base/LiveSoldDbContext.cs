@@ -125,6 +125,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(c => c.PasswordHash).HasColumnName("password_hash").IsRequired();
                 e.Property(c => c.AssignedSellerId).HasColumnName("assigned_seller_id");
                 e.Property(c => c.Notes).HasColumnName("notes");
+                e.Property(c => c.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
                 e.Property(c => c.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(c => c.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 

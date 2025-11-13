@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
+using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 
 namespace ReactLiveSoldProject.ServerBL.Base
@@ -56,6 +57,15 @@ namespace ReactLiveSoldProject.ServerBL.Base
 
             // Tag Mappings
             CreateMap<Tag, TagDto>();
+
+            // Customers
+            CreateMap<CustomerDto, Customer>();
+            CreateMap<Customer, CustomerDto>();
+            CreateMap<CreateCustomerDto, Customer>();
+            CreateMap<UpdateCustomerDto, Customer>();
+            CreateMap<Customer, CreateCustomerDto>();
+            CreateMap<Customer, UpdateCustomerDto>();
+
         }
     }
 }

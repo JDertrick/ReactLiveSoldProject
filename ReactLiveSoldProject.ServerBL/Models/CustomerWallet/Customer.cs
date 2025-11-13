@@ -42,6 +42,8 @@ namespace ReactLiveSoldProject.ServerBL.Models.CustomerWallet
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        public bool IsActive { get; set; } = true;
+
         // Propiedades de navegación
         public virtual Wallet? Wallet { get; set; } // Relación 1-a-1
         
