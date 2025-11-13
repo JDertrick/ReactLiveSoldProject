@@ -16,12 +16,12 @@ const AppDashboard = () => {
 
   // Calculate total wallet balance across all customers
   const totalWalletBalance = customers?.reduce((sum, customer) => {
-    return sum + (customer.wallet?.balance || 0);
-  }, 0) || 0;
+    return sum + (customer.wallet?.balance ?? 0);
+  }, 0) ?? 0;
 
   // Calculate sales statistics
   const totalOrders = salesOrders?.length || 0;
-  const totalRevenue = salesOrders?.reduce((sum, order) => sum + order.totalAmount, 0) || 0;
+  const totalRevenue = salesOrders?.reduce((sum, order) => sum + (order.totalAmount ?? 0), 0) ?? 0;
   const recentOrders = salesOrders?.slice(0, 5) || [];
 
   if (isLoading) {
@@ -382,7 +382,7 @@ const AppDashboard = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-gray-900">
-                            ${customer.wallet?.balance.toFixed(2) || '0.00'}
+                            ${(customer.wallet?.balance ?? 0).toFixed(2)}
                           </p>
                           <p className="text-xs text-gray-500">Wallet</p>
                         </div>
@@ -455,7 +455,7 @@ const AppDashboard = () => {
                         </div>
                         <div className="ml-4 flex-shrink-0">
                           <span className="text-sm font-semibold text-gray-900">
-                            ${order.totalAmount.toFixed(2)}
+                            ${(order.totalAmount ?? 0).toFixed(2)}
                           </span>
                         </div>
                       </div>

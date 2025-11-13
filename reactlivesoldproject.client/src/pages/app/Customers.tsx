@@ -199,7 +199,7 @@ const CustomersPage = () => {
                           {customer.phoneNumber}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium">
-                          ${customer.wallet?.balance.toFixed(2) || "0.00"}
+                          ${(customer.wallet?.balance ?? 0).toFixed(2)}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           <span
@@ -579,8 +579,7 @@ const CustomersPage = () => {
                         <p className="text-sm opacity-90">Current Balance</p>
                         <p className="text-3xl font-bold mt-2">
                           $
-                          {selectedCustomer.wallet?.balance.toFixed(2) ||
-                            "0.00"}
+                          {(selectedCustomer.wallet?.balance ?? 0).toFixed(2)}
                         </p>
                       </div>
                       <div>

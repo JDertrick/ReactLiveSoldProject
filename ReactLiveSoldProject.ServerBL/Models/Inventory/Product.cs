@@ -23,6 +23,10 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         [Required(ErrorMessage = "El tipo de producto es obligatorio")]
         public ProductType ProductType { get; set; } = ProductType.Simple;
 
+        [Required(ErrorMessage = "El precio es obligatorio")]
+        [Range(0, double.MaxValue, ErrorMessage = "El precio debe ser mayor o igual a 0")]
+        public decimal BasePrice { get; set; } = 0.00m;
+
         public bool IsPublished { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

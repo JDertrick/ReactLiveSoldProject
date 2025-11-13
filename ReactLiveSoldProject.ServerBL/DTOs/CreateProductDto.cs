@@ -16,6 +16,8 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
 
         public bool IsPublished { get; set; } = true;
 
+        public decimal BasePrice { get; set; } = 0.00m;
+
         /// <summary>
         /// Lista de IDs de tags a asociar con el producto
         /// </summary>

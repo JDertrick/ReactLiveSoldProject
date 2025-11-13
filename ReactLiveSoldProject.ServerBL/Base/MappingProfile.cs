@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
+using ReactLiveSoldProject.ServerBL.Models.Inventory;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -23,6 +24,11 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()))
                 .ForMember(dest => dest.OrganizationId, opt => opt.MapFrom(src => src.OrganizationId))
                 .ForMember(dest => dest.IsSuperAdmin, opt => opt.MapFrom(src => src.User.IsSuperAdmin));
+
+            CreateMap<Product, ProductDto>()
+                .ForMember(dest => dest.ProductType, opt => opt.MapFrom(src => src.ProductType.ToString()));
+
+            CreateMap<ProductDto, Product>();
         }
     }
 }

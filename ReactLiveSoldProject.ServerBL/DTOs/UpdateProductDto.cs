@@ -14,6 +14,8 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         [Required]
         public string ProductType { get; set; } = "Simple";
 
+        public decimal BasePrice { get; set; } = 0.00m;
+
         public bool IsPublished { get; set; } = true;
 
         /// <summary>

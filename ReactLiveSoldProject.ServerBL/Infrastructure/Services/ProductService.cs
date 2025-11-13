@@ -63,85 +63,94 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
         public async Task<ProductDto> CreateProductAsync(Guid organizationId, CreateProductDto dto)
         {
-            // Validar ProductType
-            if (!Enum.TryParse<ProductType>(dto.ProductType, out var productType))
-                throw new InvalidOperationException($"Tipo de producto inválido: {dto.ProductType}");
-
-            // Verificar que los tags existan
-            if (dto.TagIds.Any())
+            try
             {
-                var existingTagIds = await _dbContext.Tags
-                    .Where(t => t.OrganizationId == organizationId && dto.TagIds.Contains(t.Id))
-                    .Select(t => t.Id)
-                    .ToListAsync();
+                // Validar ProductType
+                if (!Enum.TryParse<ProductType>(dto.ProductType, out var productType))
+                    throw new InvalidOperationException($"Tipo de producto inválido: {dto.ProductType}");
 
-                var invalidTagIds = dto.TagIds.Except(existingTagIds).ToList();
-                if (invalidTagIds.Any())
-                    throw new InvalidOperationException($"Tags no encontrados: {string.Join(", ", invalidTagIds)}");
-            }
-
-            // Validar que haya al menos una variante
-            if (!dto.Variants.Any())
-                throw new InvalidOperationException("El producto debe tener al menos una variante");
-
-            // Crear el producto
-            var productId = Guid.NewGuid();
-            var product = new Product
-            {
-                Id = productId,
-                OrganizationId = organizationId,
-                Name = dto.Name,
-                Description = dto.Description,
-                ProductType = productType,
-                IsPublished = dto.IsPublished,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            _dbContext.Products.Add(product);
-
-            // Crear las variantes
-            foreach (var variantDto in dto.Variants)
-            {
-                var variant = new ProductVariant
+                // Verificar que los tags existan
+                if (dto.TagIds.Any())
                 {
-                    Id = Guid.NewGuid(),
+                    var existingTagIds = await _dbContext.Tags
+                        .Where(t => t.OrganizationId == organizationId && dto.TagIds.Contains(t.Id))
+                        .Select(t => t.Id)
+                        .ToListAsync();
+
+                    var invalidTagIds = dto.TagIds.Except(existingTagIds).ToList();
+                    if (invalidTagIds.Any())
+                        throw new InvalidOperationException($"Tags no encontrados: {string.Join(", ", invalidTagIds)}");
+                }
+
+                // Validar que haya al menos una variante
+                if (!dto.Variants.Any())
+                    throw new InvalidOperationException("El producto debe tener al menos una variante");
+
+                // Crear el producto
+                var productId = Guid.NewGuid();
+                var product = new Product
+                {
+                    Id = productId,
                     OrganizationId = organizationId,
-                    ProductId = productId,
-                    Sku = variantDto.Sku,
-                    Price = variantDto.Price,
-                    StockQuantity = variantDto.StockQuantity,
-                    Attributes = variantDto.Attributes,
-                    ImageUrl = variantDto.ImageUrl,
+                    Name = dto.Name,
+                    Description = dto.Description,
+                    ProductType = productType,
+                    IsPublished = dto.IsPublished,
+                    BasePrice = dto.BasePrice,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                _dbContext.ProductVariants.Add(variant);
-            }
+                _dbContext.Products.Add(product);
 
-            // Asociar tags
-            foreach (var tagId in dto.TagIds)
-            {
-                var productTag = new ProductTag
+                // Crear las variantes
+                foreach (var variantDto in dto.Variants)
                 {
-                    ProductId = productId,
-                    TagId = tagId
-                };
+                    var variant = new ProductVariant
+                    {
+                        Id = Guid.NewGuid(),
+                        OrganizationId = organizationId,
+                        ProductId = productId,
+                        Sku = variantDto.Sku,
+                        Price = variantDto.Price,
+                        StockQuantity = variantDto.StockQuantity,
+                        Attributes = variantDto.Attributes,
+                        ImageUrl = variantDto.ImageUrl,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
 
-                _dbContext.ProductTags.Add(productTag);
+                    _dbContext.ProductVariants.Add(variant);
+                }
+
+                // Asociar tags
+                foreach (var tagId in dto.TagIds)
+                {
+                    var productTag = new ProductTag
+                    {
+                        ProductId = productId,
+                        TagId = tagId
+                    };
+
+                    _dbContext.ProductTags.Add(productTag);
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                // Recargar el producto con sus relaciones
+                var createdProduct = await _dbContext.Products
+                    .Include(p => p.Variants)
+                    .Include(p => p.TagLinks)
+                        .ThenInclude(pt => pt.Tag)
+                    .FirstAsync(p => p.Id == productId);
+
+                return MapToDto(createdProduct);
             }
-
-            await _dbContext.SaveChangesAsync();
-
-            // Recargar el producto con sus relaciones
-            var createdProduct = await _dbContext.Products
-                .Include(p => p.Variants)
-                .Include(p => p.TagLinks)
-                    .ThenInclude(pt => pt.Tag)
-                .FirstAsync(p => p.Id == productId);
-
-            return MapToDto(createdProduct);
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            
         }
 
         public async Task<ProductDto> UpdateProductAsync(Guid productId, Guid organizationId, UpdateProductDto dto)
@@ -176,6 +185,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             product.Name = dto.Name;
             product.Description = dto.Description;
             product.ProductType = productType;
+            product.BasePrice = dto.BasePrice;
             product.IsPublished = dto.IsPublished;
             product.UpdatedAt = DateTime.UtcNow;
 
@@ -407,6 +417,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Description = product.Description,
                 ProductType = product.ProductType.ToString(),
                 IsPublished = product.IsPublished,
+                BasePrice = product.BasePrice,
                 Tags = product.TagLinks?.Select(pt => new TagDto
                 {
                     Id = pt.Tag.Id,

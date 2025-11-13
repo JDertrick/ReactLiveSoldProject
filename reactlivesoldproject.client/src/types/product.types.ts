@@ -11,10 +11,12 @@ export interface ProductVariant {
   sku?: string;
   price: number;
   stockQuantity: number;
-  attributes?: string;
+  attributes?: string;  // JSON string
   imageUrl?: string;
   createdAt: string;
   updatedAt: string;
+  size: string;
+  color: string;
 }
 
 export interface Product {
@@ -23,6 +25,8 @@ export interface Product {
   name: string;
   description?: string;
   productType: string;
+  basePrice: number;
+  imageUrl: string;
   isPublished: boolean;
   tags: Tag[];
   variants: ProductVariant[];
@@ -34,7 +38,7 @@ export interface CreateProductVariantDto {
   sku?: string;
   price: number;
   stockQuantity: number;
-  attributes?: string;
+  attributes?: string;  // JSON string: {color, size, etc}
   imageUrl?: string;
 }
 
@@ -43,6 +47,8 @@ export interface CreateProductDto {
   description?: string;
   productType: string;
   isPublished: boolean;
+  basePrice: number;
+  imageUrl: string;
   tagIds: string[];
   variants: CreateProductVariantDto[];
 }
@@ -51,6 +57,18 @@ export interface UpdateProductDto {
   name: string;
   description?: string;
   productType: string;
+  basePrice: number;
+  imageUrl: string;
   isPublished: boolean;
   tagIds: string[];
+}
+
+// Helper type for variant form input
+export interface ProductVariantDto {
+  sku: string;
+  size?: string;
+  color?: string;
+  price: number;
+  stock: number;
+  imageUrl?: string;
 }
