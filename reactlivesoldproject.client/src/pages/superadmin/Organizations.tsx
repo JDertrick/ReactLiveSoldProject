@@ -9,6 +9,8 @@ import {
   Organization,
 } from "../../types/organization.types";
 
+import { Link, Outlet } from "react-router-dom";
+
 const OrganizationsPage = () => {
   const { data: organizations, isLoading } = useGetOrganizations();
   const createOrganization = useCreateOrganization();
@@ -212,6 +214,12 @@ const OrganizationsPage = () => {
                           >
                             Edit
                           </button>
+                          <Link
+                            to={`/superadmin/organizations/${org.id}/users`}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
+                            Users
+                          </Link>
                         </td>
                       </tr>
                     ))
@@ -230,6 +238,7 @@ const OrganizationsPage = () => {
             </div>
           </div>
         </div>
+        <Outlet />
       </div>
 
       {/* Modal */}

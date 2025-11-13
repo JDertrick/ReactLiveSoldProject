@@ -1,31 +1,38 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
 
 // Layouts
-import AppLayout from '../components/common/AppLayout';
-import PortalLayout from '../components/common/PortalLayout';
+import AppLayout from "../components/common/AppLayout";
+import PortalLayout from "../components/common/PortalLayout";
 
 // Auth Pages
-import EmployeeLogin from '../pages/auth/EmployeeLogin';
-import CustomerPortalLogin from '../pages/auth/CustomerPortalLogin';
+import EmployeeLogin from "../pages/auth/EmployeeLogin";
+import CustomerPortalLogin from "../pages/auth/CustomerPortalLogin";
 
 // SuperAdmin Pages
-import SuperAdminDashboard from '../pages/superadmin/Dashboard';
-import OrganizationsPage from '../pages/superadmin/Organizations';
+import SuperAdminDashboard from "../pages/superadmin/Dashboard";
+import OrganizationsPage from "../pages/superadmin/Organizations";
 
 // App Pages (Seller/Owner)
-import AppDashboard from '../pages/app/Dashboard';
-import CustomersPage from '../pages/app/Customers';
-import ProductsPage from '../pages/app/Products';
-import LiveSalesPage from '../pages/app/LiveSales';
-import WalletPage from '../pages/app/Wallet';
+import AppDashboard from "../pages/app/Dashboard";
+import CustomersPage from "../pages/app/Customers";
+import ProductsPage from "../pages/app/Products";
+import LiveSalesPage from "../pages/app/LiveSales";
+import WalletPage from "../pages/app/Wallet";
 
 // Portal Pages (Customer)
-import CustomerDashboard from '../pages/portal/Dashboard';
-import CustomerOrders from '../pages/portal/Orders';
+import CustomerDashboard from "../pages/portal/Dashboard";
+import CustomerOrders from "../pages/portal/Orders";
+import OrganizationUsersPage from "../pages/superadmin/OrganizationUsers";
 
 // Protected Route Component
-const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: string }) => {
+const ProtectedRoute = ({
+  children,
+  requiredRole,
+}: {
+  children: React.ReactNode;
+  requiredRole?: string;
+}) => {
   const { isAuthenticated, user } = useAuthStore();
 
   if (!isAuthenticated) {
@@ -41,19 +48,19 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <Navigate to="/login" replace />,
   },
   {
-    path: '/login',
+    path: "/login",
     element: <EmployeeLogin />,
   },
   {
-    path: '/portal/:orgSlug/login',
+    path: "/portal/:orgSlug/login",
     element: <CustomerPortalLogin />,
   },
   {
-    path: '/superadmin',
+    path: "/superadmin",
     element: (
       <ProtectedRoute requiredRole="SuperAdmin">
         <AppLayout />
@@ -65,13 +72,17 @@ export const router = createBrowserRouter([
         element: <SuperAdminDashboard />,
       },
       {
-        path: 'organizations',
+        path: "organizations",
         element: <OrganizationsPage />,
+      },
+      {
+        path: "organizations/:organizationId/users",
+        element: <OrganizationUsersPage />,
       },
     ],
   },
   {
-    path: '/app',
+    path: "/app",
     element: (
       <ProtectedRoute>
         <AppLayout />
@@ -83,25 +94,25 @@ export const router = createBrowserRouter([
         element: <AppDashboard />,
       },
       {
-        path: 'customers',
+        path: "customers",
         element: <CustomersPage />,
       },
       {
-        path: 'products',
+        path: "products",
         element: <ProductsPage />,
       },
       {
-        path: 'live-sales',
+        path: "live-sales",
         element: <LiveSalesPage />,
       },
       {
-        path: 'wallet',
+        path: "wallet",
         element: <WalletPage />,
       },
     ],
   },
   {
-    path: '/portal/:orgSlug',
+    path: "/portal/:orgSlug",
     element: (
       <ProtectedRoute requiredRole="Customer">
         <PortalLayout />
@@ -109,11 +120,11 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
-        path: 'dashboard',
+        path: "dashboard",
         element: <CustomerDashboard />,
       },
       {
-        path: 'orders',
+        path: "orders",
         element: <CustomerOrders />,
       },
     ],

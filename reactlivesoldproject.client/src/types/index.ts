@@ -5,3 +5,5 @@ export * from './customer.types';
 export * from './product.types';
 export * from './wallet.types';
 export * from './salesorder.types';
+export * from './user.ts';
+
