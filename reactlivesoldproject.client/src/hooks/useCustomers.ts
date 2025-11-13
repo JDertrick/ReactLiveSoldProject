@@ -8,6 +8,7 @@ export const useGetCustomers = () => {
     queryKey: ['customers'],
     queryFn: async (): Promise<Customer[]> => {
       const response = await apiClient.get('/customer');
+      console.log(response.data);
       return response.data;
     },
   });

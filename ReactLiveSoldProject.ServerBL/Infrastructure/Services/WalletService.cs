@@ -1,7 +1,9 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
+using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
@@ -9,10 +11,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class WalletService : IWalletService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public WalletService(LiveSoldDbContext dbContext)
+        public WalletService(LiveSoldDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         public async Task<WalletDto?> GetWalletByCustomerIdAsync(Guid customerId, Guid organizationId)
@@ -59,53 +63,57 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
         public async Task<WalletTransactionDto> CreateDepositAsync(Guid organizationId, Guid authorizedByUserId, CreateWalletTransactionDto dto)
         {
-            // Validar TransactionType
-            if (!Enum.TryParse<TransactionType>(dto.Type, out var transactionType) || transactionType != TransactionType.Deposit)
-                throw new InvalidOperationException("El tipo de transacción debe ser 'Deposit'");
-
-            // Obtener el customer y su wallet
-            var customer = await _dbContext.Customers
-                .Include(c => c.Wallet)
-                .FirstOrDefaultAsync(c => c.Id == dto.CustomerId && c.OrganizationId == organizationId);
-
-            if (customer == null)
-                throw new KeyNotFoundException("Cliente no encontrado");
-
-            if (customer.Wallet == null)
-                throw new InvalidOperationException("El cliente no tiene una wallet asociada");
-
-            // Verificar que el usuario autorizador pertenece a la organización
-            var userBelongsToOrg = await _dbContext.OrganizationMembers
-                .AnyAsync(om => om.OrganizationId == organizationId && om.UserId == authorizedByUserId);
-
-            if (!userBelongsToOrg)
-                throw new UnauthorizedAccessException("El usuario no pertenece a esta organización");
-
-            // Crear la transacción
-            var transaction = new WalletTransaction
+            try
             {
-                Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
-                WalletId = customer.Wallet.Id,
-                Type = TransactionType.Deposit,
-                Amount = dto.Amount,
-                AuthorizedByUserId = authorizedByUserId,
-                Notes = dto.Notes,
-                CreatedAt = DateTime.UtcNow
-            };
+                // Validar TransactionType
+                if (!Enum.TryParse<TransactionType>(dto.Type, out var transactionType) || transactionType != TransactionType.Deposit)
+                    throw new InvalidOperationException("El tipo de transacción debe ser 'Deposit'");
 
-            _dbContext.WalletTransactions.Add(transaction);
+                // Obtener el customer y su wallet
+                var customer = await _dbContext.Customers
+                    .Include(c => c.Wallet)
+                    .FirstOrDefaultAsync(c => c.Id == dto.CustomerId && c.OrganizationId == organizationId);
 
-            // Actualizar el balance del wallet
-            customer.Wallet.Balance += dto.Amount;
-            customer.Wallet.UpdatedAt = DateTime.UtcNow;
+                if (customer == null)
+                    throw new KeyNotFoundException("Cliente no encontrado");
 
-            await _dbContext.SaveChangesAsync();
+                if (customer.Wallet == null)
+                    throw new InvalidOperationException("El cliente no tiene una wallet asociada");
 
-            // Recargar con relaciones
-            await _dbContext.Entry(transaction).Reference(t => t.AuthorizedByUser).LoadAsync();
+                // Verificar que el usuario autorizador pertenece a la organización
+                var userBelongsToOrg = await _dbContext.OrganizationMembers
+                    .AnyAsync(om => om.OrganizationId == organizationId && om.UserId == authorizedByUserId);
 
-            return MapToDto(transaction);
+                if (!userBelongsToOrg)
+                    throw new UnauthorizedAccessException("El usuario no pertenece a esta organización");
+
+                // Crear la transacción
+                var transactionId = Guid.NewGuid();
+
+                var transaction = _mapper.Map<WalletTransaction>(dto);
+                transaction.Id = Guid.NewGuid();
+                transaction.OrganizationId = organizationId;
+                transaction.WalletId = customer.Wallet.Id;
+                transaction.AuthorizedByUserId = authorizedByUserId;
+                transaction.CreatedAt = DateTime.UtcNow;
+
+                _dbContext.WalletTransactions.Add(transaction);
+
+                // Actualizar el balance del wallet
+                customer.Wallet.Balance += dto.Amount;
+                customer.Wallet.UpdatedAt = DateTime.UtcNow;
+
+                await _dbContext.SaveChangesAsync();
+
+                // Recargar con relaciones
+                await _dbContext.Entry(transaction).Reference(t => t.AuthorizedByUser).LoadAsync();
+
+                return _mapper.Map<WalletTransactionDto>(transaction);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }            
         }
 
         public async Task<WalletTransactionDto> CreateWithdrawalAsync(Guid organizationId, Guid authorizedByUserId, CreateWalletTransactionDto dto)

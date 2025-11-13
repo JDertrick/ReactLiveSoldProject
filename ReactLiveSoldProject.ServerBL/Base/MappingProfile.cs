@@ -66,6 +66,13 @@ namespace ReactLiveSoldProject.ServerBL.Base
             CreateMap<Customer, CreateCustomerDto>();
             CreateMap<Customer, UpdateCustomerDto>();
 
+            // Wallet
+            CreateMap<Wallet, WalletDto>();
+            CreateMap<WalletDto, Wallet>();
+            CreateMap<WalletTransaction, WalletTransactionDto>();
+            CreateMap<WalletTransactionDto, WalletTransaction>();            
+            CreateMap<CreateWalletTransactionDto, WalletTransaction>();
+            CreateMap<WalletTransaction, CreateWalletTransactionDto>();
         }
     }
 }

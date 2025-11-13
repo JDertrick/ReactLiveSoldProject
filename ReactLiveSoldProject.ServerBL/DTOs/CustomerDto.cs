@@ -11,9 +11,9 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public Guid? AssignedSellerId { get; set; }
         public string? AssignedSellerName { get; set; }
         public string? Notes { get; set; }
-        public decimal WalletBalance { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public WalletDto? Wallet { get; set; }
         public bool IsActive { get; set; }
     }
 }

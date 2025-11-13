@@ -285,7 +285,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     ? $"{customer.AssignedSeller.FirstName} {customer.AssignedSeller.LastName}".Trim()
                     : null,
                 Notes = customer.Notes,
-                WalletBalance = customer.Wallet?.Balance ?? 0m,
                 CreatedAt = customer.CreatedAt,
                 UpdatedAt = customer.UpdatedAt
             };

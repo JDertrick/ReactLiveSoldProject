@@ -24,7 +24,7 @@ namespace ReactLiveSoldProject.Server.Controllers
 
         /// <summary>
         /// Obtiene el wallet de un cliente
-        /// </summary>
+        /// </summary>or que
         [HttpGet("customer/{customerId}")]
         public async Task<ActionResult<WalletDto>> GetWalletByCustomer(Guid customerId)
         {
