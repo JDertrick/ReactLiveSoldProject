@@ -15,6 +15,12 @@ import {
   UpdateCustomerDto,
   Customer,
 } from "../../types/customer.types";
+import { Button } from "../../components/ui/button";
+import {
+  CustomerProfileTab,
+  CustomerWalletTab,
+  CustomerOrdersTab,
+} from "../../components/customers";
 
 const CustomersPage = () => {
   const { data: customers, isLoading } = useGetCustomers();
@@ -136,6 +142,7 @@ const CustomersPage = () => {
           >
             Add Customer
           </button>
+          <Button onClick={() => handleOpenModal()}>Test</Button>
         </div>
       </div>
 
@@ -425,7 +432,7 @@ const CustomersPage = () => {
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <DialogPanel
               transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-3xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+              className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-4xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
             >
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="flex justify-between items-start mb-4">
@@ -492,94 +499,17 @@ const CustomersPage = () => {
                 </div>
 
                 {/* Tab Content */}
-                <div className="mt-4">
-                  {activeTab === "profile" && (
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">
-                          Email
-                        </p>
-                        <p className="mt-1 text-sm text-gray-900">
-                          {selectedCustomer?.email}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">
-                          Phone Number
-                        </p>
-                        <p className="mt-1 text-sm text-gray-900">
-                          {selectedCustomer?.phone}
-                        </p>
-                      </div>
-                      {/* {selectedCustomer.dateOfBirth && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">
-                            Date of Birth
-                          </p>
-                          <p className="mt-1 text-sm text-gray-900">
-                            {new Date(
-                              selectedCustomer.dateOfBirth
-                            ).toLocaleDateString()}
-                          </p>
-                        </div>
-                      )}
-                      {selectedCustomer.shippingAddress && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">
-                            Shipping Address
-                          </p>
-                          <p className="mt-1 text-sm text-gray-900">
-                            {selectedCustomer.shippingAddress}
-                          </p>
-                        </div>
-                      )} */}
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">
-                          Status
-                        </p>
-                        <p className="mt-1">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                              selectedCustomer?.isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {selectedCustomer?.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
+                <div className="mt-6">
+                  {activeTab === "profile" && selectedCustomer && (
+                    <CustomerProfileTab customer={selectedCustomer} />
                   )}
 
                   {activeTab === "wallet" && selectedCustomer && (
-                    <div>
-                      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white mb-4">
-                        <p className="text-sm opacity-90">Current Balance</p>
-                        <p className="text-3xl font-bold mt-2">
-                          ${(selectedCustomer.wallet?.balance ?? 0).toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900 mb-2">
-                          Recent Transactions
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          Transaction history will be displayed here.
-                        </p>
-                      </div>
-                    </div>
+                    <CustomerWalletTab customer={selectedCustomer} />
                   )}
 
-                  {activeTab === "orders" && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">
-                        Purchase History
-                      </h4>
-                      <p className="text-sm text-gray-500">
-                        Customer order history will be displayed here.
-                      </p>
-                    </div>
+                  {activeTab === "orders" && selectedCustomer && (
+                    <CustomerOrdersTab customer={selectedCustomer} />
                   )}
                 </div>
               </div>
