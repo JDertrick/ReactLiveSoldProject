@@ -50,11 +50,29 @@ const CustomerPortalLogin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('Attempting login with:', {
+      email: formData.email,
+      organizationSlug: formData.organizationSlug,
+      hasPassword: !!formData.password
+    });
+
     try {
-      await customerLogin.mutateAsync(formData);
-      navigate(`/portal/${orgSlug}/dashboard`);
-    } catch (error) {
+      const response = await customerLogin.mutateAsync(formData);
+
+      // Guardar la información de branding de la organización
+      if (response.user.organizationSlug && response.user.organizationName) {
+        setBrand(
+          response.user.organizationSlug,
+          response.user.organizationName,
+          response.user.organizationLogoUrl || null
+        );
+      }
+
+      // Redirigir al dashboard del portal usando el slug de la respuesta
+      navigate(`/portal/${response.user.organizationSlug}/dashboard`);
+    } catch (error: any) {
       console.error("Login failed:", error);
+      console.error("Error response:", error.response?.data);
     }
   };
 

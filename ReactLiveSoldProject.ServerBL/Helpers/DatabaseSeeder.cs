@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
+using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 
 namespace ReactLiveSoldProject.ServerBL.Helpers
 {
@@ -90,13 +91,47 @@ namespace ReactLiveSoldProject.ServerBL.Helpers
 
             _dbContext.OrganizationMembers.Add(orgMember);
 
-            // 5. Guardar todos los cambios
+            // 5. Crear Customer de prueba para el portal
+            var customerId = Guid.NewGuid();
+            var testCustomer = new Customer
+            {
+                Id = customerId,
+                OrganizationId = organizationId,
+                FirstName = "María",
+                LastName = "García",
+                Email = "maria@cliente.com",
+                Phone = "+34612345678",
+                PasswordHash = PasswordHelper.HashPassword("Customer123!"),
+                AssignedSellerId = ownerId,
+                Notes = "Cliente de prueba para el portal",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.Customers.Add(testCustomer);
+
+            // 6. Crear Wallet para el Customer de prueba
+            var walletId = Guid.NewGuid();
+            var testWallet = new Wallet
+            {
+                Id = walletId,
+                OrganizationId = organizationId,
+                CustomerId = customerId,
+                Balance = 1000.00m, // Balance inicial de 1000
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.Wallets.Add(testWallet);
+
+            // 7. Guardar todos los cambios
             await _dbContext.SaveChangesAsync();
 
             Console.WriteLine("✓ Datos semilla creados exitosamente:");
             Console.WriteLine($"  - SuperAdmin: admin@livesold.com / Admin123!");
             Console.WriteLine($"  - Owner: juan@tiendademo.com / Owner123!");
+            Console.WriteLine($"  - Customer: maria@cliente.com / Customer123!");
             Console.WriteLine($"  - Organización: Tienda Demo (slug: tienda-demo)");
+            Console.WriteLine($"  - Wallet inicial: $1,000.00");
         }
     }
 }

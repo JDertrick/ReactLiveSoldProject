@@ -19,6 +19,9 @@ export interface LoginResponse {
     lastName: string;
     role: string;
     organizationId?: string;
+    organizationSlug?: string;
+    organizationName?: string;
+    organizationLogoUrl?: string;
     isSuperAdmin: boolean;
   };
 }
@@ -30,7 +33,9 @@ export interface UserProfile {
   lastName?: string;
   role: string;
   organizationId?: string;
+  organizationSlug?: string;
   organizationName?: string;
+  organizationLogoUrl?: string;
 }
 
 export interface CustomerProfile {

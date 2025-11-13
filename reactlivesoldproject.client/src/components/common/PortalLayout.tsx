@@ -1,18 +1,35 @@
+import { useEffect } from 'react';
 import { Outlet, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { usePortalBrandStore } from '../../store/portalBrandStore';
 
 const PortalLayout = () => {
   const { user, logout } = useAuthStore();
-  const { organizationName, logoUrl } = usePortalBrandStore();
+  const { organizationName, organizationSlug, logoUrl, setBrand, clearBrand } = usePortalBrandStore();
   const { orgSlug } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Sincronizar portalBrandStore con authStore si no hay datos
+  useEffect(() => {
+    if (!organizationSlug && user?.organizationSlug) {
+      setBrand(
+        user.organizationSlug,
+        user.organizationName || '',
+        user.organizationLogoUrl || null
+      );
+    }
+  }, [organizationSlug, user, setBrand]);
+
   const handleLogout = () => {
     logout();
+    clearBrand();
     navigate(`/portal/${orgSlug}/login`);
   };
+
+  // Usar datos del authStore como fallback
+  const displayName = organizationName || user?.organizationName || 'Customer Portal';
+  const displayLogo = logoUrl || user?.organizationLogoUrl;
 
   const isActive = (path: string) => {
     return location.pathname === `/portal/${orgSlug}${path}`;
@@ -47,10 +64,10 @@ const PortalLayout = () => {
           <div className="flex justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex items-center">
-              {logoUrl && (
-                <img src={logoUrl} alt={organizationName || ''} className="h-10 w-auto mr-3" />
+              {displayLogo && (
+                <img src={displayLogo} alt={displayName} className="h-10 w-auto mr-3" />
               )}
-              <h1 className="text-xl font-bold text-gray-900">{organizationName}</h1>
+              <h1 className="text-xl font-bold text-gray-900">{displayName}</h1>
             </div>
 
             {/* Navigation Links */}

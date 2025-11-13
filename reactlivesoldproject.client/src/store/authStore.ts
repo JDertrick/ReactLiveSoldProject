@@ -8,7 +8,9 @@ interface User {
   lastName?: string;
   role: string;
   organizationId?: string;
+  organizationSlug?: string;
   organizationName?: string;
+  organizationLogoUrl?: string;
 }
 
 interface AuthState {

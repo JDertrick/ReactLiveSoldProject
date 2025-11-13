@@ -49,6 +49,9 @@ export const useCustomerPortalLogin = () => {
         lastName: data.user.lastName,
         role: data.user.role,
         organizationId: data.user.organizationId,
+        organizationSlug: data.user.organizationSlug,
+        organizationName: data.user.organizationName,
+        organizationLogoUrl: data.user.organizationLogoUrl,
       };
       login(data.token, user);
     },

@@ -29,10 +29,29 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token inválido o expirado
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      const requestUrl = error.config?.url || '';
+
+      // NO redirigir si es un error de login (credenciales incorrectas)
+      const isLoginEndpoint =
+        requestUrl.includes('/auth/employee-login') ||
+        requestUrl.includes('/auth/portal/login');
+
+      if (!isLoginEndpoint) {
+        // Token inválido o expirado en endpoint protegido
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+
+        // Redirigir según el contexto
+        const isPortalRoute = window.location.pathname.includes('/portal/');
+        if (isPortalRoute) {
+          // Extraer orgSlug de la URL actual
+          const match = window.location.pathname.match(/\/portal\/([^\/]+)/);
+          const orgSlug = match ? match[1] : 'login';
+          window.location.href = `/portal/${orgSlug}/login`;
+        } else {
+          window.location.href = '/login';
+        }
+      }
     }
     return Promise.reject(error);
   }

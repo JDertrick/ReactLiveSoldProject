@@ -129,6 +129,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     LastName = customer.LastName,
                     Role = "Customer",
                     OrganizationId = customer.OrganizationId,
+                    OrganizationSlug = organization.Slug,
+                    OrganizationName = organization.Name,
+                    OrganizationLogoUrl = organization.LogoUrl,
                     IsSuperAdmin = false
                 }
             };
