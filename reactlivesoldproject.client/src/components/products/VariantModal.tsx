@@ -6,6 +6,8 @@ import {
 } from "@headlessui/react";
 import { ProductVariantDto } from "../../types/product.types";
 import VariantManager from "./VariantManager";
+import React from "react";
+import { AlertDialogState } from "@/types/alertdialogstate.type";
 
 interface VariantModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface VariantModalProps {
   variants: ProductVariantDto[];
   onClose: () => void;
   onSaveVariants: (variants: ProductVariantDto[]) => void;
+  customAlertDialog: React.Dispatch<React.SetStateAction<AlertDialogState>>;
 }
 
 const VariantModal = ({

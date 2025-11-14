@@ -91,11 +91,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 var transactionId = Guid.NewGuid();
 
                 var transaction = _mapper.Map<WalletTransaction>(dto);
-                transaction.Id = Guid.NewGuid();
                 transaction.OrganizationId = organizationId;
                 transaction.WalletId = customer.Wallet.Id;
                 transaction.AuthorizedByUserId = authorizedByUserId;
-                transaction.CreatedAt = DateTime.UtcNow;
 
                 _dbContext.WalletTransactions.Add(transaction);
 

@@ -42,7 +42,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
 
             // ProductVariant Mappings
             CreateMap<ProductVariant, ProductVariantDto>();
-
+            CreateMap<ProductVariantDto, ProductVariant>();
             CreateMap<CreateProductVariantDto, ProductVariant>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
@@ -54,6 +54,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.Product, opt => opt.Ignore())
                 .ForMember(dest => dest.Organization, opt => opt.Ignore())
                 .ForMember(dest => dest.SalesOrderItems, opt => opt.Ignore());
+            CreateMap<ProductVariant, CreateProductVariantDto>();
 
             // Tag Mappings
             CreateMap<Tag, TagDto>();

@@ -4,6 +4,8 @@ using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
+using AutoMapper.QueryableExtensions;
+using System.Xml;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
@@ -89,20 +91,25 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (!dto.Variants.Any())
                     throw new InvalidOperationException("El producto debe tener al menos una variante");
 
+                var variants = await _dbContext.Products.Where(p => p.OrganizationId == organizationId)
+                    .SelectMany(pv => pv.Variants)
+                    .ProjectTo<ProductVariantDto>(_mapper.ConfigurationProvider).ToListAsync();
+                
+                // pasa los skus a un array[string]
+                var skusArray = variants.Select(v => v.Sku).ToHashSet();
+
+                bool variantRepeat = dto.Variants.Any(v => skusArray.Contains(v.Sku));
+
+                if (variantRepeat)
+                    throw new InvalidOperationException("El producto contiene SKUs que ya existen en el inventario.");
+
                 // Crear el producto
                 var productId = Guid.NewGuid();
-                var product = new Product
-                {
-                    Id = productId,
-                    OrganizationId = organizationId,
-                    Name = dto.Name,
-                    Description = dto.Description,
-                    ProductType = productType,
-                    IsPublished = dto.IsPublished,
-                    BasePrice = dto.BasePrice,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                
+                var product = _mapper.Map<Product>(dto);
+                product.Id = productId;
+                product.OrganizationId = organizationId;
+                product.ProductType = productType;
 
                 _dbContext.Products.Add(product);
 

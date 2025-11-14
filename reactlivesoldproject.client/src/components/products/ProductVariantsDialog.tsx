@@ -1,12 +1,24 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
-import { Product, CreateProductVariantDto, VariantFormInput } from "../../types/product.types";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/react";
+import {
+  Product,
+  CreateProductVariantDto,
+  VariantFormInput,
+} from "../../types/product.types";
 
 interface ProductVariantsDialogProps {
   open: boolean;
   onClose: () => void;
   product: Product | null;
-  onSave: (productId: string, variants: CreateProductVariantDto[]) => Promise<void>;
+  onSave: (
+    productId: string,
+    variants: CreateProductVariantDto[]
+  ) => Promise<void>;
 }
 
 export default function ProductVariantsDialog({
@@ -60,7 +72,13 @@ export default function ProductVariantsDialog({
     const price = parseFloat(variantInput.price);
     const stockQuantity = parseInt(variantInput.stockQuantity);
 
-    if (!variantInput.sku || isNaN(price) || price < 0 || isNaN(stockQuantity) || stockQuantity < 0) {
+    if (
+      !variantInput.sku ||
+      isNaN(price) ||
+      price < 0 ||
+      isNaN(stockQuantity) ||
+      stockQuantity < 0
+    ) {
       alert("Por favor completa SKU, Precio y Cantidad correctamente");
       return;
     }
@@ -74,7 +92,10 @@ export default function ProductVariantsDialog({
       sku: variantInput.sku,
       price,
       stockQuantity,
-      attributes: Object.keys(attributes).length > 0 ? JSON.stringify(attributes) : undefined,
+      attributes:
+        Object.keys(attributes).length > 0
+          ? JSON.stringify(attributes)
+          : undefined,
       imageUrl: variantInput.imageUrl || undefined,
     };
 
@@ -162,6 +183,7 @@ export default function ProductVariantsDialog({
       await onSave(product.id, variants);
       onClose();
     } catch (error) {
+      console.log(error);
       console.error("Error saving variants:", error);
       alert("Error al guardar las variantes");
     } finally {
@@ -189,12 +211,16 @@ export default function ProductVariantsDialog({
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <DialogTitle as="h3" className="text-lg leading-6 font-medium text-gray-900">
+                  <DialogTitle
+                    as="h3"
+                    className="text-lg leading-6 font-medium text-gray-900"
+                  >
                     Variantes de Producto
                   </DialogTitle>
                   {product && (
                     <p className="mt-1 text-sm text-gray-500">
-                      {product.name} • {variants.length} variante(s) • Total stock: {getTotalStock()}
+                      {product.name} • {variants.length} variante(s) • Total
+                      stock: {getTotalStock()}
                     </p>
                   )}
                 </div>
@@ -204,7 +230,9 @@ export default function ProductVariantsDialog({
                 {/* Left: Form */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-4">
-                    {editingIndex !== null ? "Editar Variante" : "Agregar Variante"}
+                    {editingIndex !== null
+                      ? "Editar Variante"
+                      : "Agregar Variante"}
                   </h4>
 
                   {editingIndex !== null && (
@@ -232,7 +260,10 @@ export default function ProductVariantsDialog({
                         placeholder="ABC-123"
                         value={variantInput.sku}
                         onChange={(e) =>
-                          setVariantInput({ ...variantInput, sku: e.target.value })
+                          setVariantInput({
+                            ...variantInput,
+                            sku: e.target.value,
+                          })
                         }
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                       />
@@ -248,7 +279,10 @@ export default function ProductVariantsDialog({
                           placeholder="M, L, XL..."
                           value={variantInput.size}
                           onChange={(e) =>
-                            setVariantInput({ ...variantInput, size: e.target.value })
+                            setVariantInput({
+                              ...variantInput,
+                              size: e.target.value,
+                            })
                           }
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                         />
@@ -263,7 +297,10 @@ export default function ProductVariantsDialog({
                           placeholder="Rojo, Azul..."
                           value={variantInput.color}
                           onChange={(e) =>
-                            setVariantInput({ ...variantInput, color: e.target.value })
+                            setVariantInput({
+                              ...variantInput,
+                              color: e.target.value,
+                            })
                           }
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                         />
@@ -282,7 +319,10 @@ export default function ProductVariantsDialog({
                           min="0"
                           value={variantInput.price}
                           onChange={(e) =>
-                            setVariantInput({ ...variantInput, price: e.target.value })
+                            setVariantInput({
+                              ...variantInput,
+                              price: e.target.value,
+                            })
                           }
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                         />
@@ -317,7 +357,10 @@ export default function ProductVariantsDialog({
                         placeholder="https://..."
                         value={variantInput.imageUrl}
                         onChange={(e) =>
-                          setVariantInput({ ...variantInput, imageUrl: e.target.value })
+                          setVariantInput({
+                            ...variantInput,
+                            imageUrl: e.target.value,
+                          })
                         }
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
                       />
@@ -328,7 +371,9 @@ export default function ProductVariantsDialog({
                       onClick={handleAddOrUpdateVariant}
                       className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                     >
-                      {editingIndex !== null ? "Actualizar Variante" : "Agregar Variante"}
+                      {editingIndex !== null
+                        ? "Actualizar Variante"
+                        : "Agregar Variante"}
                     </button>
                   </div>
                 </div>
@@ -366,9 +411,11 @@ export default function ProductVariantsDialog({
                               </p>
                               {(attributes.size || attributes.color) && (
                                 <p className="text-xs text-gray-500">
-                                  {attributes.size && `Talla: ${attributes.size}`}
+                                  {attributes.size &&
+                                    `Talla: ${attributes.size}`}
                                   {attributes.size && attributes.color && " • "}
-                                  {attributes.color && `Color: ${attributes.color}`}
+                                  {attributes.color &&
+                                    `Color: ${attributes.color}`}
                                 </p>
                               )}
                               <p className="text-xs text-gray-500 mt-1">
@@ -426,7 +473,8 @@ export default function ProductVariantsDialog({
                       })
                     ) : (
                       <p className="text-sm text-gray-500 text-center py-8">
-                        No hay variantes. Agrega la primera variante para comenzar.
+                        No hay variantes. Agrega la primera variante para
+                        comenzar.
                       </p>
                     )}
                   </div>

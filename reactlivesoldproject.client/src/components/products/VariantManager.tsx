@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { ProductVariantDto } from "../../types/product.types";
+import { CustomAlertDialog } from "../common/AlertDialog";
 
 interface VariantManagerProps {
   variants: ProductVariantDto[];
   onVariantsChange: (variants: ProductVariantDto[]) => void;
 }
 
-const VariantManager = ({ variants, onVariantsChange }: VariantManagerProps) => {
+const VariantManager = ({
+  variants,
+  onVariantsChange,
+}: VariantManagerProps) => {
   const [variantInput, setVariantInput] = useState({
     sku: "",
     size: "",
@@ -18,6 +22,17 @@ const VariantManager = ({ variants, onVariantsChange }: VariantManagerProps) => 
   const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(
     null
   );
+
+  // Dialog states
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+  }>({
+    open: false,
+    title: "",
+    description: "",
+  });
 
   const handleAddVariant = () => {
     const stock = parseInt(variantInput.stock) || 0;
@@ -41,18 +56,34 @@ const VariantManager = ({ variants, onVariantsChange }: VariantManagerProps) => 
         onVariantsChange(newVariants);
         setEditingVariantIndex(null);
       } else {
-        // Agregar nueva variante (sin id)
-        const newVariant: ProductVariantDto = {
-          sku: variantInput.sku,
-          size: variantInput.size || undefined,
-          color: variantInput.color || undefined,
-          stock,
-          price,
-        };
-        onVariantsChange([...variants, newVariant]);
+        const existsVariant = variants.find(
+          (variant) => variant.sku === variantInput.sku
+        );
+        if (existsVariant !== undefined) {
+          setAlertDialog({
+            description: "El SKU ingresado ya existe",
+            open: true,
+            title: "SKU existente",
+          });
+        } else {
+          // Agregar nueva variante (sin id)
+          const newVariant: ProductVariantDto = {
+            sku: variantInput.sku,
+            size: variantInput.size || undefined,
+            color: variantInput.color || undefined,
+            stock,
+            price,
+          };
+          onVariantsChange([...variants, newVariant]);
+          setVariantInput({
+            sku: "",
+            size: "",
+            color: "",
+            stock: "",
+            price: "",
+          });
+        }
       }
-
-      setVariantInput({ sku: "", size: "", color: "", stock: "", price: "" });
     }
   };
 
@@ -289,6 +320,14 @@ const VariantManager = ({ variants, onVariantsChange }: VariantManagerProps) => 
           </p>
         )}
       </div>
+
+      {/* Alert Dialog */}
+      <CustomAlertDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog({ ...alertDialog, open: false })}
+        title={alertDialog.title}
+        description={alertDialog.description}
+      />
     </div>
   );
 };

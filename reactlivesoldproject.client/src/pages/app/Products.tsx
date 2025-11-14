@@ -15,12 +15,20 @@ import {
 } from "../../types/product.types";
 import ProductFormModal from "../../components/products/ProductFormModal";
 import VariantModal from "../../components/products/VariantModal";
+import { CustomAlertDialog } from "@/components/common/AlertDialog";
+import { AlertDialogState } from "@/types/alertdialogstate.type";
 
 const ProductsPage = () => {
   const { data: products, isLoading } = useGetProducts(true); // Include unpublished
   const { data: tags } = useGetTags();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
+
+  const [alertDialog, setAlertDialog] = useState<AlertDialogState>({
+    open: false,
+    title: "",
+    description: "",
+  });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
@@ -39,7 +47,9 @@ const ProductsPage = () => {
   });
 
   // Helper: Convertir ProductVariantDto (formulario) a CreateProductVariantDto (backend)
-  const convertToCreateVariantDto = (variant: ProductVariantDto): CreateProductVariantDto => {
+  const convertToCreateVariantDto = (
+    variant: ProductVariantDto
+  ): CreateProductVariantDto => {
     const attributes: Record<string, string> = {};
     if (variant.size) attributes.size = variant.size;
     if (variant.color) attributes.color = variant.color;
@@ -48,7 +58,10 @@ const ProductsPage = () => {
       sku: variant.sku,
       price: variant.price,
       stockQuantity: variant.stock,
-      attributes: Object.keys(attributes).length > 0 ? JSON.stringify(attributes) : undefined,
+      attributes:
+        Object.keys(attributes).length > 0
+          ? JSON.stringify(attributes)
+          : undefined,
       imageUrl: variant.imageUrl,
     };
   };
@@ -105,6 +118,11 @@ const ProductsPage = () => {
       handleCloseModal();
     } catch (error) {
       console.error("Error saving product:", error);
+      setAlertDialog({
+        open: true,
+        title: "Error",
+        description: error?.response?.data?.message || "An error occurred",
+      });
     }
   };
 
@@ -240,6 +258,14 @@ const ProductsPage = () => {
         onOpenVariantModal={handleOpenVariantModal}
       />
 
+      {/* Dialog */}
+      <CustomAlertDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog({ ...alertDialog, open: false })}
+        title={alertDialog.title}
+        description={alertDialog.description}
+      />
+
       {/* Variant Management Modal */}
       <VariantModal
         isOpen={isVariantModalOpen}
@@ -247,6 +273,7 @@ const ProductsPage = () => {
         variants={variants}
         onClose={handleCloseVariantModal}
         onSaveVariants={handleVariantsChange}
+        customAlertDialog={setAlertDialog}
       />
     </div>
   );
