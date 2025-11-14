@@ -10,10 +10,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class SalesOrderService : ISalesOrderService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly IStockMovementService _stockMovementService;
 
-        public SalesOrderService(LiveSoldDbContext dbContext)
+        public SalesOrderService(LiveSoldDbContext dbContext, IStockMovementService stockMovementService)
         {
             _dbContext = dbContext;
+            _stockMovementService = stockMovementService;
         }
 
         public async Task<List<SalesOrderDto>> GetSalesOrdersByOrganizationAsync(Guid organizationId, string? status = null)
@@ -317,14 +319,19 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (order.Customer.Wallet.Balance < order.TotalAmount)
                 throw new InvalidOperationException($"Fondos insuficientes. Balance: {order.Customer.Wallet.Balance:C}, Total orden: {order.TotalAmount:C}");
 
-            // Verificar y descontar stock de cada item
+            if (!order.CreatedByUserId.HasValue)
+                throw new InvalidOperationException("La orden no tiene un usuario creador asignado");
+
+            // Verificar y registrar movimientos de stock para cada item
             foreach (var item in order.Items)
             {
-                if (item.ProductVariant.StockQuantity < item.Quantity)
-                    throw new InvalidOperationException($"Stock insuficiente para {item.ProductVariant.Product.Name} ({item.ProductVariant.Sku}). Disponible: {item.ProductVariant.StockQuantity}, Requerido: {item.Quantity}");
-
-                item.ProductVariant.StockQuantity -= item.Quantity;
-                item.ProductVariant.UpdatedAt = DateTime.UtcNow;
+                // RegisterSaleMovementAsync valida el stock y lo actualiza automáticamente
+                await _stockMovementService.RegisterSaleMovementAsync(
+                    organizationId,
+                    order.CreatedByUserId.Value,
+                    item.ProductVariantId,
+                    item.Quantity,
+                    salesOrderId);
             }
 
             // Descontar del wallet y crear transacción

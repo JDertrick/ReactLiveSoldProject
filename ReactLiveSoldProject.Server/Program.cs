@@ -86,6 +86,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IStockMovementService, StockMovementService>();
 
 // Helpers
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();

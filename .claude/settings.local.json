@@ -21,7 +21,9 @@
       "Bash(mkdir:*)",
       "Bash(npx shadcn@latest add:*)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef migrations add AddStockMovementsTable)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef migrations add AddStockMovementsTable --project ../ReactLiveSoldProject.ServerBL)"
     ],
     "deny": [],
     "ask": []

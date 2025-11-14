@@ -28,6 +28,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductTag> ProductTags { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
+        public DbSet<StockMovement> StockMovements { get; set; }
 
         // BLOQUE 4: VENTAS
         public DbSet<SalesOrder> SalesOrders { get; set; }
@@ -286,6 +287,50 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany(p => p.Variants)
                     .HasForeignKey(pv => pv.ProductId)
                     .OnDelete(DeleteBehavior.Cascade); // Como en el SQL
+            });
+
+            modelBuilder.Entity<StockMovement>(e =>
+            {
+                e.ToTable("StockMovements");
+                e.HasKey(sm => sm.Id);
+                e.Property(sm => sm.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(sm => sm.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(sm => sm.ProductVariantId).HasColumnName("product_variant_id").IsRequired();
+                e.Property(sm => sm.MovementType).HasColumnName("movement_type").HasConversion<string>().IsRequired();
+                e.Property(sm => sm.Quantity).HasColumnName("quantity").IsRequired();
+                e.Property(sm => sm.StockBefore).HasColumnName("stock_before").IsRequired();
+                e.Property(sm => sm.StockAfter).HasColumnName("stock_after").IsRequired();
+                e.Property(sm => sm.RelatedSalesOrderId).HasColumnName("related_sales_order_id");
+                e.Property(sm => sm.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
+                e.Property(sm => sm.Notes).HasColumnName("notes");
+                e.Property(sm => sm.Reference).HasColumnName("reference");
+                e.Property(sm => sm.UnitCost).HasColumnName("unit_cost").HasColumnType("decimal(10, 2)");
+                e.Property(sm => sm.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                // Índices para consultas frecuentes
+                e.HasIndex(sm => sm.ProductVariantId);
+                e.HasIndex(sm => sm.RelatedSalesOrderId);
+                e.HasIndex(sm => sm.CreatedAt);
+
+                e.HasOne(sm => sm.Organization)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(sm => sm.ProductVariant)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.ProductVariantId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(sm => sm.RelatedSalesOrder)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.RelatedSalesOrderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(sm => sm.CreatedByUser)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.CreatedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // --- BLOQUE 4: VENTAS ---

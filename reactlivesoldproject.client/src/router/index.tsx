@@ -20,6 +20,7 @@ import CustomersPage from "../pages/app/Customers";
 import ProductsPage from "../pages/app/Products";
 import LiveSalesPage from "../pages/app/LiveSales";
 import WalletPage from "../pages/app/Wallet";
+import StockMovementsPage from "../pages/app/StockMovements";
 
 // Portal Pages (Customer)
 import CustomerDashboard from "../pages/portal/Dashboard";
@@ -113,6 +114,10 @@ export const router = createBrowserRouter([
       {
         path: "wallet",
         element: <WalletPage />,
+      },
+      {
+        path: "stock-movements",
+        element: <StockMovementsPage />,
       },
     ],
   },

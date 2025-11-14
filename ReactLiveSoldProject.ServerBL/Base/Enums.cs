@@ -120,4 +120,50 @@
         /// </summary>
         Delete
     }
+
+    /// <summary>
+    /// Tipo de movimiento de inventario
+    /// </summary>
+    public enum StockMovementType
+    {
+        /// <summary>
+        /// Entrada inicial de inventario
+        /// </summary>
+        InitialStock,
+
+        /// <summary>
+        /// Compra/entrada de mercancía
+        /// </summary>
+        Purchase,
+
+        /// <summary>
+        /// Venta de producto
+        /// </summary>
+        Sale,
+
+        /// <summary>
+        /// Devolución de cliente
+        /// </summary>
+        Return,
+
+        /// <summary>
+        /// Ajuste manual de inventario (positivo o negativo)
+        /// </summary>
+        Adjustment,
+
+        /// <summary>
+        /// Merma o pérdida de inventario
+        /// </summary>
+        Loss,
+
+        /// <summary>
+        /// Transferencia entre ubicaciones
+        /// </summary>
+        Transfer,
+
+        /// <summary>
+        /// Cancelación de venta (devuelve stock)
+        /// </summary>
+        SaleCancellation
+    }
 }
