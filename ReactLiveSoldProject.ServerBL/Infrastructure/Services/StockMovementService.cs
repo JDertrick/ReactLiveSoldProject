@@ -67,6 +67,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 throw new KeyNotFoundException("Variante de producto no encontrada");
 
             var stockBefore = variant.StockQuantity;
+
+            if (movementType == StockMovementType.Return || movementType == StockMovementType.Loss)
+                dto.Quantity = dto.Quantity * -1;
+                
             var stockAfter = stockBefore + dto.Quantity; // Puede ser positivo o negativo
 
             // Validar que el stock no sea negativo

@@ -1,12 +1,38 @@
 import { useState } from "react";
-import { useGetMovementsByOrganization, useCreateStockMovement } from "../../hooks/useStockMovements";
+import {
+  useGetMovementsByOrganization,
+  useCreateStockMovement,
+} from "../../hooks/useStockMovements";
 import { useGetProducts } from "../../hooks/useProducts";
-import { CreateStockMovementDto, StockMovementType } from "../../types/stockmovement.types";
+import {
+  CreateStockMovementDto,
+  StockMovementType,
+} from "../../types/stockmovement.types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomAlertDialog } from "@/components/common/AlertDialog";
@@ -15,7 +41,10 @@ import { AlertDialogState } from "@/types/alertdialogstate.type";
 const StockMovementsPage = () => {
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
-  const { data: movements, isLoading } = useGetMovementsByOrganization(fromDate, toDate);
+  const { data: movements, isLoading } = useGetMovementsByOrganization(
+    fromDate,
+    toDate
+  );
   const { data: products } = useGetProducts(true);
   const createMovement = useCreateStockMovement();
 
@@ -47,7 +76,10 @@ const StockMovementsPage = () => {
       SaleCancellation: { variant: "default", label: "Cancelación" },
     } as const;
 
-    const config = badgeConfig[movementType as keyof typeof badgeConfig] || { variant: "default", label: movementType };
+    const config = badgeConfig[movementType as keyof typeof badgeConfig] || {
+      variant: "default",
+      label: movementType,
+    };
     return <Badge variant={config.variant as any}>{config.label}</Badge>;
   };
 
@@ -92,7 +124,8 @@ const StockMovementsPage = () => {
       setAlertDialog({
         open: true,
         title: "Error",
-        description: error.response?.data?.message || "Error al registrar el movimiento",
+        description:
+          error.response?.data?.message || "Error al registrar el movimiento",
       });
     }
   };
@@ -181,22 +214,39 @@ const StockMovementsPage = () => {
                 movements.map((movement) => (
                   <TableRow key={movement.id}>
                     <TableCell>
-                      {new Date(movement.createdAt).toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(movement.createdAt).toLocaleDateString(
+                        "es-ES",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </TableCell>
                     <TableCell>{movement.productName}</TableCell>
                     <TableCell>{movement.variantSku}</TableCell>
-                    <TableCell>{getMovementTypeBadge(movement.movementType)}</TableCell>
-                    <TableCell className={`text-right font-semibold ${movement.quantity >= 0 ? "text-green-600" : "text-red-600"}`}>
-                      {movement.quantity > 0 ? `+${movement.quantity}` : movement.quantity}
+                    <TableCell>
+                      {getMovementTypeBadge(movement.movementType)}
                     </TableCell>
-                    <TableCell className="text-right">{movement.stockBefore}</TableCell>
-                    <TableCell className="text-right font-semibold">{movement.stockAfter}</TableCell>
+                    <TableCell
+                      className={`text-right font-semibold ${
+                        movement.quantity >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {movement.quantity > 0
+                        ? `+${movement.quantity}`
+                        : movement.quantity}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {movement.stockBefore}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {movement.stockAfter}
+                    </TableCell>
                     <TableCell className="text-sm text-gray-600">
                       {movement.createdByUserName || "Sistema"}
                     </TableCell>
@@ -210,7 +260,10 @@ const StockMovementsPage = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                  <TableCell
+                    colSpan={10}
+                    className="text-center py-8 text-gray-500"
+                  >
                     No hay movimientos de inventario registrados
                   </TableCell>
                 </TableRow>
@@ -239,7 +292,10 @@ const StockMovementsPage = () => {
                   className="w-full border border-gray-300 rounded-md p-2"
                   value={formData.productVariantId}
                   onChange={(e) =>
-                    setFormData({ ...formData, productVariantId: e.target.value })
+                    setFormData({
+                      ...formData,
+                      productVariantId: e.target.value,
+                    })
                   }
                   required
                 >
@@ -247,7 +303,8 @@ const StockMovementsPage = () => {
                   {products?.map((product) =>
                     product.variants?.map((variant) => (
                       <option key={variant.id} value={variant.id}>
-                        {product.name} - {variant.sku} (Stock: {variant.stockQuantity})
+                        {product.name} - {variant.sku} (Stock:{" "}
+                        {variant.stockQuantity})
                       </option>
                     ))
                   )}
@@ -265,23 +322,28 @@ const StockMovementsPage = () => {
                   }
                   required
                 >
-                  <option value={StockMovementType.Adjustment}>Ajuste</option>
+                  {/* <option value={StockMovementType.Adjustment}>Ajuste</option> */}
                   <option value={StockMovementType.Purchase}>Compra</option>
                   <option value={StockMovementType.Loss}>Pérdida</option>
                   <option value={StockMovementType.Return}>Devolución</option>
-                  <option value={StockMovementType.InitialStock}>Stock Inicial</option>
-                  <option value={StockMovementType.Transfer}>Transferencia</option>
+                  {/* <option value={StockMovementType.InitialStock}>Stock Inicial</option> */}
+                  {/* <option value={StockMovementType.Transfer}>Transferencia</option> */}
                 </select>
               </div>
 
               <div>
-                <Label htmlFor="quantity">Cantidad (positivo: entrada, negativo: salida)</Label>
+                <Label htmlFor="quantity">
+                  Cantidad (positivo: entrada, negativo: salida)
+                </Label>
                 <Input
                   id="quantity"
                   type="number"
                   value={formData.quantity}
                   onChange={(e) =>
-                    setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })
+                    setFormData({
+                      ...formData,
+                      quantity: parseInt(e.target.value) || 0,
+                    })
                   }
                   placeholder="Ej: 10 o -5"
                   required
@@ -298,7 +360,9 @@ const StockMovementsPage = () => {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      unitCost: e.target.value ? parseFloat(e.target.value) : undefined,
+                      unitCost: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
                     })
                   }
                   placeholder="$0.00"
