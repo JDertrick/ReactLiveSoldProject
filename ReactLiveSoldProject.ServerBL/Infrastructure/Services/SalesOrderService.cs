@@ -205,6 +205,52 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return MapToDto(order);
         }
 
+        public async Task<SalesOrderDto> UpdateItemInOrderAsync(Guid salesOrderId, Guid itemId, Guid organizationId, UpdateSalesOrderItemDto dto)
+        {
+            var order = await _dbContext.SalesOrders
+                .Include(so => so.Items)
+                    .ThenInclude(i => i.ProductVariant)
+                .FirstOrDefaultAsync(so => so.Id == salesOrderId && so.OrganizationId == organizationId);
+
+            if (order == null)
+                throw new KeyNotFoundException("Orden no encontrada");
+
+            if (order.Status != OrderStatus.Draft)
+                throw new InvalidOperationException("Solo se pueden modificar órdenes en estado Draft");
+
+            var item = order.Items.FirstOrDefault(i => i.Id == itemId);
+            if (item == null)
+                throw new KeyNotFoundException("Item no encontrado en la orden");
+
+            // Calcular el cambio en el total
+            var oldSubtotal = item.UnitPrice * item.Quantity;
+
+            // Actualizar el item
+            item.Quantity = dto.Quantity;
+            item.UnitPrice = dto.CustomUnitPrice ?? item.ProductVariant.Price;
+            item.ItemDescription = dto.ItemDescription;
+
+            var newSubtotal = item.UnitPrice * item.Quantity;
+
+            // Recalcular total
+            order.TotalAmount = order.TotalAmount - oldSubtotal + newSubtotal;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+
+            // Recargar con relaciones
+            await _dbContext.Entry(order).Collection(o => o.Items).LoadAsync();
+            foreach (var orderItem in order.Items)
+            {
+                await _dbContext.Entry(orderItem).Reference(i => i.ProductVariant).LoadAsync();
+                await _dbContext.Entry(orderItem.ProductVariant).Reference(pv => pv.Product).LoadAsync();
+            }
+            await _dbContext.Entry(order).Reference(o => o.Customer).LoadAsync();
+            await _dbContext.Entry(order).Reference(o => o.CreatedByUser).LoadAsync();
+
+            return MapToDto(order);
+        }
+
         public async Task<SalesOrderDto> RemoveItemFromOrderAsync(Guid salesOrderId, Guid itemId, Guid organizationId)
         {
             var order = await _dbContext.SalesOrders

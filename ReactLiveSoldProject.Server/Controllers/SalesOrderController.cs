@@ -170,6 +170,38 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
+        /// Actualiza un item de una orden Draft (cantidad, precio, descripción)
+        /// </summary>
+        [HttpPut("{id}/items/{itemId}")]
+        public async Task<ActionResult<SalesOrderDto>> UpdateItemInOrder(Guid id, Guid itemId, [FromBody] UpdateSalesOrderItemDto dto)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var order = await _salesOrderService.UpdateItemInOrderAsync(id, itemId, organizationId.Value, dto);
+                return Ok(order);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Entity not found: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation updating item in order {OrderId}: {Message}", id, ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating item in order {OrderId}", id);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
         /// Elimina un item de una orden Draft
         /// </summary>
         [HttpDelete("{id}/items/{itemId}")]

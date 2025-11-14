@@ -9,18 +9,18 @@ import VariantManager from "./VariantManager";
 
 interface VariantModalProps {
   isOpen: boolean;
-  productName: string;
+  productName?: string;
   variants: ProductVariantDto[];
   onClose: () => void;
-  onVariantsChange: (variants: ProductVariantDto[]) => void;
+  onSaveVariants: (variants: ProductVariantDto[]) => void;
 }
 
 const VariantModal = ({
   isOpen,
-  productName,
+  productName = "Product",
   variants,
   onClose,
-  onVariantsChange,
+  onSaveVariants,
 }: VariantModalProps) => {
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-20">
@@ -45,7 +45,7 @@ const VariantModal = ({
 
               <VariantManager
                 variants={variants}
-                onVariantsChange={onVariantsChange}
+                onVariantsChange={onSaveVariants}
               />
             </div>
 

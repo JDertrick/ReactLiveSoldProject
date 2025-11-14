@@ -246,7 +246,7 @@ const ProductsPage = () => {
         productName={editingProduct?.name || "New Product"}
         variants={variants}
         onClose={handleCloseVariantModal}
-        onVariantsChange={handleVariantsChange}
+        onSaveVariants={handleVariantsChange}
       />
     </div>
   );

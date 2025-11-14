@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../services/api';
-import { SalesOrder, CreateSalesOrderDto } from '../types/salesOrder.types';
+import { SalesOrder, CreateSalesOrderDto, CreateSalesOrderItemDto, UpdateSalesOrderItemDto } from '../types/salesOrder.types';
 
 // Get All Sales Orders for Organization
 export const useGetSalesOrders = (status?: string) => {
@@ -65,6 +65,71 @@ export const useUpdateSalesOrderStatus = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['salesOrders'] });
       queryClient.invalidateQueries({ queryKey: ['salesOrder', variables.id] });
+    },
+  });
+};
+
+// Add Item to Order
+export const useAddItemToOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ orderId, item }: { orderId: string; item: CreateSalesOrderItemDto }): Promise<SalesOrder> => {
+      const response = await apiClient.post(`/salesorder/${orderId}/items`, item);
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['salesOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['salesOrder', variables.orderId] });
+    },
+  });
+};
+
+// Update Item in Order
+export const useUpdateItemInOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ orderId, itemId, data }: { orderId: string; itemId: string; data: UpdateSalesOrderItemDto }): Promise<SalesOrder> => {
+      const response = await apiClient.put(`/salesorder/${orderId}/items/${itemId}`, data);
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['salesOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['salesOrder', variables.orderId] });
+    },
+  });
+};
+
+// Remove Item from Order
+export const useRemoveItemFromOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ orderId, itemId }: { orderId: string; itemId: string }): Promise<SalesOrder> => {
+      const response = await apiClient.delete(`/salesorder/${orderId}/items/${itemId}`);
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['salesOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['salesOrder', variables.orderId] });
+    },
+  });
+};
+
+// Finalize Order
+export const useFinalizeOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId: string): Promise<SalesOrder> => {
+      const response = await apiClient.post(`/salesorder/${orderId}/finalize`);
+      return response.data;
+    },
+    onSuccess: (_, orderId) => {
+      queryClient.invalidateQueries({ queryKey: ['salesOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['salesOrder', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
     },
   });
 };

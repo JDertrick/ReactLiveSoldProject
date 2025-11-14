@@ -39,3 +39,9 @@ export interface CreateSalesOrderDto {
   notes?: string;
   items: CreateSalesOrderItemDto[];
 }
+
+export interface UpdateSalesOrderItemDto {
+  quantity: number;
+  customUnitPrice?: number;
+  itemDescription?: string;
+}

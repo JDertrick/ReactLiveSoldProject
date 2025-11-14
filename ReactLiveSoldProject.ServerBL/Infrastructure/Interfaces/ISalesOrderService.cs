@@ -30,6 +30,11 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         Task<SalesOrderDto> AddItemToOrderAsync(Guid salesOrderId, Guid organizationId, CreateSalesOrderItemDto dto);
 
         /// <summary>
+        /// Actualiza un item de una orden Draft
+        /// </summary>
+        Task<SalesOrderDto> UpdateItemInOrderAsync(Guid salesOrderId, Guid itemId, Guid organizationId, UpdateSalesOrderItemDto dto);
+
+        /// <summary>
         /// Elimina un item de una orden Draft
         /// </summary>
         Task<SalesOrderDto> RemoveItemFromOrderAsync(Guid salesOrderId, Guid itemId, Guid organizationId);
