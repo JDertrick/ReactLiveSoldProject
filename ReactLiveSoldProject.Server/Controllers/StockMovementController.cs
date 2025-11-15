@@ -126,6 +126,74 @@ namespace ReactLiveSoldProject.Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Postea un movimiento de inventario, actualizando el stock y el costo promedio
+        /// </summary>
+        [HttpPost("{movementId}/post")]
+        public async Task<ActionResult<StockMovementDto>> PostMovement(Guid movementId)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var userId = GetUserId();
+                if (userId == null)
+                    return Unauthorized(new { message = "UserId no encontrado en el token" });
+
+                var movement = await _stockMovementService.PostMovementAsync(movementId, organizationId.Value, userId.Value);
+                return Ok(movement);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Movement not found: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation posting movement: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error posting stock movement {MovementId}", movementId);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
+        /// Despostea un movimiento de inventario (solo si es el último movimiento posteado)
+        /// </summary>
+        [HttpPost("{movementId}/unpost")]
+        public async Task<ActionResult<StockMovementDto>> UnpostMovement(Guid movementId)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var movement = await _stockMovementService.UnpostMovementAsync(movementId, organizationId.Value);
+                return Ok(movement);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Movement not found: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation unposting movement: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unposting stock movement {MovementId}", movementId);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
         private Guid? GetOrganizationId()
         {
             var claim = User.FindFirst("OrganizationId");

@@ -323,8 +323,18 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 throw new InvalidOperationException("La orden no tiene un usuario creador asignado");
 
             // Verificar y registrar movimientos de stock para cada item
+            // También capturar el costo promedio ponderado al momento de la venta
             foreach (var item in order.Items)
             {
+                // Capturar el costo promedio actual del producto antes de la venta
+                var variant = await _dbContext.ProductVariants
+                    .FirstOrDefaultAsync(pv => pv.Id == item.ProductVariantId);
+
+                if (variant != null)
+                {
+                    item.UnitCost = variant.AverageCost;
+                }
+
                 // RegisterSaleMovementAsync valida el stock y lo actualiza automáticamente
                 await _stockMovementService.RegisterSaleMovementAsync(
                     organizationId,
@@ -401,18 +411,27 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Status = order.Status.ToString(),
                 TotalAmount = order.TotalAmount,
                 Notes = order.Notes,
-                Items = order.Items?.Select(i => new SalesOrderItemDto
-                {
-                    Id = i.Id,
-                    ProductVariantId = i.ProductVariantId,
-                    ProductName = i.ProductVariant.Product.Name,
-                    VariantSku = i.ProductVariant.Sku,
-                    VariantAttributes = i.ProductVariant.Attributes,
-                    Quantity = i.Quantity,
-                    OriginalPrice = i.OriginalPrice,
-                    UnitPrice = i.UnitPrice,
-                    Subtotal = i.UnitPrice * i.Quantity,
-                    ItemDescription = i.ItemDescription
+                Items = order.Items?.Select(i => {
+                    var subtotal = i.UnitPrice * i.Quantity;
+                    var grossProfit = (i.UnitPrice - i.UnitCost) * i.Quantity;
+                    var profitMargin = subtotal > 0 ? (grossProfit / subtotal) * 100 : 0;
+
+                    return new SalesOrderItemDto
+                    {
+                        Id = i.Id,
+                        ProductVariantId = i.ProductVariantId,
+                        ProductName = i.ProductVariant.Product.Name,
+                        VariantSku = i.ProductVariant.Sku,
+                        VariantAttributes = i.ProductVariant.Attributes,
+                        Quantity = i.Quantity,
+                        OriginalPrice = i.OriginalPrice,
+                        UnitPrice = i.UnitPrice,
+                        UnitCost = i.UnitCost,
+                        Subtotal = subtotal,
+                        GrossProfit = grossProfit,
+                        ProfitMargin = profitMargin,
+                        ItemDescription = i.ItemDescription
+                    };
                 }).ToList() ?? new List<SalesOrderItemDto>(),
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt

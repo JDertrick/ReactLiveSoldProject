@@ -23,6 +23,9 @@ export interface StockMovementDto {
   notes?: string;
   reference?: string;
   unitCost?: number;
+  isPosted: boolean;
+  postedAt?: string;
+  postedByUserName?: string;
   createdAt: string;
 }
 

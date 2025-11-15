@@ -11,6 +11,7 @@ export interface ProductVariant {
   sku?: string;
   price: number;
   stockQuantity: number;
+  averageCost: number;
   attributes?: string;  // JSON string
   imageUrl?: string;
   createdAt: string;

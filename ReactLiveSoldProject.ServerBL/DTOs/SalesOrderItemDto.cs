@@ -10,7 +10,10 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public int Quantity { get; set; }
         public decimal OriginalPrice { get; set; }
         public decimal UnitPrice { get; set; }
+        public decimal UnitCost { get; set; }
         public decimal Subtotal { get; set; }
+        public decimal GrossProfit { get; set; } // (UnitPrice - UnitCost) * Quantity
+        public decimal ProfitMargin { get; set; } // (GrossProfit / Subtotal) * 100
         public string? ItemDescription { get; set; }
     }
 }

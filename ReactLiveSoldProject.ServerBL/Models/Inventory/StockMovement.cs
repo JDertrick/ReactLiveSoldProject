@@ -76,6 +76,24 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         /// </summary>
         public decimal? UnitCost { get; set; }
 
+        /// <summary>
+        /// Indica si el movimiento ha sido posteado y afecta el inventario
+        /// Los movimientos no posteados son borradores que no afectan el stock
+        /// </summary>
+        public bool IsPosted { get; set; } = false;
+
+        /// <summary>
+        /// Fecha y hora en que el movimiento fue posteado
+        /// </summary>
+        public DateTime? PostedAt { get; set; }
+
+        /// <summary>
+        /// Usuario que posteó el movimiento
+        /// </summary>
+        public Guid? PostedByUserId { get; set; }
+
+        public virtual User? PostedByUser { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

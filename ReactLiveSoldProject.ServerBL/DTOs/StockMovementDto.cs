@@ -15,6 +15,9 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string? Notes { get; set; }
         public string? Reference { get; set; }
         public decimal? UnitCost { get; set; }
+        public bool IsPosted { get; set; }
+        public DateTime? PostedAt { get; set; }
+        public string? PostedByUserName { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

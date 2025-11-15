@@ -35,6 +35,13 @@ namespace ReactLiveSoldProject.ServerBL.Models.Sales
         [Range(0, double.MaxValue, ErrorMessage = "El precio unitario debe ser mayor o igual a 0")]
         public decimal UnitPrice { get; set; } // El precio editable de la venta LIVE
 
+        /// <summary>
+        /// Costo unitario del producto al momento de la venta (costo promedio ponderado)
+        /// Utilizado para calcular la ganancia/margen
+        /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "El costo unitario debe ser mayor o igual a 0")]
+        public decimal UnitCost { get; set; } = 0.00m;
+
         [MaxLength(500, ErrorMessage = "La descripción del item no puede exceder los 500 caracteres")]
         public string? ItemDescription { get; set; }
     }

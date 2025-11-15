@@ -59,3 +59,41 @@ export const useCreateStockMovement = () => {
     },
   });
 };
+
+// Post Stock Movement (applies movement to inventory and calculates weighted average cost)
+export const usePostStockMovement = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (movementId: string): Promise<StockMovementDto> => {
+      const response = await apiClient.post(`/stockmovement/${movementId}/post`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['stockMovements'] });
+      queryClient.invalidateQueries({ queryKey: ['currentStock', data.productVariantId] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['productVariants'] });
+    },
+  });
+};
+
+// Unpost Stock Movement (reverses a posted movement - only last posted movement)
+export const useUnpostStockMovement = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (movementId: string): Promise<StockMovementDto> => {
+      const response = await apiClient.post(`/stockmovement/${movementId}/unpost`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['stockMovements'] });
+      queryClient.invalidateQueries({ queryKey: ['currentStock', data.productVariantId] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['productVariants'] });
+    },
+  });
+};

@@ -41,6 +41,13 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         [MaxLength(100, ErrorMessage = "El Color no puede exceder los 100 caracteres")]
         public string? Color { get; set; }
 
+        /// <summary>
+        /// Costo promedio ponderado del producto (Weighted Average Cost)
+        /// Se actualiza automáticamente con cada movimiento de entrada que tiene costo
+        /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "El costo promedio debe ser mayor o igual a 0")]
+        public decimal AverageCost { get; set; } = 0.00m;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

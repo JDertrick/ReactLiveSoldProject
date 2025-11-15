@@ -205,18 +205,30 @@ const ProductsPage = () => {
                         <Badge variant="secondary">{product.productType}</Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           {product.variants && product.variants.length > 0 ? (
                             product.variants.map((variant) => (
-                              <div key={variant.id} className="text-sm">
-                                <span className="font-medium">{variant.sku}</span>
-                                <span className="text-gray-500 ml-2">
-                                  Stock: <span className={`font-semibold ${variant.stockQuantity < 5 ? 'text-red-600' : 'text-green-600'}`}>
-                                    {variant.stockQuantity}
+                              <div key={variant.id} className="text-sm border-l-2 border-blue-400 pl-2 py-1">
+                                <div className="font-medium text-gray-900">{variant.sku}</div>
+                                <div className="flex gap-3 mt-1 text-xs">
+                                  <span className="text-gray-600">
+                                    Stock: <span className={`font-bold ${variant.stockQuantity < 5 ? 'text-red-600' : 'text-green-600'}`}>
+                                      {variant.stockQuantity}
+                                    </span>
                                   </span>
-                                </span>
+                                  <span className="text-gray-600">
+                                    Precio: <span className="font-bold text-blue-600">
+                                      ${variant.price.toFixed(2)}
+                                    </span>
+                                  </span>
+                                  <span className="text-gray-600">
+                                    Costo Prom: <span className="font-bold text-orange-600">
+                                      ${variant.averageCost.toFixed(2)}
+                                    </span>
+                                  </span>
+                                </div>
                                 {variant.attributes && (
-                                  <span className="text-gray-400 ml-2">
+                                  <div className="text-gray-400 mt-1 text-xs">
                                     {(() => {
                                       try {
                                         const attrs = JSON.parse(variant.attributes);
@@ -227,7 +239,7 @@ const ProductsPage = () => {
                                         return "";
                                       }
                                     })()}
-                                  </span>
+                                  </div>
                                 )}
                               </div>
                             ))

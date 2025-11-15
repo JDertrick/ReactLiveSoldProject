@@ -34,5 +34,15 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// Obtiene el balance actual de stock de una variante (último movimiento)
         /// </summary>
         Task<int> GetCurrentStockAsync(Guid productVariantId, Guid organizationId);
+
+        /// <summary>
+        /// Postea un movimiento de inventario, actualizando el stock y el costo promedio
+        /// </summary>
+        Task<StockMovementDto> PostMovementAsync(Guid movementId, Guid organizationId, Guid userId);
+
+        /// <summary>
+        /// Despostea un movimiento de inventario (solo si es el último movimiento posteado)
+        /// </summary>
+        Task<StockMovementDto> UnpostMovementAsync(Guid movementId, Guid organizationId);
     }
 }
