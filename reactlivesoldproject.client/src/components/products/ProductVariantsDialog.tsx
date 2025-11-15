@@ -60,8 +60,14 @@ export default function ProductVariantsDialog({
   }, [product]);
 
   const handleAddOrUpdateVariant = () => {
-    const price = typeof variantInput.price === 'string' ? parseFloat(variantInput.price) : variantInput.price;
-    const stockQuantity = typeof variantInput.stockQuantity === 'string' ? parseInt(variantInput.stockQuantity) : variantInput.stockQuantity;
+    const price =
+      typeof variantInput.price === "string"
+        ? parseFloat(variantInput.price)
+        : variantInput.price;
+    const stockQuantity =
+      typeof variantInput.stockQuantity === "string"
+        ? parseInt(variantInput.stockQuantity)
+        : variantInput.stockQuantity;
 
     if (
       !variantInput.sku ||

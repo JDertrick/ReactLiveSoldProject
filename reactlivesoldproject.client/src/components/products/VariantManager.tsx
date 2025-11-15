@@ -198,24 +198,6 @@ const VariantManager = ({
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Cantidad *
-            </label>
-            <input
-              type="number"
-              placeholder="0"
-              min="0"
-              value={variantInput.stock}
-              onChange={(e) =>
-                setVariantInput({
-                  ...variantInput,
-                  stock: e.target.value,
-                })
-              }
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
               Precio (opcional, usa precio base si está vacío)
             </label>
             <input

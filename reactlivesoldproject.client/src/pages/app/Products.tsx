@@ -12,6 +12,7 @@ import {
   ProductVariantDto,
   CreateProductVariantDto,
   ProductVariant,
+  UpdateProductVariantDto,
 } from "../../types/product.types";
 import ProductFormModal from "../../components/products/ProductFormModal";
 import VariantModal from "../../components/products/VariantModal";
@@ -27,7 +28,13 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const ProductsPage = () => {
   const { data: products, isLoading } = useGetProducts(true); // Include unpublished
@@ -69,7 +76,26 @@ const ProductsPage = () => {
     return {
       sku: variant.sku,
       price: variant.price,
-      stockQuantity: variant.stock,
+      stockQuantity: 0,
+      attributes:
+        Object.keys(attributes).length > 0
+          ? JSON.stringify(attributes)
+          : undefined,
+      imageUrl: variant.imageUrl,
+    };
+  };
+
+  const convertToUpdateVariantDto = (
+    variant: ProductVariantDto
+  ): UpdateProductVariantDto => {
+    const attributes: Record<string, string> = {};
+    if (variant.size) attributes.size = variant.size;
+    if (variant.color) attributes.color = variant.color;
+
+    return {
+      id: variant.id,
+      sku: variant.sku,
+      price: variant.price,
       attributes:
         Object.keys(attributes).length > 0
           ? JSON.stringify(attributes)
@@ -112,7 +138,7 @@ const ProductsPage = () => {
         // Actualizar producto con variantes
         const updateData: UpdateProductDto = {
           ...(data as UpdateProductDto),
-          variants: variants.map(convertToCreateVariantDto),
+          variants: variants.map(convertToUpdateVariantDto),
         };
 
         await updateProduct.mutateAsync({
@@ -157,9 +183,7 @@ const ProductsPage = () => {
                 Manage your product catalog, variants, and inventory levels
               </CardDescription>
             </div>
-            <Button onClick={() => handleOpenModal()}>
-              Add Product
-            </Button>
+            <Button onClick={() => handleOpenModal()}>Add Product</Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -180,7 +204,10 @@ const ProductsPage = () => {
               {products && products.length > 0 ? (
                 products.map((product) => {
                   const totalStock =
-                    product.variants?.reduce((sum, v) => sum + v.stockQuantity, 0) || 0;
+                    product.variants?.reduce(
+                      (sum, v) => sum + v.stockQuantity,
+                      0
+                    ) || 0;
                   return (
                     <TableRow key={product.id}>
                       <TableCell>
@@ -209,21 +236,35 @@ const ProductsPage = () => {
                         <div className="space-y-2">
                           {product.variants && product.variants.length > 0 ? (
                             product.variants.map((variant) => (
-                              <div key={variant.id} className="text-sm border-l-2 border-blue-400 pl-2 py-1">
-                                <div className="font-medium text-gray-900">{variant.sku}</div>
+                              <div
+                                key={variant.id}
+                                className="text-sm border-l-2 border-blue-400 pl-2 py-1"
+                              >
+                                <div className="font-medium text-gray-900">
+                                  {variant.sku}
+                                </div>
                                 <div className="flex gap-3 mt-1 text-xs">
                                   <span className="text-gray-600">
-                                    Stock: <span className={`font-bold ${variant.stockQuantity < 5 ? 'text-red-600' : 'text-green-600'}`}>
+                                    Stock:{" "}
+                                    <span
+                                      className={`font-bold ${
+                                        variant.stockQuantity < 5
+                                          ? "text-red-600"
+                                          : "text-green-600"
+                                      }`}
+                                    >
                                       {variant.stockQuantity}
                                     </span>
                                   </span>
                                   <span className="text-gray-600">
-                                    Precio: <span className="font-bold text-blue-600">
+                                    Precio:{" "}
+                                    <span className="font-bold text-blue-600">
                                       ${variant.price.toFixed(2)}
                                     </span>
                                   </span>
                                   <span className="text-gray-600">
-                                    Costo Prom: <span className="font-bold text-orange-600">
+                                    Costo Prom:{" "}
+                                    <span className="font-bold text-orange-600">
                                       ${variant.averageCost.toFixed(2)}
                                     </span>
                                   </span>
@@ -232,9 +273,13 @@ const ProductsPage = () => {
                                   <div className="text-gray-400 mt-1 text-xs">
                                     {(() => {
                                       try {
-                                        const attrs = JSON.parse(variant.attributes);
+                                        const attrs = JSON.parse(
+                                          variant.attributes
+                                        );
                                         return Object.entries(attrs)
-                                          .map(([key, value]) => `${key}: ${value}`)
+                                          .map(
+                                            ([key, value]) => `${key}: ${value}`
+                                          )
                                           .join(", ");
                                       } catch {
                                         return "";
@@ -245,7 +290,9 @@ const ProductsPage = () => {
                               </div>
                             ))
                           ) : (
-                            <span className="text-sm text-gray-500">No variants</span>
+                            <span className="text-sm text-gray-500">
+                              No variants
+                            </span>
                           )}
                         </div>
                       </TableCell>
@@ -253,12 +300,20 @@ const ProductsPage = () => {
                         ${(product.basePrice || 0).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className={`font-semibold ${totalStock < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                        <span
+                          className={`font-semibold ${
+                            totalStock < 10 ? "text-red-600" : "text-green-600"
+                          }`}
+                        >
                           {totalStock}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={product.isPublished ? "default" : "secondary"}>
+                        <Badge
+                          variant={
+                            product.isPublished ? "default" : "secondary"
+                          }
+                        >
                           {product.isPublished ? "Published" : "Draft"}
                         </Badge>
                       </TableCell>
@@ -266,7 +321,11 @@ const ProductsPage = () => {
                         <div className="flex flex-wrap gap-1">
                           {product.tags && product.tags.length > 0 ? (
                             product.tags.map((tag) => (
-                              <Badge key={tag.id} variant="outline" className="text-xs">
+                              <Badge
+                                key={tag.id}
+                                variant="outline"
+                                className="text-xs"
+                              >
                                 {tag.name}
                               </Badge>
                             ))
@@ -289,7 +348,10 @@ const ProductsPage = () => {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  <TableCell
+                    colSpan={8}
+                    className="text-center py-8 text-gray-500"
+                  >
                     No products found. Add your first product to get started.
                   </TableCell>
                 </TableRow>

@@ -216,29 +216,71 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     _dbContext.ProductTags.Add(productTag);
                 }
 
+                // Valida si existe algun SKU
+                var dtoVariants = dto.Variants;
+                //var variants = await _dbContext.Products.Where(p => p.OrganizationId == organizationId)
+                //    .SelectMany(pv => pv.Variants)
+                //    .ProjectTo<ProductVariantDto>(_mapper.ConfigurationProvider).ToListAsync();
+
+                //// pasa los skus a un array[string]
+                //var skusArray = variants.Select(v => v.Sku).ToHashSet();
+
+                //bool variantRepeat = dtoVariants.Any(v => skusArray.Contains(v.Sku));
+
+                //if (variantRepeat)
+                //    throw new InvalidOperationException("El producto contiene SKUs que ya existen en el inventario.");
+
                 // Actualizar variantes si se proporcionaron
                 if (dto.Variants != null)
                 {
-                    // Eliminar todas las variantes existentes
-                    if (product.Variants != null && product.Variants.Any())
+                    var dbVariants = product.Variants;
+
+                    var dtoVariantIds = dtoVariants
+                        .Where(v => v.Id != Guid.Empty)
+                        .Select(v => v.Id)
+                        .ToHashSet();
+
+                    var variantsToDelete = dbVariants
+                        .Where(v => !dtoVariantIds.Contains(v.Id));
+
+                    if (variantsToDelete.Any())
                     {
-                        _dbContext.ProductVariants.RemoveRange(product.Variants);
+                        foreach(var variantToDelete in variantsToDelete)
+                        {
+                            var hasOrderItem = await _dbContext.ProductVariants
+                                .Where(pv => pv.Id == variantToDelete.Id)
+                                .AnyAsync(pv => pv.SalesOrderItems.Any());
+
+                            if (hasOrderItem)
+                            {
+                                throw new InvalidOperationException("No se puede eliminar el producto porque tiene items en órdenes de venta.");
+                            }
+                        }
+                        _dbContext.RemoveRange(variantsToDelete);
                     }
 
-                    // Agregar las nuevas variantes usando AutoMapper
-                    foreach (var variantDto in dto.Variants)
+                    foreach (var variantDto in dtoVariants)
                     {
-                        var variant = _mapper.Map<ProductVariant>(variantDto);
-                        variant.Id = Guid.NewGuid();
-                        variant.OrganizationId = organizationId;
-                        variant.ProductId = productId;
-                        variant.CreatedAt = DateTime.UtcNow;
-                        variant.UpdatedAt = DateTime.UtcNow;
+                        if (variantDto.Id == Guid.Empty)
+                        {
+                            var newVariant = _mapper.Map<ProductVariant>(variantDto);
+                            newVariant.OrganizationId = organizationId;
+                            newVariant.UpdatedAt = DateTime.UtcNow;
+                            ParseVariantAttributes(newVariant);
 
-                        // Parsear attributes para Size y Color
-                        ParseVariantAttributes(variant);
+                            product.Variants.Add(newVariant);
+                        }
+                        else
+                        {
+                            var existingVariant = dbVariants.FirstOrDefault(dbv => dbv.Id == variantDto.Id);
 
-                        _dbContext.ProductVariants.Add(variant);
+                            if (existingVariant != null)
+                            {
+                                _mapper.Map(variantDto, existingVariant);
+                                existingVariant.UpdatedAt = DateTime.UtcNow;
+                                ParseVariantAttributes(existingVariant);
+                            }
+                        }
                     }
                 }
 
@@ -261,6 +303,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             }
             catch (Exception ex)
             {
+
                 throw ex;
             }            
         }

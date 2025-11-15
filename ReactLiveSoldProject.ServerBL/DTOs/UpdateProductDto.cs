@@ -28,6 +28,6 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         /// <summary>
         /// Variantes del producto - si se incluye, reemplazará todas las variantes existentes
         /// </summary>
-        public List<CreateProductVariantDto>? Variants { get; set; }
+        public List<UpdateProductVariantDto>? Variants { get; set; }
     }
 }

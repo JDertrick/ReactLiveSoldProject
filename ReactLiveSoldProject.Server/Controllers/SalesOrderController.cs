@@ -8,7 +8,8 @@ namespace ReactLiveSoldProject.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "Employee")]
+    //[Authorize(Policy = "Employee")]
+    [AllowAnonymous]
     public class SalesOrderController : ControllerBase
     {
         private readonly ISalesOrderService _salesOrderService;

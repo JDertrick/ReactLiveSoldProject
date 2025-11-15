@@ -46,6 +46,14 @@ export interface CreateProductVariantDto {
   imageUrl?: string;
 }
 
+export interface UpdateProductVariantDto {
+  id?: string;
+  sku?: string;
+  price: number;
+  attributes?: string;  // JSON string: {color, size, etc}
+  imageUrl?: string;
+}
+
 export interface CreateProductDto {
   name: string;
   description?: string;
@@ -65,7 +73,7 @@ export interface UpdateProductDto {
   imageUrl: string;
   isPublished: boolean;
   tagIds: string[];
-  variants?: CreateProductVariantDto[];
+  variants: UpdateProductVariantDto[];
 }
 
 // Helper type for variant form input

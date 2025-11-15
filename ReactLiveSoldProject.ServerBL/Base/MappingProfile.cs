@@ -55,6 +55,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.Organization, opt => opt.Ignore())
                 .ForMember(dest => dest.SalesOrderItems, opt => opt.Ignore());
             CreateMap<ProductVariant, CreateProductVariantDto>();
+            CreateMap<ProductVariant, UpdateProductVariantDto>();
+            CreateMap<UpdateProductVariantDto, ProductVariant>();
 
             // Tag Mappings
             CreateMap<Tag, TagDto>();
