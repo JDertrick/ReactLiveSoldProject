@@ -4,10 +4,12 @@ import {
   useCreateStockMovement,
   usePostStockMovement,
   useUnpostStockMovement,
+  useRejectStockMovement,
 } from "../../hooks/useStockMovements";
 import { useGetProducts } from "../../hooks/useProducts";
 import {
   CreateStockMovementDto,
+  StockMovementDto,
   StockMovementType,
 } from "../../types/stockmovement.types";
 import { Button } from "@/components/ui/button";
@@ -37,8 +39,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CustomAlertDialog } from "@/components/common/AlertDialog";
-import { AlertDialogState } from "@/types/alertdialogstate.type";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Command,
   CommandEmpty,
@@ -52,7 +62,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Package, DollarSign, Hash, TrendingUp, TrendingDown } from "lucide-react";
+import { Check, ChevronsUpDown, Package, DollarSign, Hash, TrendingUp, TrendingDown, Send, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -62,6 +72,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const StockMovementsPage = () => {
   const [fromDate, setFromDate] = useState<string>("");
@@ -74,13 +85,12 @@ const StockMovementsPage = () => {
   const createMovement = useCreateStockMovement();
   const postMovement = usePostStockMovement();
   const unpostMovement = useUnpostStockMovement();
+  const rejectMovement = useRejectStockMovement();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [alertDialog, setAlertDialog] = useState<AlertDialogState>({
-    open: false,
-    title: "",
-    description: "",
-  });
+  const [selectedMovement, setSelectedMovement] = useState<StockMovementDto | null>(null);
+  const [isConfirmPostOpen, setIsConfirmPostOpen] = useState(false);
+  const [isConfirmRejectOpen, setIsConfirmRejectOpen] = useState(false);
   const [openCombobox, setOpenCombobox] = useState(false);
 
   const [formData, setFormData] = useState<CreateStockMovementDto>({
@@ -115,13 +125,13 @@ const StockMovementsPage = () => {
 
   // Calculate statistics - MUST be before any conditional returns
   const stats = useMemo(() => {
-    if (!movements) return { total: 0, posted: 0, draft: 0, purchases: 0 };
+    if (!movements) return { total: 0, posted: 0, draft: 0, rejected: 0 };
 
     return {
       total: movements.length,
       posted: movements.filter(m => m.isPosted).length,
-      draft: movements.filter(m => !m.isPosted).length,
-      purchases: movements.filter(m => m.movementType === 'Purchase').length,
+      draft: movements.filter(m => !m.isPosted && !m.isRejected).length,
+      rejected: movements.filter(m => m.isRejected).length,
     };
   }, [movements]);
 
@@ -148,40 +158,24 @@ const StockMovementsPage = () => {
     e.preventDefault();
 
     if (!formData.productVariantId) {
-      setAlertDialog({
-        open: true,
-        title: "Error",
-        description: "Debe seleccionar una variante de producto",
-      });
+      toast.error("Debe seleccionar una variante de producto");
       return;
     }
 
     if (formData.quantity === 0) {
-      setAlertDialog({
-        open: true,
-        title: "Error",
-        description: "La cantidad no puede ser 0",
-      });
+      toast.error("La cantidad no puede ser 0");
       return;
     }
 
     // Validar que las compras tengan costo unitario
     if (formData.movementType === StockMovementType.Purchase && !formData.unitCost) {
-      setAlertDialog({
-        open: true,
-        title: "Error",
-        description: "Las compras deben incluir un costo unitario",
-      });
+      toast.error("Las compras deben incluir un costo unitario");
       return;
     }
 
     try {
       await createMovement.mutateAsync(formData);
-      setAlertDialog({
-        open: true,
-        title: "Éxito",
-        description: "Movimiento creado como borrador. Debe postearlo para que afecte el inventario.",
-      });
+      toast.success("Movimiento creado como borrador. Debe postearlo para que afecte el inventario.");
       setIsAddModalOpen(false);
       setFormData({
         productVariantId: "",
@@ -192,48 +186,48 @@ const StockMovementsPage = () => {
         unitCost: undefined,
       });
     } catch (error: any) {
-      setAlertDialog({
-        open: true,
-        title: "Error",
-        description:
-          error.response?.data?.message || "Error al registrar el movimiento",
-      });
+      toast.error(error.response?.data?.message || "Error al registrar el movimiento");
     }
   };
 
-  const handlePostMovement = async (movementId: string) => {
+  const handlePostClick = (movement: StockMovementDto) => {
+    setSelectedMovement(movement);
+    setIsConfirmPostOpen(true);
+  };
+
+  const handleRejectClick = (movement: StockMovementDto) => {
+    setSelectedMovement(movement);
+    setIsConfirmRejectOpen(true);
+  };
+
+  const handleConfirmPost = async () => {
+    if (!selectedMovement) return;
     try {
-      await postMovement.mutateAsync(movementId);
-      setAlertDialog({
-        open: true,
-        title: "Éxito",
-        description: "Movimiento posteado correctamente. El inventario ha sido actualizado.",
-      });
+      await postMovement.mutateAsync(selectedMovement.id);
+      toast.success("Movimiento posteado correctamente.");
+      setIsConfirmPostOpen(false);
     } catch (error: any) {
-      setAlertDialog({
-        open: true,
-        title: "Error",
-        description:
-          error.response?.data?.message || "Error al postear el movimiento",
-      });
+      toast.error(error.response?.data?.message || "Error al postear el movimiento");
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    if (!selectedMovement) return;
+    try {
+      await rejectMovement.mutateAsync(selectedMovement.id);
+      toast.success("Movimiento rechazado correctamente.");
+      setIsConfirmRejectOpen(false);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Error al rechazar el movimiento");
     }
   };
 
   const handleUnpostMovement = async (movementId: string) => {
     try {
       await unpostMovement.mutateAsync(movementId);
-      setAlertDialog({
-        open: true,
-        title: "Éxito",
-        description: "Movimiento desposteado correctamente. El inventario ha sido revertido.",
-      });
+      toast.success("Movimiento desposteado correctamente.");
     } catch (error: any) {
-      setAlertDialog({
-        open: true,
-        title: "Error",
-        description:
-          error.response?.data?.message || "Error al despostear el movimiento",
-      });
+      toast.error(error.response?.data?.message || "Error al despostear el movimiento");
     }
   };
 
@@ -247,13 +241,6 @@ const StockMovementsPage = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <CustomAlertDialog
-        open={alertDialog.open}
-        title={alertDialog.title}
-        description={alertDialog.description}
-        onClose={() => setAlertDialog({ ...alertDialog, open: false })}
-      />
-
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -290,8 +277,8 @@ const StockMovementsPage = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Compras</CardDescription>
-            <CardTitle className="text-3xl text-blue-600">{stats.purchases}</CardTitle>
+            <CardDescription>Rechazados</CardDescription>
+            <CardTitle className="text-3xl text-red-600">{stats.rejected}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -374,11 +361,7 @@ const StockMovementsPage = () => {
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-right">Cantidad</TableHead>
                   <TableHead className="text-right">Costo Unit.</TableHead>
-                  <TableHead className="text-right">Stock Ant.</TableHead>
-                  <TableHead className="text-right">Stock Post.</TableHead>
                   <TableHead>Usuario</TableHead>
-                  <TableHead>Notas</TableHead>
-                  <TableHead>Referencia</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -387,7 +370,11 @@ const StockMovementsPage = () => {
                   movements.map((movement, index) => (
                     <TableRow
                       key={movement.id}
-                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                      className={cn(
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50",
+                        movement.isPosted && "bg-green-50",
+                        movement.isRejected && "bg-red-50"
+                      )}
                     >
                       <TableCell>
                         {new Date(movement.createdAt).toLocaleDateString(
@@ -406,6 +393,8 @@ const StockMovementsPage = () => {
                           <Badge variant="default" className="bg-green-600">
                             Posteado
                           </Badge>
+                        ) : movement.isRejected ? (
+                          <Badge variant="destructive">Rechazado</Badge>
                         ) : (
                           <Badge variant="secondary">Borrador</Badge>
                         )}
@@ -431,34 +420,34 @@ const StockMovementsPage = () => {
                           ? `$${movement.unitCost.toFixed(2)}`
                           : "-"}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {movement.stockBefore}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {movement.stockAfter}
-                      </TableCell>
                       <TableCell className="text-sm text-gray-600">
-                        {movement.createdByUserName || "Sistema"}
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-600 max-w-xs truncate">
-                        {movement.notes || "-"}
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-600">
-                        {movement.reference || "-"}
+                        {movement.isPosted ? movement.postedByUserName : movement.isRejected ? movement.rejectedByUserName : movement.createdByUserName || "Sistema"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          {!movement.isPosted && (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => handlePostMovement(movement.id)}
-                              disabled={postMovement.isPending}
-                              className="gap-1"
-                            >
-                              <Check className="w-3 h-3" />
-                              Postear
-                            </Button>
+                          {!movement.isPosted && !movement.isRejected && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handlePostClick(movement)}
+                                disabled={postMovement.isPending}
+                                className="gap-1 bg-green-600 hover:bg-green-700"
+                              >
+                                <Send className="w-3 h-3" />
+                                Postear
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleRejectClick(movement)}
+                                disabled={rejectMovement.isPending}
+                                className="gap-1"
+                              >
+                                <XCircle className="w-3 h-3" />
+                                Rechazar
+                              </Button>
+                            </>
                           )}
                           {movement.isPosted &&
                             movement.movementType !== "Sale" &&
@@ -473,13 +462,6 @@ const StockMovementsPage = () => {
                                 Despostear
                               </Button>
                             )}
-                          {movement.isPosted &&
-                            (movement.movementType === "Sale" ||
-                              movement.movementType === "SaleCancellation") && (
-                              <span className="text-xs text-gray-400 italic px-2">
-                                Automático
-                              </span>
-                            )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -487,7 +469,7 @@ const StockMovementsPage = () => {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={13}
+                      colSpan={9}
                       className="text-center py-8 text-gray-500"
                     >
                       No hay movimientos de inventario registrados
@@ -502,7 +484,11 @@ const StockMovementsPage = () => {
           <div className="lg:hidden space-y-4">
             {movements && movements.length > 0 ? (
               movements.map((movement) => (
-                <div key={movement.id} className="border rounded-lg p-4 space-y-3 bg-white shadow-sm">
+                <div key={movement.id} className={cn(
+                  "border rounded-lg p-4 space-y-3 bg-white shadow-sm",
+                  movement.isPosted && "bg-green-50 border-green-200",
+                  movement.isRejected && "bg-red-50 border-red-200"
+                )}>
                   {/* Header with Status and Type */}
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -511,6 +497,8 @@ const StockMovementsPage = () => {
                     </div>
                     {movement.isPosted ? (
                       <Badge variant="default" className="bg-green-600">Posteado</Badge>
+                    ) : movement.isRejected ? (
+                      <Badge variant="destructive">Rechazado</Badge>
                     ) : (
                       <Badge variant="secondary">Borrador</Badge>
                     )}
@@ -544,53 +532,39 @@ const StockMovementsPage = () => {
                         {movement.unitCost ? `$${movement.unitCost.toFixed(2)}` : "-"}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-gray-600">Stock Anterior</div>
-                      <div className="font-medium">{movement.stockBefore}</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-600">Stock Posterior</div>
-                      <div className="font-bold">{movement.stockAfter}</div>
-                    </div>
                   </div>
 
-                  {/* Additional Info */}
-                  {(movement.notes || movement.reference || movement.createdByUserName) && (
-                    <div className="text-sm border-t pt-3 space-y-1">
-                      {movement.reference && (
-                        <div>
-                          <span className="text-gray-600">Ref: </span>
-                          <span className="font-medium">{movement.reference}</span>
-                        </div>
-                      )}
-                      {movement.notes && (
-                        <div>
-                          <span className="text-gray-600">Notas: </span>
-                          <span className="text-gray-700">{movement.notes}</span>
-                        </div>
-                      )}
-                      {movement.createdByUserName && (
-                        <div>
-                          <span className="text-gray-600">Usuario: </span>
-                          <span className="text-gray-700">{movement.createdByUserName}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* User Info */}
+                  <div className="text-sm border-t pt-3">
+                    <span className="text-gray-600">Usuario: </span>
+                    <span className="text-gray-700">{movement.isPosted ? movement.postedByUserName : movement.isRejected ? movement.rejectedByUserName : movement.createdByUserName || "Sistema"}</span>
+                  </div>
 
                   {/* Actions */}
-                  <div className="border-t pt-3">
-                    {!movement.isPosted && (
-                      <Button
-                        size="sm"
-                        variant="default"
-                        className="w-full gap-1"
-                        onClick={() => handlePostMovement(movement.id)}
-                        disabled={postMovement.isPending}
-                      >
-                        <Check className="w-3 h-3" />
-                        Postear Movimiento
-                      </Button>
+                  <div className="border-t pt-3 flex gap-2">
+                    {!movement.isPosted && !movement.isRejected && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="w-full gap-1 bg-green-600 hover:bg-green-700"
+                          onClick={() => handlePostClick(movement)}
+                          disabled={postMovement.isPending}
+                        >
+                          <Send className="w-3 h-3" />
+                          Postear
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="w-full gap-1"
+                          onClick={() => handleRejectClick(movement)}
+                          disabled={rejectMovement.isPending}
+                        >
+                          <XCircle className="w-3 h-3" />
+                          Rechazar
+                        </Button>
+                      </>
                     )}
                     {movement.isPosted &&
                       movement.movementType !== "Sale" &&
@@ -605,13 +579,6 @@ const StockMovementsPage = () => {
                           Despostear
                         </Button>
                       )}
-                    {movement.isPosted &&
-                      (movement.movementType === "Sale" ||
-                        movement.movementType === "SaleCancellation") && (
-                        <div className="text-xs text-gray-400 italic text-center py-2">
-                          Movimiento automático
-                        </div>
-                      )}
                   </div>
                 </div>
               ))
@@ -623,6 +590,40 @@ const StockMovementsPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={isConfirmPostOpen} onOpenChange={setIsConfirmPostOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Está seguro que desea postear este movimiento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción afectará permanentemente el inventario y no se puede deshacer directamente (requeriría un movimiento de ajuste).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPost} disabled={postMovement.isPending}>
+              {postMovement.isPending ? "Posteando..." : "Postear Movimiento"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isConfirmRejectOpen} onOpenChange={setIsConfirmRejectOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Está seguro que desea rechazar este movimiento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción marcará el movimiento como rechazado y no podrá ser posteado. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReject} disabled={rejectMovement.isPending}>
+              {rejectMovement.isPending ? "Rechazando..." : "Rechazar Movimiento"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Add Stock Movement Modal - Redesigned */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>

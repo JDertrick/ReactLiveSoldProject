@@ -194,6 +194,47 @@ namespace ReactLiveSoldProject.Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Rechaza un movimiento de inventario que está en estado de borrador.
+        /// </summary>
+        [HttpPost("{movementId}/reject")]
+        public async Task<ActionResult<StockMovementDto>> RejectMovement(Guid movementId)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var userId = GetUserId();
+                if (userId == null)
+                    return Unauthorized(new { message = "UserId no encontrado en el token" });
+
+                var movement = await _stockMovementService.RejectMovementAsync(movementId, organizationId.Value, userId.Value);
+                return Ok(movement);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Movement not found: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation rejecting movement: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Unauthorized reject movement attempt: {Message}", ex.Message);
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rejecting stock movement {MovementId}", movementId);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
         private Guid? GetOrganizationId()
         {
             var claim = User.FindFirst("OrganizationId");

@@ -385,6 +385,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(sm => sm.PostedAt).HasColumnName("posted_at");
                 e.Property(sm => sm.UnitCost).HasColumnName("unit_cost").HasColumnType("decimal(10, 2)");
                 e.Property(sm => sm.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(sm => sm.IsRejected).HasColumnName("is_rejected").IsRequired().HasDefaultValue(false);
+                e.Property(sm => sm.RejectedAt).HasColumnName("rejected_at");
+                e.Property(sm => sm.RejectedByUserId).HasColumnName("rejected_by_user_id");
 
                 // Índices para consultas frecuentes
                 e.HasIndex(sm => sm.ProductVariantId);
@@ -409,6 +412,16 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasOne(sm => sm.CreatedByUser)
                     .WithMany()
                     .HasForeignKey(sm => sm.CreatedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                
+                e.HasOne(sm => sm.PostedByUser)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.PostedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(sm => sm.RejectedByUser)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.RejectedByUserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 

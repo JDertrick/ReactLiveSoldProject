@@ -94,6 +94,11 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
 
         public virtual User? PostedByUser { get; set; }
 
+        public bool IsRejected { get; set; } = false;
+        public DateTime? RejectedAt { get; set; }
+        public Guid? RejectedByUserId { get; set; }
+        public virtual User? RejectedByUser { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

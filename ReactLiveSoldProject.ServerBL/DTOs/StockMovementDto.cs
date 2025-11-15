@@ -18,6 +18,9 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public bool IsPosted { get; set; }
         public DateTime? PostedAt { get; set; }
         public string? PostedByUserName { get; set; }
+        public bool IsRejected { get; set; }
+        public DateTime? RejectedAt { get; set; }
+        public string? RejectedByUserName { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

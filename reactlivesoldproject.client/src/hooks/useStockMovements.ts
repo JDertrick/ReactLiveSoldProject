@@ -79,6 +79,21 @@ export const usePostStockMovement = () => {
   });
 };
 
+// Reject Stock Movement
+export const useRejectStockMovement = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (movementId: string): Promise<StockMovementDto> => {
+      const response = await apiClient.post(`/stockmovement/${movementId}/reject`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stockMovements'] });
+    },
+  });
+};
+
 // Unpost Stock Movement (reverses a posted movement - only last posted movement)
 export const useUnpostStockMovement = () => {
   const queryClient = useQueryClient();

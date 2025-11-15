@@ -44,5 +44,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// Despostea un movimiento de inventario (solo si es el último movimiento posteado)
         /// </summary>
         Task<StockMovementDto> UnpostMovementAsync(Guid movementId, Guid organizationId);
+
+        /// <summary>
+        /// Rechaza un movimiento de inventario que está en estado de borrador.
+        /// </summary>
+        Task<StockMovementDto> RejectMovementAsync(Guid movementId, Guid organizationId, Guid userId);
     }
 }

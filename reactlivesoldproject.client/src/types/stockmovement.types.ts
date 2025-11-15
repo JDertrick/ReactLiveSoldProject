@@ -26,6 +26,9 @@ export interface StockMovementDto {
   isPosted: boolean;
   postedAt?: string;
   postedByUserName?: string;
+  isRejected: boolean;
+  rejectedAt?: string;
+  rejectedByUserName?: string;
   createdAt: string;
 }
 

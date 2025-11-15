@@ -350,6 +350,35 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return MapToDto(movement);
         }
 
+        public async Task<StockMovementDto> RejectMovementAsync(Guid movementId, Guid organizationId, Guid userId)
+        {
+            var movement = await _dbContext.StockMovements
+                .FirstOrDefaultAsync(sm => sm.Id == movementId && sm.OrganizationId == organizationId);
+
+            if (movement == null)
+                throw new KeyNotFoundException("Movimiento no encontrado");
+
+            if (movement.IsPosted || movement.IsRejected)
+                throw new InvalidOperationException("El movimiento ya ha sido procesado (posteado o rechazado).");
+
+            var user = await _dbContext.Users.FindAsync(userId);
+            if (user == null || !await _dbContext.OrganizationMembers.AnyAsync(om => om.OrganizationId == organizationId && om.UserId == userId))
+                throw new UnauthorizedAccessException("El usuario no está autorizado para realizar esta acción.");
+
+            movement.IsRejected = true;
+            movement.RejectedAt = DateTime.UtcNow;
+            movement.RejectedByUserId = userId;
+
+            await _dbContext.SaveChangesAsync();
+
+            await _dbContext.Entry(movement).Reference(m => m.ProductVariant).LoadAsync();
+            await _dbContext.Entry(movement.ProductVariant).Reference(pv => pv.Product).LoadAsync();
+            await _dbContext.Entry(movement).Reference(m => m.CreatedByUser).LoadAsync();
+            await _dbContext.Entry(movement).Reference(m => m.RejectedByUser).LoadAsync();
+
+            return MapToDto(movement);
+        }
+
         private static StockMovementDto MapToDto(StockMovement movement)
         {
             return new StockMovementDto
@@ -373,6 +402,11 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 PostedAt = movement.PostedAt,
                 PostedByUserName = movement.PostedByUser != null
                     ? $"{movement.PostedByUser.FirstName} {movement.PostedByUser.LastName}".Trim()
+                    : null,
+                IsRejected = movement.IsRejected,
+                RejectedAt = movement.RejectedAt,
+                RejectedByUserName = movement.RejectedByUser != null
+                    ? $"{movement.RejectedByUser.FirstName} {movement.RejectedByUser.LastName}".Trim()
                     : null,
                 CreatedAt = movement.CreatedAt
             };
