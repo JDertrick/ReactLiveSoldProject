@@ -116,6 +116,32 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return MapToDto(organization);
         }
 
+        public async Task<OrganizationDto> UpdateOrganizationSettingsAsync(Guid id, UpdateOrganizationSettingsDto dto)
+        {
+            var organization = await _dbContext.Organizations
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (organization == null)
+                throw new KeyNotFoundException("Organización no encontrada");
+
+            // Actualizar solo los campos permitidos para usuarios regulares
+            organization.Name = dto.Name;
+            organization.LogoUrl = dto.LogoUrl;
+            organization.PrimaryContactEmail = dto.PrimaryContactEmail;
+
+            // Actualizar CustomizationSettings si se proporciona
+            if (dto.CustomizationSettings != null)
+            {
+                organization.CustomizationSettings = dto.CustomizationSettings;
+            }
+
+            organization.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+
+            return MapToDto(organization);
+        }
+
         public async Task DeleteOrganizationAsync(Guid id)
         {
             var organization = await _dbContext.Organizations

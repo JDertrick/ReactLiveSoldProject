@@ -66,6 +66,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(o => o.PrimaryContactEmail).HasColumnName("primary_contact_email").IsRequired();
                 e.Property(o => o.PlanType).HasColumnName("plan_type").HasConversion<string>().IsRequired().HasDefaultValue(PlanType.Standard);
                 e.Property(o => o.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
+                e.Property(o => o.CustomizationSettings).HasColumnName("custom_settings").IsRequired().HasDefaultValue(true);
                 e.Property(o => o.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(o => o.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
@@ -181,7 +182,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(wt => wt.AuthorizedByUserId).HasColumnName("authorized_by_user_id");
                 e.Property(wt => wt.Notes).HasColumnName("notes");
                 e.Property(wt => wt.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
-
+                e.Property(wt => wt.PostedAt).HasColumnName("posted_at").IsRequired();
+                e.Property(wt => wt.PostedByUser).HasColumnName("posted_by_user").IsRequired();
+                e.Property(wt => wt.IsPosted).HasColumnName("is_posted").IsRequired().HasDefaultValue(false);
 
                 e.HasOne(wt => wt.Organization)
                     .WithMany()
@@ -273,6 +276,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(pv => pv.Size).HasColumnName("size").IsRequired(false);
                 e.Property(pv => pv.Color).HasColumnName("color").IsRequired(false);
                 e.Property(pv => pv.ImageUrl).HasColumnName("image_url");
+                e.Property(pv => pv.AverageCost).HasColumnName("average_cost");
                 e.Property(pv => pv.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(pv => pv.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
@@ -304,6 +308,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(sm => sm.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
                 e.Property(sm => sm.Notes).HasColumnName("notes");
                 e.Property(sm => sm.Reference).HasColumnName("reference");
+                e.Property(sm => sm.IsPosted).HasColumnName("is_posted").IsRequired().HasDefaultValue(false);
+                e.Property(sm => sm.PostedByUser).HasColumnName("posted_by_user");
+                e.Property(sm => sm.PostedAt).HasColumnName("posted_at");
                 e.Property(sm => sm.UnitCost).HasColumnName("unit_cost").HasColumnType("decimal(10, 2)");
                 e.Property(sm => sm.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
@@ -382,6 +389,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(oi => oi.OriginalPrice).HasColumnName("original_price").HasColumnType("decimal(10, 2)").IsRequired();
                 e.Property(oi => oi.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(10, 2)").IsRequired();
                 e.Property(oi => oi.ItemDescription).HasColumnName("item_description");
+                e.Property(oi => oi.UnitCost).HasColumnName("unit_cost");
 
                 e.HasOne(oi => oi.Organization)
                     .WithMany()

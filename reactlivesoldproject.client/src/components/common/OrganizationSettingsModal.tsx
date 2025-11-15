@@ -73,13 +73,15 @@ export const OrganizationSettingsModal = ({
 
     setIsSaving(true);
     try {
-      await updateOrganization.mutateAsync({
-        id: organizationId,
-        data: {
-          ...formData,
-          customizationSettings: JSON.stringify(customization),
-        },
-      });
+      // Prepare data - convert empty strings to null for optional fields
+      const dataToSend = {
+        name: formData.name,
+        logoUrl: formData.logoUrl || null,
+        primaryContactEmail: formData.primaryContactEmail,
+        customizationSettings: JSON.stringify(customization),
+      };
+
+      await updateOrganization.mutateAsync(dataToSend);
 
       // Apply colors immediately
       applyCustomColors(customization);
@@ -87,6 +89,7 @@ export const OrganizationSettingsModal = ({
       onClose();
     } catch (error) {
       console.error("Error updating organization:", error);
+      alert("Error al guardar la configuración. Por favor verifica los datos.");
     } finally {
       setIsSaving(false);
     }

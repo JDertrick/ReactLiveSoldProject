@@ -189,6 +189,22 @@ const CustomersPage = () => {
           >
             Edit
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSelectedCustomer(info.row.original);
+              setIsDetailModalOpen(true);
+              // Force open wallet tab
+              setTimeout(() => {
+                const walletTab = document.querySelector('[data-tab="wallet"]');
+                if (walletTab) (walletTab as HTMLElement).click();
+              }, 100);
+            }}
+            className="text-green-600 hover:text-green-700"
+          >
+            Wallet
+          </Button>
         </div>
       ),
     }),
@@ -222,7 +238,8 @@ const CustomersPage = () => {
         </div>
       </div>
 
-      <div className="mt-8 rounded-md border">
+      {/* Desktop Table View */}
+      <div className="mt-8 hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -269,6 +286,86 @@ const CustomersPage = () => {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="mt-8 md:hidden space-y-4">
+        {table.getRowModel().rows?.length ? (
+          table.getRowModel().rows.map((row) => {
+            const customer = row.original;
+            return (
+              <div
+                key={row.id}
+                className="bg-white border rounded-lg p-4 shadow-sm space-y-3"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-medium text-lg">
+                      {customer.firstName} {customer.lastName}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {customer.email}
+                    </div>
+                  </div>
+                  <Badge variant={customer.isActive ? "default" : "destructive"}>
+                    {customer.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm border-t pt-3">
+                  <div>
+                    <div className="text-muted-foreground">Phone</div>
+                    <div className="font-medium">{customer.phone}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Wallet</div>
+                    <div className="font-medium">
+                      ${(customer.wallet?.balance ?? 0).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenDetailModal(customer)}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenModal(customer)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCustomer(customer);
+                      setIsDetailModalOpen(true);
+                      setTimeout(() => {
+                        const walletTab = document.querySelector('[data-tab="wallet"]');
+                        if (walletTab) (walletTab as HTMLElement).click();
+                      }, 100);
+                    }}
+                    className="text-green-600 hover:text-green-700"
+                  >
+                    Wallet
+                  </Button>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="bg-white border rounded-lg p-8 text-center">
+            <p className="text-muted-foreground">
+              No customers found. Add your first customer to get started.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Create/Edit Modal */}
@@ -485,6 +582,7 @@ const CustomersPage = () => {
                 <div className="border-b border-gray-200">
                   <nav className="-mb-px flex space-x-8">
                     <button
+                      data-tab="profile"
                       onClick={() => setActiveTab("profile")}
                       className={`${
                         activeTab === "profile"
@@ -495,6 +593,7 @@ const CustomersPage = () => {
                       Profile
                     </button>
                     <button
+                      data-tab="wallet"
                       onClick={() => setActiveTab("wallet")}
                       className={`${
                         activeTab === "wallet"
@@ -505,6 +604,7 @@ const CustomersPage = () => {
                       Wallet
                     </button>
                     <button
+                      data-tab="orders"
                       onClick={() => setActiveTab("orders")}
                       className={`${
                         activeTab === "orders"

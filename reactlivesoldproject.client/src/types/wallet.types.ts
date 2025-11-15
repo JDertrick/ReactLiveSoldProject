@@ -17,6 +17,13 @@ export interface WalletTransaction {
   authorizedByUserId?: string;
   authorizedByUserName?: string;
   notes?: string;
+  reference?: string;
+  isPosted: boolean;
+  balanceBefore?: number;
+  balanceAfter?: number;
+  postedByUserId?: string;
+  postedByUserName?: string;
+  postedAt?: string;
   createdAt: string;
 }
 
@@ -24,5 +31,6 @@ export interface CreateWalletTransactionDto {
   customerId: string;
   type: string;
   amount: number;
+  reference?: string;
   notes?: string;
 }

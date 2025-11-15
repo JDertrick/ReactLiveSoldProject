@@ -187,177 +187,293 @@ const ProductsPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Variants</TableHead>
-                <TableHead className="text-right">Base Price</TableHead>
-                <TableHead className="text-right">Total Stock</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products && products.length > 0 ? (
-                products.map((product) => {
-                  const totalStock =
-                    product.variants?.reduce(
-                      (sum, v) => sum + v.stockQuantity,
-                      0
-                    ) || 0;
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          {product.imageUrl && (
-                            <img
-                              src={product.imageUrl}
-                              alt={product.name}
-                              className="h-12 w-12 rounded-md object-cover"
-                            />
-                          )}
-                          <div>
-                            <div className="font-medium">{product.name}</div>
-                            {product.description && (
-                              <div className="text-sm text-gray-500 truncate max-w-xs">
-                                {product.description}
-                              </div>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Variants</TableHead>
+                  <TableHead className="text-right">Base Price</TableHead>
+                  <TableHead className="text-right">Total Stock</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products && products.length > 0 ? (
+                  products.map((product) => {
+                    const totalStock =
+                      product.variants?.reduce(
+                        (sum, v) => sum + v.stockQuantity,
+                        0
+                      ) || 0;
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {product.imageUrl && (
+                              <img
+                                src={product.imageUrl}
+                                alt={product.name}
+                                className="h-12 w-12 rounded-md object-cover"
+                              />
+                            )}
+                            <div>
+                              <div className="font-medium">{product.name}</div>
+                              {product.description && (
+                                <div className="text-sm text-gray-500 truncate max-w-xs">
+                                  {product.description}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{product.productType}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-2">
+                            {product.variants && product.variants.length > 0 ? (
+                              product.variants.map((variant) => (
+                                <div
+                                  key={variant.id}
+                                  className="text-sm border-l-2 border-blue-400 pl-2 py-1"
+                                >
+                                  <div className="font-medium text-gray-900">
+                                    {variant.sku}
+                                  </div>
+                                  <div className="flex gap-3 mt-1 text-xs">
+                                    <span className="text-gray-600">
+                                      Stock:{" "}
+                                      <span
+                                        className={`font-bold ${
+                                          variant.stockQuantity < 5
+                                            ? "text-red-600"
+                                            : "text-green-600"
+                                        }`}
+                                      >
+                                        {variant.stockQuantity}
+                                      </span>
+                                    </span>
+                                    <span className="text-gray-600">
+                                      Precio:{" "}
+                                      <span className="font-bold text-blue-600">
+                                        ${variant.price.toFixed(2)}
+                                      </span>
+                                    </span>
+                                    <span className="text-gray-600">
+                                      Costo Prom:{" "}
+                                      <span className="font-bold text-orange-600">
+                                        ${variant.averageCost.toFixed(2)}
+                                      </span>
+                                    </span>
+                                  </div>
+                                  {variant.attributes && (
+                                    <div className="text-gray-400 mt-1 text-xs">
+                                      {(() => {
+                                        try {
+                                          const attrs = JSON.parse(
+                                            variant.attributes
+                                          );
+                                          return Object.entries(attrs)
+                                            .map(
+                                              ([key, value]) => `${key}: ${value}`
+                                            )
+                                            .join(", ");
+                                        } catch {
+                                          return "";
+                                        }
+                                      })()}
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-sm text-gray-500">
+                                No variants
+                              </span>
                             )}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{product.productType}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-2">
-                          {product.variants && product.variants.length > 0 ? (
-                            product.variants.map((variant) => (
-                              <div
-                                key={variant.id}
-                                className="text-sm border-l-2 border-blue-400 pl-2 py-1"
-                              >
-                                <div className="font-medium text-gray-900">
-                                  {variant.sku}
-                                </div>
-                                <div className="flex gap-3 mt-1 text-xs">
-                                  <span className="text-gray-600">
-                                    Stock:{" "}
-                                    <span
-                                      className={`font-bold ${
-                                        variant.stockQuantity < 5
-                                          ? "text-red-600"
-                                          : "text-green-600"
-                                      }`}
-                                    >
-                                      {variant.stockQuantity}
-                                    </span>
-                                  </span>
-                                  <span className="text-gray-600">
-                                    Precio:{" "}
-                                    <span className="font-bold text-blue-600">
-                                      ${variant.price.toFixed(2)}
-                                    </span>
-                                  </span>
-                                  <span className="text-gray-600">
-                                    Costo Prom:{" "}
-                                    <span className="font-bold text-orange-600">
-                                      ${variant.averageCost.toFixed(2)}
-                                    </span>
-                                  </span>
-                                </div>
-                                {variant.attributes && (
-                                  <div className="text-gray-400 mt-1 text-xs">
-                                    {(() => {
-                                      try {
-                                        const attrs = JSON.parse(
-                                          variant.attributes
-                                        );
-                                        return Object.entries(attrs)
-                                          .map(
-                                            ([key, value]) => `${key}: ${value}`
-                                          )
-                                          .join(", ");
-                                      } catch {
-                                        return "";
-                                      }
-                                    })()}
-                                  </div>
-                                )}
-                              </div>
-                            ))
-                          ) : (
-                            <span className="text-sm text-gray-500">
-                              No variants
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        ${(product.basePrice || 0).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <span
-                          className={`font-semibold ${
-                            totalStock < 10 ? "text-red-600" : "text-green-600"
-                          }`}
-                        >
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ${(product.basePrice || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            className={`font-semibold ${
+                              totalStock < 10 ? "text-red-600" : "text-green-600"
+                            }`}
+                          >
+                            {totalStock}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              product.isPublished ? "default" : "secondary"
+                            }
+                          >
+                            {product.isPublished ? "Published" : "Draft"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {product.tags && product.tags.length > 0 ? (
+                              product.tags.map((tag) => (
+                                <Badge
+                                  key={tag.id}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {tag.name}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-sm text-gray-400">-</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenModal(product)}
+                          >
+                            Edit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="text-center py-8 text-gray-500"
+                    >
+                      No products found. Add your first product to get started.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {products && products.length > 0 ? (
+              products.map((product) => {
+                const totalStock =
+                  product.variants?.reduce((sum, v) => sum + v.stockQuantity, 0) || 0;
+                return (
+                  <div key={product.id} className="border rounded-lg p-4 space-y-3 bg-white shadow-sm">
+                    {/* Product Header */}
+                    <div className="flex gap-3">
+                      {product.imageUrl && (
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="h-16 w-16 rounded-md object-cover flex-shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-lg truncate">{product.name}</div>
+                        {product.description && (
+                          <div className="text-sm text-gray-500 line-clamp-2">
+                            {product.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status and Type */}
+                    <div className="flex gap-2 flex-wrap">
+                      <Badge variant="secondary">{product.productType}</Badge>
+                      <Badge variant={product.isPublished ? "default" : "secondary"}>
+                        {product.isPublished ? "Published" : "Draft"}
+                      </Badge>
+                    </div>
+
+                    {/* Price and Stock */}
+                    <div className="grid grid-cols-2 gap-3 text-sm border-t pt-3">
+                      <div>
+                        <div className="text-muted-foreground">Base Price</div>
+                        <div className="font-semibold">${(product.basePrice || 0).toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Total Stock</div>
+                        <div className={`font-semibold ${totalStock < 10 ? "text-red-600" : "text-green-600"}`}>
                           {totalStock}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            product.isPublished ? "default" : "secondary"
-                          }
-                        >
-                          {product.isPublished ? "Published" : "Draft"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {product.tags && product.tags.length > 0 ? (
-                            product.tags.map((tag) => (
-                              <Badge
-                                key={tag.id}
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                {tag.name}
-                              </Badge>
-                            ))
-                          ) : (
-                            <span className="text-sm text-gray-400">-</span>
-                          )}
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenModal(product)}
-                        >
-                          Edit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className="text-center py-8 text-gray-500"
-                  >
-                    No products found. Add your first product to get started.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                      </div>
+                    </div>
+
+                    {/* Variants */}
+                    {product.variants && product.variants.length > 0 && (
+                      <div className="border-t pt-3">
+                        <div className="text-sm font-medium mb-2">Variants</div>
+                        <div className="space-y-2">
+                          {product.variants.map((variant) => (
+                            <div key={variant.id} className="text-sm bg-gray-50 rounded p-2">
+                              <div className="font-medium">{variant.sku}</div>
+                              <div className="grid grid-cols-3 gap-2 mt-1 text-xs">
+                                <div>
+                                  <span className="text-gray-600">Stock: </span>
+                                  <span className={`font-bold ${variant.stockQuantity < 5 ? "text-red-600" : "text-green-600"}`}>
+                                    {variant.stockQuantity}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Price: </span>
+                                  <span className="font-bold">${variant.price.toFixed(2)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Cost: </span>
+                                  <span className="font-bold">${variant.averageCost.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tags */}
+                    {product.tags && product.tags.length > 0 && (
+                      <div className="border-t pt-3">
+                        <div className="flex flex-wrap gap-1">
+                          {product.tags.map((tag) => (
+                            <Badge key={tag.id} variant="outline" className="text-xs">
+                              {tag.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="border-t pt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleOpenModal(product)}
+                      >
+                        Edit Product
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8 text-gray-500 border rounded-lg">
+                No products found. Add your first product to get started.
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

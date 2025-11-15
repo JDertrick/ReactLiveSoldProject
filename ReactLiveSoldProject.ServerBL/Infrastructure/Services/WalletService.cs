@@ -41,13 +41,20 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
         public async Task<List<WalletTransactionDto>> GetTransactionsByWalletIdAsync(Guid walletId, Guid organizationId)
         {
-            var transactions = await _dbContext.WalletTransactions
+            try
+            {
+                var transactions = await _dbContext.WalletTransactions
                 .Include(wt => wt.AuthorizedByUser)
                 .Where(wt => wt.WalletId == walletId && wt.OrganizationId == organizationId)
                 .OrderByDescending(wt => wt.CreatedAt)
                 .ToListAsync();
 
-            return transactions.Select(t => MapToDto(t)).ToList();
+                return transactions.Select(t => MapToDto(t)).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task<List<WalletTransactionDto>> GetTransactionsByCustomerIdAsync(Guid customerId, Guid organizationId)

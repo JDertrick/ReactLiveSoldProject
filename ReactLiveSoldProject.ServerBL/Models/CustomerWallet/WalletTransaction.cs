@@ -37,6 +37,39 @@ namespace ReactLiveSoldProject.ServerBL.Models.CustomerWallet
         [MaxLength(1000, ErrorMessage = "Las notas no pueden exceder los 1000 caracteres")]
         public string? Notes { get; set; }
 
+        /// <summary>
+        /// Indica si la transacción ha sido posteada (afecta el balance del wallet)
+        /// Las transacciones se crean como borrador (IsPosted = false) y deben ser autorizadas
+        /// </summary>
+        public bool IsPosted { get; set; } = false;
+
+        /// <summary>
+        /// Balance del wallet ANTES de aplicar esta transacción
+        /// Solo se completa cuando IsPosted = true
+        /// </summary>
+        public decimal? BalanceBefore { get; set; }
+
+        /// <summary>
+        /// Balance del wallet DESPUÉS de aplicar esta transacción
+        /// Solo se completa cuando IsPosted = true
+        /// </summary>
+        public decimal? BalanceAfter { get; set; }
+
+        /// <summary>
+        /// Usuario que posteó la transacción
+        /// </summary>
+        public Guid? PostedByUserId { get; set; }
+
+        public virtual User? PostedByUser { get; set; }
+
+        /// <summary>
+        /// Fecha en que se posteó la transacción
+        /// </summary>
+        public DateTime? PostedAt { get; set; }
+
+        [MaxLength(500)]
+        public string? Reference { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

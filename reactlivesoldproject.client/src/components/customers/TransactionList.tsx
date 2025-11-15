@@ -143,6 +143,17 @@ export const TransactionList = ({
                   )}
 
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+                    {/* Status Badge */}
+                    {transaction.isPosted ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                        Posted
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Draft
+                      </span>
+                    )}
+
                     <span className="flex items-center">
                       <svg
                         className="mr-1 h-3.5 w-3.5"
@@ -179,6 +190,25 @@ export const TransactionList = ({
                       </span>
                     )}
 
+                    {transaction.reference && (
+                      <span className="flex items-center">
+                        <svg
+                          className="mr-1 h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                          />
+                        </svg>
+                        {transaction.reference}
+                      </span>
+                    )}
+
                     {transaction.relatedSalesOrderId && (
                       <span className="flex items-center">
                         <svg
@@ -198,6 +228,18 @@ export const TransactionList = ({
                       </span>
                     )}
                   </div>
+
+                  {/* Balance Information (only for posted transactions) */}
+                  {transaction.isPosted && (transaction.balanceBefore !== undefined || transaction.balanceAfter !== undefined) && (
+                    <div className="mt-2 flex items-center gap-2 text-xs bg-gray-50 rounded p-2">
+                      <span className="text-gray-600">
+                        Balance: ${transaction.balanceBefore?.toFixed(2)} →
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        ${transaction.balanceAfter?.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

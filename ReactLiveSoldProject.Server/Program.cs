@@ -64,6 +64,12 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("Employee", policy =>
         policy.RequireRole("Seller", "Owner", "SuperAdmin"));
+
+    options.AddPolicy("EmployeeOnly", policy =>
+        policy.RequireRole("Seller", "Owner")); // Solo empleados de organizaciones, NO SuperAdmin
+
+    options.AddPolicy("EmployeeOrCustomer", policy =>
+        policy.RequireRole("Seller", "Owner", "SuperAdmin", "Customer")); // Empleados y Customers
 });
 
 // CORS

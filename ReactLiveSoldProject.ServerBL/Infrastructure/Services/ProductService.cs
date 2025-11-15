@@ -218,17 +218,19 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
                 // Valida si existe algun SKU
                 var dtoVariants = dto.Variants;
-                //var variants = await _dbContext.Products.Where(p => p.OrganizationId == organizationId)
-                //    .SelectMany(pv => pv.Variants)
-                //    .ProjectTo<ProductVariantDto>(_mapper.ConfigurationProvider).ToListAsync();
+                var variants = await _dbContext.Products.Where(p => p.OrganizationId == organizationId)
+                    .SelectMany(pv => pv.Variants)
+                    .ProjectTo<ProductVariantDto>(_mapper.ConfigurationProvider).ToListAsync();
 
-                //// pasa los skus a un array[string]
-                //var skusArray = variants.Select(v => v.Sku).ToHashSet();
+                // pasa los skus a un array[string]
+                var skusArray = variants.Select(v => v.Sku).ToHashSet();
 
-                //bool variantRepeat = dtoVariants.Any(v => skusArray.Contains(v.Sku));
+                bool variantRepeat = dtoVariants
+                    .Where(v => v.Id == Guid.Empty)
+                    .Any(v => skusArray.Contains(v.Sku));
 
-                //if (variantRepeat)
-                //    throw new InvalidOperationException("El producto contiene SKUs que ya existen en el inventario.");
+                if (variantRepeat)
+                    throw new InvalidOperationException("El producto contiene SKUs que ya existen en el inventario.");
 
                 // Actualizar variantes si se proporcionaron
                 if (dto.Variants != null)

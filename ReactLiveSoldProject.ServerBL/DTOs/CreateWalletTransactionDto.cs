@@ -15,6 +15,9 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public decimal Amount { get; set; }
 
         [MaxLength(500)]
+        public string? Reference { get; set; }
+
+        [MaxLength(1000)]
         public string? Notes { get; set; }
     }
 }

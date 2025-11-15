@@ -89,20 +89,22 @@ export const useOrganizations = (organizationId?: string) => {
   const query = useQuery({
     queryKey: ['organization', organizationId],
     queryFn: async (): Promise<Organization> => {
-      const response = await apiClient.get(`/superadmin/organizations/${organizationId}`);
+      // Use the new endpoint for regular users to get their organization
+      const response = await apiClient.get(`/organization/my-organization`);
       return response.data;
     },
     enabled: !!organizationId,
   });
 
   const updateOrganization = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateOrganizationSettingsDto }): Promise<Organization> => {
-      const response = await apiClient.put(`/superadmin/organizations/${id}`, data);
+    mutationFn: async (data: UpdateOrganizationSettingsDto): Promise<Organization> => {
+      // Use the new endpoint for regular users to update their organization
+      const response = await apiClient.put(`/organization/my-organization`, data);
       return response.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
-      queryClient.invalidateQueries({ queryKey: ['organization', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['organization', organizationId] });
     },
   });
 

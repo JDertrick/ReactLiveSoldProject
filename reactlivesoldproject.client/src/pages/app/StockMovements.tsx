@@ -362,138 +362,265 @@ const StockMovementsPage = () => {
             </div>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Producto</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead className="text-right">Cantidad</TableHead>
-                <TableHead className="text-right">Costo Unit.</TableHead>
-                <TableHead className="text-right">Stock Ant.</TableHead>
-                <TableHead className="text-right">Stock Post.</TableHead>
-                <TableHead>Usuario</TableHead>
-                <TableHead>Notas</TableHead>
-                <TableHead>Referencia</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {movements && movements.length > 0 ? (
-                movements.map((movement, index) => (
-                  <TableRow
-                    key={movement.id}
-                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    <TableCell>
-                      {new Date(movement.createdAt).toLocaleDateString(
-                        "es-ES",
-                        {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {movement.isPosted ? (
-                        <Badge variant="default" className="bg-green-600">
-                          Posteado
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">Borrador</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{movement.productName}</TableCell>
-                    <TableCell>{movement.variantSku}</TableCell>
-                    <TableCell>
-                      {getMovementTypeBadge(movement.movementType)}
-                    </TableCell>
-                    <TableCell
-                      className={`text-right font-semibold ${
-                        movement.quantity >= 0
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Producto</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Cantidad</TableHead>
+                  <TableHead className="text-right">Costo Unit.</TableHead>
+                  <TableHead className="text-right">Stock Ant.</TableHead>
+                  <TableHead className="text-right">Stock Post.</TableHead>
+                  <TableHead>Usuario</TableHead>
+                  <TableHead>Notas</TableHead>
+                  <TableHead>Referencia</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {movements && movements.length > 0 ? (
+                  movements.map((movement, index) => (
+                    <TableRow
+                      key={movement.id}
+                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
-                      {movement.quantity > 0
-                        ? `+${movement.quantity}`
-                        : movement.quantity}
-                    </TableCell>
-                    <TableCell className="text-right text-sm">
-                      {movement.unitCost
-                        ? `$${movement.unitCost.toFixed(2)}`
-                        : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {movement.stockBefore}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {movement.stockAfter}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {movement.createdByUserName || "Sistema"}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600 max-w-xs truncate">
-                      {movement.notes || "-"}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {movement.reference || "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {!movement.isPosted && (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => handlePostMovement(movement.id)}
-                            disabled={postMovement.isPending}
-                            className="gap-1"
-                          >
-                            <Check className="w-3 h-3" />
-                            Postear
-                          </Button>
+                      <TableCell>
+                        {new Date(movement.createdAt).toLocaleDateString(
+                          "es-ES",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
                         )}
-                        {movement.isPosted &&
-                          movement.movementType !== "Sale" &&
-                          movement.movementType !== "SaleCancellation" && (
+                      </TableCell>
+                      <TableCell>
+                        {movement.isPosted ? (
+                          <Badge variant="default" className="bg-green-600">
+                            Posteado
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">Borrador</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>{movement.productName}</TableCell>
+                      <TableCell>{movement.variantSku}</TableCell>
+                      <TableCell>
+                        {getMovementTypeBadge(movement.movementType)}
+                      </TableCell>
+                      <TableCell
+                        className={`text-right font-semibold ${
+                          movement.quantity >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {movement.quantity > 0
+                          ? `+${movement.quantity}`
+                          : movement.quantity}
+                      </TableCell>
+                      <TableCell className="text-right text-sm">
+                        {movement.unitCost
+                          ? `$${movement.unitCost.toFixed(2)}`
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {movement.stockBefore}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        {movement.stockAfter}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {movement.createdByUserName || "Sistema"}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600 max-w-xs truncate">
+                        {movement.notes || "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {movement.reference || "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          {!movement.isPosted && (
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => handleUnpostMovement(movement.id)}
-                              disabled={unpostMovement.isPending}
+                              variant="default"
+                              onClick={() => handlePostMovement(movement.id)}
+                              disabled={postMovement.isPending}
                               className="gap-1"
                             >
-                              Despostear
+                              <Check className="w-3 h-3" />
+                              Postear
                             </Button>
                           )}
-                        {movement.isPosted &&
-                          (movement.movementType === "Sale" ||
-                            movement.movementType === "SaleCancellation") && (
-                            <span className="text-xs text-gray-400 italic px-2">
-                              Automático
-                            </span>
-                          )}
-                      </div>
+                          {movement.isPosted &&
+                            movement.movementType !== "Sale" &&
+                            movement.movementType !== "SaleCancellation" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleUnpostMovement(movement.id)}
+                                disabled={unpostMovement.isPending}
+                                className="gap-1"
+                              >
+                                Despostear
+                              </Button>
+                            )}
+                          {movement.isPosted &&
+                            (movement.movementType === "Sale" ||
+                              movement.movementType === "SaleCancellation") && (
+                              <span className="text-xs text-gray-400 italic px-2">
+                                Automático
+                              </span>
+                            )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={13}
+                      className="text-center py-8 text-gray-500"
+                    >
+                      No hay movimientos de inventario registrados
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={13}
-                    className="text-center py-8 text-gray-500"
-                  >
-                    No hay movimientos de inventario registrados
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-4">
+            {movements && movements.length > 0 ? (
+              movements.map((movement) => (
+                <div key={movement.id} className="border rounded-lg p-4 space-y-3 bg-white shadow-sm">
+                  {/* Header with Status and Type */}
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="font-medium text-lg">{movement.productName}</div>
+                      <div className="text-sm text-gray-500">SKU: {movement.variantSku}</div>
+                    </div>
+                    {movement.isPosted ? (
+                      <Badge variant="default" className="bg-green-600">Posteado</Badge>
+                    ) : (
+                      <Badge variant="secondary">Borrador</Badge>
+                    )}
+                  </div>
+
+                  {/* Movement Type and Date */}
+                  <div className="flex gap-2 items-center border-t pt-3">
+                    {getMovementTypeBadge(movement.movementType)}
+                    <span className="text-xs text-gray-500">
+                      {new Date(movement.createdAt).toLocaleDateString("es-ES", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+
+                  {/* Quantity and Stock Info */}
+                  <div className="grid grid-cols-2 gap-3 text-sm border-t pt-3">
+                    <div>
+                      <div className="text-gray-600">Cantidad</div>
+                      <div className={`font-bold text-lg ${movement.quantity >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {movement.quantity > 0 ? `+${movement.quantity}` : movement.quantity}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Costo Unit.</div>
+                      <div className="font-medium">
+                        {movement.unitCost ? `$${movement.unitCost.toFixed(2)}` : "-"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Stock Anterior</div>
+                      <div className="font-medium">{movement.stockBefore}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Stock Posterior</div>
+                      <div className="font-bold">{movement.stockAfter}</div>
+                    </div>
+                  </div>
+
+                  {/* Additional Info */}
+                  {(movement.notes || movement.reference || movement.createdByUserName) && (
+                    <div className="text-sm border-t pt-3 space-y-1">
+                      {movement.reference && (
+                        <div>
+                          <span className="text-gray-600">Ref: </span>
+                          <span className="font-medium">{movement.reference}</span>
+                        </div>
+                      )}
+                      {movement.notes && (
+                        <div>
+                          <span className="text-gray-600">Notas: </span>
+                          <span className="text-gray-700">{movement.notes}</span>
+                        </div>
+                      )}
+                      {movement.createdByUserName && (
+                        <div>
+                          <span className="text-gray-600">Usuario: </span>
+                          <span className="text-gray-700">{movement.createdByUserName}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="border-t pt-3">
+                    {!movement.isPosted && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="w-full gap-1"
+                        onClick={() => handlePostMovement(movement.id)}
+                        disabled={postMovement.isPending}
+                      >
+                        <Check className="w-3 h-3" />
+                        Postear Movimiento
+                      </Button>
+                    )}
+                    {movement.isPosted &&
+                      movement.movementType !== "Sale" &&
+                      movement.movementType !== "SaleCancellation" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handleUnpostMovement(movement.id)}
+                          disabled={unpostMovement.isPending}
+                        >
+                          Despostear
+                        </Button>
+                      )}
+                    {movement.isPosted &&
+                      (movement.movementType === "Sale" ||
+                        movement.movementType === "SaleCancellation") && (
+                        <div className="text-xs text-gray-400 italic text-center py-2">
+                          Movimiento automático
+                        </div>
+                      )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500 border rounded-lg">
+                No hay movimientos de inventario registrados
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

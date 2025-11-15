@@ -23,6 +23,7 @@ export const AddTransactionModal = ({
     "Deposit" | "Withdrawal"
   >("Deposit");
   const [amount, setAmount] = useState("");
+  const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ amount?: string; notes?: string }>({});
 
@@ -55,11 +56,13 @@ export const AddTransactionModal = ({
         customerId: customer.id,
         type: transactionType,
         amount: parseFloat(amount),
+        reference: reference.trim() || undefined,
         notes: notes.trim() || undefined,
       });
 
       // Reset form and close modal
       setAmount("");
+      setReference("");
       setNotes("");
       setErrors({});
       setTransactionType("Deposit");
@@ -72,6 +75,7 @@ export const AddTransactionModal = ({
   const handleClose = () => {
     if (!createTransaction.isPending) {
       setAmount("");
+      setReference("");
       setNotes("");
       setErrors({});
       setTransactionType("Deposit");
@@ -252,6 +256,33 @@ export const AddTransactionModal = ({
                       {errors.amount}
                     </p>
                   )}
+                </div>
+
+                {/* Reference Input */}
+                <div>
+                  <label
+                    htmlFor="reference"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Reference{" "}
+                    <span className="text-gray-400 font-normal">
+                      (optional)
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    id="reference"
+                    name="reference"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                    className="block w-full rounded-lg border-2 border-gray-300 px-4 py-3 focus:border-indigo-500 focus:ring-indigo-500 transition-colors"
+                    placeholder="e.g., Invoice #1234, Check #5678"
+                    disabled={createTransaction.isPending}
+                    maxLength={500}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Add a reference number or identifier for tracking
+                  </p>
                 </div>
 
                 {/* Balance Preview */}

@@ -8,8 +8,7 @@ namespace ReactLiveSoldProject.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Policy = "Employee")]
-    [AllowAnonymous]
+    [Authorize] // Requiere autenticación, pero la autorización es por endpoint
     public class SalesOrderController : ControllerBase
     {
         private readonly ISalesOrderService _salesOrderService;
@@ -24,9 +23,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Obtiene todas las órdenes de la organización
+        /// Obtiene todas las órdenes de la organización (Employee) o del customer autenticado (Customer)
         /// </summary>
         [HttpGet]
+        [Authorize(Policy = "EmployeeOrCustomer")]
         public async Task<ActionResult<List<SalesOrderDto>>> GetSalesOrders([FromQuery] string? status = null)
         {
             try
@@ -35,8 +35,17 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var orders = await _salesOrderService.GetSalesOrdersByOrganizationAsync(organizationId.Value, status);
-                return Ok(orders);
+                // Si es customer, solo mostrar sus propias órdenes
+                var customerId = GetCustomerId();
+                if (customerId.HasValue)
+                {
+                    var orders = await _salesOrderService.GetSalesOrdersByCustomerIdAsync(customerId.Value, organizationId.Value);
+                    return Ok(status != null ? orders.Where(o => o.Status == status).ToList() : orders);
+                }
+
+                // Si es employee, mostrar todas las órdenes
+                var allOrders = await _salesOrderService.GetSalesOrdersByOrganizationAsync(organizationId.Value, status);
+                return Ok(allOrders);
             }
             catch (Exception ex)
             {
@@ -46,9 +55,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Obtiene una orden por ID
+        /// Obtiene una orden por ID (Employee puede ver todas, Customer solo las suyas)
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize(Policy = "EmployeeOrCustomer")]
         public async Task<ActionResult<SalesOrderDto>> GetSalesOrder(Guid id)
         {
             try
@@ -62,6 +72,13 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (order == null)
                     return NotFound(new { message = "Orden no encontrada" });
 
+                // Si es customer, validar que la orden le pertenezca
+                var customerId = GetCustomerId();
+                if (customerId.HasValue && order.CustomerId != customerId.Value)
+                {
+                    return Forbid(); // 403 Forbidden
+                }
+
                 return Ok(order);
             }
             catch (Exception ex)
@@ -72,9 +89,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Obtiene todas las órdenes de un cliente
+        /// Obtiene todas las órdenes de un cliente (Employee puede ver cualquier customer, Customer solo las suyas)
         /// </summary>
         [HttpGet("customer/{customerId}")]
+        [Authorize(Policy = "EmployeeOrCustomer")]
         public async Task<ActionResult<List<SalesOrderDto>>> GetSalesOrdersByCustomer(Guid customerId)
         {
             try
@@ -82,6 +100,13 @@ namespace ReactLiveSoldProject.Server.Controllers
                 var organizationId = GetOrganizationId();
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                // Si es customer, validar que solo vea sus propias órdenes
+                var tokenCustomerId = GetCustomerId();
+                if (tokenCustomerId.HasValue && tokenCustomerId.Value != customerId)
+                {
+                    return Forbid(); // 403 Forbidden - intenta ver órdenes de otro customer
+                }
 
                 var orders = await _salesOrderService.GetSalesOrdersByCustomerIdAsync(customerId, organizationId.Value);
                 return Ok(orders);
@@ -94,9 +119,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Crea una nueva orden en estado Draft
+        /// Crea una nueva orden en estado Draft (solo empleados)
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = "Employee")]
         public async Task<ActionResult<SalesOrderDto>> CreateDraftOrder([FromBody] CreateSalesOrderDto dto)
         {
             try
@@ -139,9 +165,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Agrega un item a una orden Draft
+        /// Agrega un item a una orden Draft (solo empleados)
         /// </summary>
         [HttpPost("{id}/items")]
+        [Authorize(Policy = "Employee")]
         public async Task<ActionResult<SalesOrderDto>> AddItemToOrder(Guid id, [FromBody] CreateSalesOrderItemDto dto)
         {
             try
@@ -171,9 +198,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Actualiza un item de una orden Draft (cantidad, precio, descripción)
+        /// Actualiza un item de una orden Draft (cantidad, precio, descripción) (solo empleados)
         /// </summary>
         [HttpPut("{id}/items/{itemId}")]
+        [Authorize(Policy = "Employee")]
         public async Task<ActionResult<SalesOrderDto>> UpdateItemInOrder(Guid id, Guid itemId, [FromBody] UpdateSalesOrderItemDto dto)
         {
             try
@@ -203,9 +231,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Elimina un item de una orden Draft
+        /// Elimina un item de una orden Draft (solo empleados)
         /// </summary>
         [HttpDelete("{id}/items/{itemId}")]
+        [Authorize(Policy = "Employee")]
         public async Task<ActionResult<SalesOrderDto>> RemoveItemFromOrder(Guid id, Guid itemId)
         {
             try
@@ -235,9 +264,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Finaliza una orden: descuenta stock, descuenta wallet, cambia estado a Completed
+        /// Finaliza una orden: descuenta stock, descuenta wallet, cambia estado a Completed (solo empleados)
         /// </summary>
         [HttpPost("{id}/finalize")]
+        [Authorize(Policy = "Employee")]
         public async Task<ActionResult<SalesOrderDto>> FinalizeOrder(Guid id)
         {
             try
@@ -267,9 +297,10 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Cancela una orden Draft
+        /// Cancela una orden Draft (solo empleados)
         /// </summary>
         [HttpPost("{id}/cancel")]
+        [Authorize(Policy = "Employee")]
         public async Task<ActionResult<SalesOrderDto>> CancelOrder(Guid id)
         {
             try
@@ -311,6 +342,14 @@ namespace ReactLiveSoldProject.Server.Controllers
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim != null && Guid.TryParse(claim.Value, out var userId))
                 return userId;
+            return null;
+        }
+
+        private Guid? GetCustomerId()
+        {
+            var claim = User.FindFirst("CustomerId");
+            if (claim != null && Guid.TryParse(claim.Value, out var customerId))
+                return customerId;
             return null;
         }
     }

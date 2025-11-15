@@ -10,6 +10,13 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public Guid? AuthorizedByUserId { get; set; }
         public string? AuthorizedByUserName { get; set; }
         public string? Notes { get; set; }
+        public string? Reference { get; set; }
+        public bool IsPosted { get; set; }
+        public decimal? BalanceBefore { get; set; }
+        public decimal? BalanceAfter { get; set; }
+        public Guid? PostedByUserId { get; set; }
+        public string? PostedByUserName { get; set; }
+        public DateTime? PostedAt { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

@@ -72,8 +72,12 @@ namespace ReactLiveSoldProject.ServerBL.Base
             // Wallet
             CreateMap<Wallet, WalletDto>();
             CreateMap<WalletDto, Wallet>();
-            CreateMap<WalletTransaction, WalletTransactionDto>();
-            CreateMap<WalletTransactionDto, WalletTransaction>();            
+            CreateMap<WalletTransaction, WalletTransactionDto>()
+                .ForMember(dest => dest.AuthorizedByUserName, opt => opt.MapFrom(src =>
+                    src.AuthorizedByUser != null ? $"{src.AuthorizedByUser.FirstName} {src.AuthorizedByUser.LastName}" : null))
+                .ForMember(dest => dest.PostedByUserName, opt => opt.MapFrom(src =>
+                    src.PostedByUser != null ? $"{src.PostedByUser.FirstName} {src.PostedByUser.LastName}" : null));
+            CreateMap<WalletTransactionDto, WalletTransaction>();
             CreateMap<CreateWalletTransactionDto, WalletTransaction>();
             CreateMap<WalletTransaction, CreateWalletTransactionDto>();
         }

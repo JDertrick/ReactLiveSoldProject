@@ -9,6 +9,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         Task<OrganizationPublicDto?> GetOrganizationBySlugAsync(string slug);
         Task<OrganizationDto> CreateOrganizationAsync(CreateOrganizationDto dto);
         Task<OrganizationDto> UpdateOrganizationAsync(Guid id, CreateOrganizationDto dto);
+        Task<OrganizationDto> UpdateOrganizationSettingsAsync(Guid id, UpdateOrganizationSettingsDto dto);
         Task DeleteOrganizationAsync(Guid id);
     }
 }

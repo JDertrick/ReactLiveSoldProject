@@ -20,6 +20,7 @@ const AppLayout = () => {
   const { user, logout, isSuperAdmin, organizationId } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  // Sidebar open by default on desktop, closed on mobile
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -140,9 +141,19 @@ const AppLayout = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Mobile Overlay - only show when sidebar is open on mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 ${sidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300`}
+        className={`fixed inset-y-0 left-0 z-50 transition-all duration-300
+          ${sidebarOpen ? 'w-64' : 'w-64 -translate-x-full'}
+          md:translate-x-0 md:${sidebarOpen ? 'w-64' : 'w-20'}`}
         style={{
           backgroundColor: 'var(--sidebar-bg, #111827)',
           color: 'var(--sidebar-text, #D1D5DB)'
@@ -159,17 +170,28 @@ const AppLayout = () => {
                 LiveSold
               </h1>
             ) : (
-              <span className="text-lg font-bold" style={{ color: 'var(--sidebar-active-text, #FFFFFF)' }}>
+              <span className="text-lg font-bold hidden md:block" style={{ color: 'var(--sidebar-active-text, #FFFFFF)' }}>
                 LS
               </span>
             )}
+            {/* Desktop toggle button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity"
+              className="p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity hidden md:block"
               style={{ color: 'var(--sidebar-text, #D1D5DB)' }}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M11 19l-7-7 7-7m8 14l-7-7 7-7" : "M13 5l7 7-7 7M5 5l7 7-7 7"} />
+              </svg>
+            </button>
+            {/* Mobile close button */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity md:hidden"
+              style={{ color: 'var(--sidebar-text, #D1D5DB)' }}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -182,6 +204,12 @@ const AppLayout = () => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={() => {
+                    // Close sidebar on mobile when clicking a link
+                    if (window.innerWidth < 768) {
+                      setSidebarOpen(false);
+                    }
+                  }}
                   className="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all"
                   style={
                     active
@@ -287,11 +315,24 @@ const AppLayout = () => {
       </div>
 
       {/* Main Content */}
-      <div className={`${sidebarOpen ? 'pl-64' : 'pl-20'} transition-all duration-300`}>
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'md:pl-64' : 'md:pl-20'}`}>
         <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 -ml-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <h2 className="text-xl font-bold text-gray-900 md:block hidden">
               {navigation.find(item => isActive(item.path))?.name || 'LiveSold Platform'}
+            </h2>
+            <h2 className="text-lg font-bold text-gray-900 md:hidden">
+              {navigation.find(item => isActive(item.path))?.name || 'LiveSold'}
             </h2>
 
             {/* User Menu with Avatar */}
@@ -349,14 +390,14 @@ const AppLayout = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Settings Button */}
+              {/* Settings Button - Hidden on mobile, available in dropdown */}
               {!isSuperAdmin && (
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => setSettingsOpen(true)}
                   title="Configuración de Organización"
-                  className="h-10 w-10"
+                  className="h-10 w-10 hidden lg:flex"
                 >
                   <Settings className="h-5 w-5" />
                 </Button>
