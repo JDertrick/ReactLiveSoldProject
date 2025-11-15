@@ -102,6 +102,7 @@ export const usePostReceipt = () => {
       queryClient.invalidateQueries({ queryKey: ['walletTransactions', data.customerId] });
       queryClient.invalidateQueries({ queryKey: ['wallets'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customer', data.customerId] }); // Invalidate the specific customer query
       queryClient.invalidateQueries({ queryKey: ['receipts', data.customerId] });
     },
   });
