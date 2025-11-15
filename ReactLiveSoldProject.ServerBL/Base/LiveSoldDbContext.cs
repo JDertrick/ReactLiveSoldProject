@@ -213,14 +213,17 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(r => r.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 e.Property(r => r.OrganizationId).HasColumnName("organization_id").IsRequired();
                 e.Property(r => r.CustomerId).HasColumnName("customer_id").IsRequired();
-                e.Property(r => r.WalletTransactionId).HasColumnName("wallet_transaction_id").IsRequired();
+                e.Property(r => r.WalletTransactionId).HasColumnName("wallet_transaction_id"); // Nullable
                 e.Property(r => r.Type).HasColumnName("type").HasConversion<string>().IsRequired();
                 e.Property(r => r.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(10, 2)").IsRequired();
                 e.Property(r => r.Notes).HasColumnName("notes");
                 e.Property(r => r.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
                 e.Property(r => r.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(r => r.IsPosted).HasColumnName("is_posted").IsRequired().HasDefaultValue(false);
+                e.Property(r => r.PostedAt).HasColumnName("posted_at");
+                e.Property(r => r.PostedByUserId).HasColumnName("posted_by_user_id");
 
-                e.HasIndex(r => r.WalletTransactionId).IsUnique();
+                e.HasIndex(r => r.WalletTransactionId).IsUnique().HasFilter("\"wallet_transaction_id\" IS NOT NULL");
 
                 e.HasOne(r => r.Organization)
                     .WithMany()
@@ -235,11 +238,16 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasOne(r => r.WalletTransaction)
                     .WithOne(wt => wt.Receipt)
                     .HasForeignKey<Receipt>(r => r.WalletTransactionId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.SetNull); // Use SetNull as it's nullable
 
                 e.HasOne(r => r.CreatedByUser)
                     .WithMany()
                     .HasForeignKey(r => r.CreatedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(r => r.PostedByUser)
+                    .WithMany()
+                    .HasForeignKey(r => r.PostedByUserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 

@@ -38,5 +38,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// Obtiene todos los recibos de un cliente
         /// </summary>
         Task<List<ReceiptDto>> GetReceiptsByCustomerIdAsync(Guid customerId, Guid organizationId);
+
+        /// <summary>
+        /// Postea un recibo y crea la transacción de wallet asociada
+        /// </summary>
+        Task<ReceiptDto> PostReceiptAsync(Guid receiptId, Guid organizationId, Guid userId);
     }
 }

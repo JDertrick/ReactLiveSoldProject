@@ -194,6 +194,47 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
+        /// Postea un recibo que está en estado de borrador.
+        /// </summary>
+        [HttpPost("receipt/{receiptId}/post")]
+        public async Task<ActionResult<ReceiptDto>> PostReceipt(Guid receiptId)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var userId = GetUserId();
+                if (userId == null)
+                    return Unauthorized(new { message = "UserId no encontrado en el token" });
+
+                var receipt = await _walletService.PostReceiptAsync(receiptId, organizationId.Value, userId.Value);
+                return Ok(receipt);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Entity not found while posting receipt: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation while posting receipt: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Unauthorized post receipt attempt: {Message}", ex.Message);
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error posting receipt {ReceiptId}", receiptId);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
         /// Obtiene todos los recibos de un cliente.
         /// </summary>
         [HttpGet("customer/{customerId}/receipts")]

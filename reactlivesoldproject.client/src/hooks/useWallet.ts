@@ -88,6 +88,25 @@ export const useGetReceipts = (customerId: string) => {
   });
 };
 
+// Post Receipt
+export const usePostReceipt = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (receiptId: string): Promise<Receipt> => {
+      const response = await apiClient.post(`/wallet/receipt/${receiptId}/post`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['wallet', data.customerId] });
+      queryClient.invalidateQueries({ queryKey: ['walletTransactions', data.customerId] });
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['receipts', data.customerId] });
+    },
+  });
+};
+
 // Add Funds to Wallet (convenience wrapper)
 export const useAddFundsToWallet = () => {
   const createTransaction = useCreateWalletTransaction();

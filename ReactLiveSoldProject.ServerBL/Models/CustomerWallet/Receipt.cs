@@ -18,10 +18,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.CustomerWallet
         public Guid CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
 
-        // The single transaction that this receipt generated
-        [Required]
-        public Guid WalletTransactionId { get; set; }
-        public virtual WalletTransaction WalletTransaction { get; set; }
+        // The single transaction that this receipt generated. Null until the receipt is posted.
+        public Guid? WalletTransactionId { get; set; }
+        public virtual WalletTransaction? WalletTransaction { get; set; }
 
         [Required]
         public TransactionType Type { get; set; } // Deposit or Withdrawal
@@ -37,6 +36,11 @@ namespace ReactLiveSoldProject.ServerBL.Models.CustomerWallet
         public virtual User CreatedByUser { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsPosted { get; set; } = false;
+        public DateTime? PostedAt { get; set; }
+        public Guid? PostedByUserId { get; set; }
+        public virtual User? PostedByUser { get; set; }
 
         public virtual ICollection<ReceiptItem> Items { get; set; } = new List<ReceiptItem>();
     }

@@ -50,13 +50,16 @@ export interface Receipt {
   organizationId: string;
   customerId: string;
   customerName: string;
-  walletTransactionId: string;
+  walletTransactionId?: string; // Nullable
   type: 'Deposit' | 'Withdrawal';
   totalAmount: number;
   notes?: string;
   createdByUserId: string;
   createdByUserName: string;
   createdAt: string;
+  isPosted: boolean;
+  postedAt?: string;
+  postedByUserName?: string;
   items: ReceiptItem[];
 }
 
