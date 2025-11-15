@@ -21,6 +21,10 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public DateTime? PostedAt { get; set; }
         public Guid? PostedByUserId { get; set; }
         public string? PostedByUserName { get; set; }
+        public bool IsRejected { get; set; }
+        public DateTime? RejectedAt { get; set; }
+        public Guid? RejectedByUserId { get; set; }
+        public string? RejectedByUserName { get; set; }
         public List<ReceiptItemDto> Items { get; set; } = new List<ReceiptItemDto>();
     }
 

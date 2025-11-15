@@ -23,13 +23,13 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
   // Calculate some statistics based on receipts
   const totalCredits =
     receipts?.reduce(
-      (sum, r) => (r.type === "Deposit" ? sum + r.totalAmount : sum),
+      (sum, r) => (r.isPosted && r.type === "Deposit" ? sum + r.totalAmount : sum),
       0
     ) ?? 0;
 
   const totalDebits =
     receipts?.reduce(
-      (sum, r) => (r.type === "Withdrawal" ? sum + r.totalAmount : sum),
+      (sum, r) => (r.isPosted && r.type === "Withdrawal" ? sum + r.totalAmount : sum),
       0
     ) ?? 0;
 

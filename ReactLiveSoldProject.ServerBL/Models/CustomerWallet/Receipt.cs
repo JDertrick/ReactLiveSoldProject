@@ -42,6 +42,11 @@ namespace ReactLiveSoldProject.ServerBL.Models.CustomerWallet
         public Guid? PostedByUserId { get; set; }
         public virtual User? PostedByUser { get; set; }
 
+        public bool IsRejected { get; set; } = false;
+        public DateTime? RejectedAt { get; set; }
+        public Guid? RejectedByUserId { get; set; }
+        public virtual User? RejectedByUser { get; set; }
+
         public virtual ICollection<ReceiptItem> Items { get; set; } = new List<ReceiptItem>();
     }
 }

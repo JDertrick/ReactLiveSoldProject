@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Receipt } from '../../types/wallet.types';
 import { ReceiptDetails } from './ReceiptDetails';
-import { DollarSign, Eye, CheckCircle, Send } from 'lucide-react';
+import { DollarSign, Eye, CheckCircle, Send, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePostReceipt } from '../../hooks/useWallet';
+import { usePostReceipt, useRejectReceipt } from '../../hooks/useWallet';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -25,7 +25,9 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
   const [isConfirmPostOpen, setIsConfirmPostOpen] = useState(false);
+  const [isConfirmRejectOpen, setIsConfirmRejectOpen] = useState(false);
   const postReceiptMutation = usePostReceipt();
+  const rejectReceiptMutation = useRejectReceipt();
 
   const handleViewDetails = (receipt: Receipt) => {
     setSelectedReceipt(receipt);
@@ -35,6 +37,11 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
   const handlePostClick = (receipt: Receipt) => {
     setSelectedReceipt(receipt);
     setIsConfirmPostOpen(true);
+  };
+
+  const handleRejectClick = (receipt: Receipt) => {
+    setSelectedReceipt(receipt);
+    setIsConfirmRejectOpen(true);
   };
 
   const handleConfirmPost = async () => {
@@ -49,6 +56,21 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
       const errorMessage = error.response?.data?.message || "Failed to post receipt.";
       toast.error(errorMessage);
       console.error("Error posting receipt:", error);
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    if (!selectedReceipt) return;
+
+    try {
+      await rejectReceiptMutation.mutateAsync(selectedReceipt.id);
+      toast.success("Receipt rejected successfully!");
+      setIsConfirmRejectOpen(false);
+      setSelectedReceipt(null);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Failed to reject receipt.";
+      toast.error(errorMessage);
+      console.error("Error rejecting receipt:", error);
     }
   };
 
@@ -84,6 +106,10 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <CheckCircle className="h-3 w-3 mr-1" /> Posted
                       </span>
+                    ) : receipt.isRejected ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        <XCircle className="h-3 w-3 mr-1" /> Rejected
+                      </span>
                     ) : (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                         Draft
@@ -99,10 +125,20 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
                   </div>
                 </div>
                 <div className="mt-2 sm:flex justify-between">
-                  <div className="sm:flex">
+                  <div className="sm:flex flex-col">
                     <p className="flex items-center text-sm text-gray-500">
                       {receipt.notes || 'No notes'}
                     </p>
+                    {receipt.isPosted && (
+                      <p className="text-xs text-gray-400">
+                        Posted by {receipt.postedByUserName} on {new Date(receipt.postedAt!).toLocaleDateString()}
+                      </p>
+                    )}
+                    {receipt.isRejected && (
+                      <p className="text-xs text-gray-400">
+                        Rejected by {receipt.rejectedByUserName} on {new Date(receipt.rejectedAt!).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
                   <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
                     <p>
@@ -111,10 +147,15 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
                     <Button variant="ghost" size="sm" className="ml-2" onClick={() => handleViewDetails(receipt)}>
                       <Eye className="h-4 w-4 mr-1" /> View Details
                     </Button>
-                    {!receipt.isPosted && (
-                      <Button variant="ghost" size="sm" className="ml-2 text-blue-600" onClick={() => handlePostClick(receipt)}>
-                        <Send className="h-4 w-4 mr-1" /> Post
-                      </Button>
+                    {!receipt.isPosted && !receipt.isRejected && (
+                      <>
+                        <Button variant="ghost" size="sm" className="ml-2 text-blue-600" onClick={() => handlePostClick(receipt)}>
+                          <Send className="h-4 w-4 mr-1" /> Post
+                        </Button>
+                        <Button variant="ghost" size="sm" className="ml-2 text-red-600" onClick={() => handleRejectClick(receipt)}>
+                          <XCircle className="h-4 w-4 mr-1" /> Reject
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -144,6 +185,23 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPost} disabled={postReceiptMutation.isPending}>
               {postReceiptMutation.isPending ? "Posting..." : "Post Receipt"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isConfirmRejectOpen} onOpenChange={setIsConfirmRejectOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to reject this receipt?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will mark the receipt as rejected and it cannot be posted. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReject} disabled={rejectReceiptMutation.isPending}>
+              {rejectReceiptMutation.isPending ? "Rejecting..." : "Reject Receipt"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

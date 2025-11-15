@@ -222,6 +222,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(r => r.IsPosted).HasColumnName("is_posted").IsRequired().HasDefaultValue(false);
                 e.Property(r => r.PostedAt).HasColumnName("posted_at");
                 e.Property(r => r.PostedByUserId).HasColumnName("posted_by_user_id");
+                e.Property(r => r.IsRejected).HasColumnName("is_rejected").IsRequired().HasDefaultValue(false);
+                e.Property(r => r.RejectedAt).HasColumnName("rejected_at");
+                e.Property(r => r.RejectedByUserId).HasColumnName("rejected_by_user_id");
 
                 e.HasIndex(r => r.WalletTransactionId).IsUnique().HasFilter("\"wallet_transaction_id\" IS NOT NULL");
 
@@ -248,6 +251,11 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasOne(r => r.PostedByUser)
                     .WithMany()
                     .HasForeignKey(r => r.PostedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(r => r.RejectedByUser)
+                    .WithMany()
+                    .HasForeignKey(r => r.RejectedByUserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 

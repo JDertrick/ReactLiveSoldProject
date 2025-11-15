@@ -43,5 +43,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// Postea un recibo y crea la transacción de wallet asociada
         /// </summary>
         Task<ReceiptDto> PostReceiptAsync(Guid receiptId, Guid organizationId, Guid userId);
+
+        /// <summary>
+        /// Rechaza un recibo que está en estado de borrador.
+        /// </summary>
+        Task<ReceiptDto> RejectReceiptAsync(Guid receiptId, Guid organizationId, Guid userId);
     }
 }

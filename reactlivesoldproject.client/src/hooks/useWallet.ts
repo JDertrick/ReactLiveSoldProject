@@ -108,6 +108,21 @@ export const usePostReceipt = () => {
   });
 };
 
+// Reject Receipt
+export const useRejectReceipt = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (receiptId: string): Promise<Receipt> => {
+      const response = await apiClient.post(`/wallet/receipt/${receiptId}/reject`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['receipts', data.customerId] });
+    },
+  });
+};
+
 // Add Funds to Wallet (convenience wrapper)
 export const useAddFundsToWallet = () => {
   const createTransaction = useCreateWalletTransaction();

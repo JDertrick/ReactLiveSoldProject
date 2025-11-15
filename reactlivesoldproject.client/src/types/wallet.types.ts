@@ -60,6 +60,9 @@ export interface Receipt {
   isPosted: boolean;
   postedAt?: string;
   postedByUserName?: string;
+  isRejected: boolean;
+  rejectedAt?: string;
+  rejectedByUserName?: string;
   items: ReceiptItem[];
 }
 

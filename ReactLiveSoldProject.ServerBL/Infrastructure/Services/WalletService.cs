@@ -247,6 +247,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             var receipts = await _dbContext.Receipts
                 .Include(r => r.Customer)
                 .Include(r => r.CreatedByUser)
+                .Include(r => r.PostedByUser)
+                .Include(r => r.RejectedByUser)
                 .Include(r => r.Items)
                 .Where(r => r.CustomerId == customerId && r.OrganizationId == organizationId)
                 .OrderByDescending(r => r.CreatedAt)
@@ -266,6 +268,11 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 CreatedByUserName = $"{receipt.CreatedByUser.FirstName} {receipt.CreatedByUser.LastName}".Trim(),
                 CreatedAt = receipt.CreatedAt,
                 IsPosted = receipt.IsPosted,
+                PostedAt = receipt.PostedAt,
+                PostedByUserName = receipt.PostedByUser != null ? $"{receipt.PostedByUser.FirstName} {receipt.PostedByUser.LastName}".Trim() : null,
+                IsRejected = receipt.IsRejected,
+                RejectedAt = receipt.RejectedAt,
+                RejectedByUserName = receipt.RejectedByUser != null ? $"{receipt.RejectedByUser.FirstName} {receipt.RejectedByUser.LastName}".Trim() : null,
                 Items = receipt.Items.Select(i => new ReceiptItemDto
                 {
                     Id = i.Id,
@@ -381,6 +388,62 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 await dbTransaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<ReceiptDto> RejectReceiptAsync(Guid receiptId, Guid organizationId, Guid userId)
+        {
+            var receipt = await _dbContext.Receipts
+                .Include(r => r.Customer)
+                .Include(r => r.CreatedByUser)
+                .Include(r => r.Items)
+                .FirstOrDefaultAsync(r => r.Id == receiptId && r.OrganizationId == organizationId);
+
+            if (receipt == null)
+                throw new KeyNotFoundException("Recibo no encontrado.");
+
+            if (receipt.IsPosted || receipt.IsRejected)
+                throw new InvalidOperationException("El recibo ya ha sido procesado (posteado o rechazado).");
+
+            var user = await _dbContext.Users.FindAsync(userId);
+            if (user == null || !await _dbContext.OrganizationMembers.AnyAsync(om => om.OrganizationId == organizationId && om.UserId == userId))
+                throw new UnauthorizedAccessException("El usuario no está autorizado para realizar esta acción.");
+
+            receipt.IsRejected = true;
+            receipt.RejectedAt = DateTime.UtcNow;
+            receipt.RejectedByUserId = userId;
+
+            await _dbContext.SaveChangesAsync();
+            
+            await _dbContext.Entry(receipt).Reference(r => r.RejectedByUser).LoadAsync();
+
+            return new ReceiptDto
+            {
+                Id = receipt.Id,
+                OrganizationId = receipt.OrganizationId,
+                CustomerId = receipt.CustomerId,
+                CustomerName = $"{receipt.Customer.FirstName} {receipt.Customer.LastName}".Trim(),
+                WalletTransactionId = receipt.WalletTransactionId,
+                Type = receipt.Type,
+                TotalAmount = receipt.TotalAmount,
+                Notes = receipt.Notes,
+                CreatedByUserId = receipt.CreatedByUserId,
+                CreatedByUserName = $"{receipt.CreatedByUser.FirstName} {receipt.CreatedByUser.LastName}".Trim(),
+                CreatedAt = receipt.CreatedAt,
+                IsPosted = receipt.IsPosted,
+                PostedAt = receipt.PostedAt,
+                PostedByUserName = null, // Not posted
+                IsRejected = receipt.IsRejected,
+                RejectedAt = receipt.RejectedAt,
+                RejectedByUserName = receipt.RejectedByUser != null ? $"{receipt.RejectedByUser.FirstName} {receipt.RejectedByUser.LastName}".Trim() : null,
+                Items = receipt.Items.Select(i => new ReceiptItemDto
+                {
+                    Id = i.Id,
+                    Description = i.Description,
+                    UnitPrice = i.UnitPrice,
+                    Quantity = i.Quantity,
+                    Subtotal = i.Subtotal
+                }).ToList()
+            };
         }
 
         private static WalletTransactionDto MapToDto(WalletTransaction transaction)
