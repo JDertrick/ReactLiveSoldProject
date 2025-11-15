@@ -172,8 +172,8 @@ const CustomerPortalRegister = () => {
           {logoUrl && (
             <div className="flex justify-center mb-4">
               <img
-                src={logoUrl}
-                alt={organizationName}
+                src={logoUrl || undefined}
+                alt={organizationName || undefined}
                 className="h-16 w-auto"
               />
             </div>

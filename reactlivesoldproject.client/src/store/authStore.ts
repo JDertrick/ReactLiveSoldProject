@@ -11,11 +11,15 @@ interface User {
   organizationSlug?: string;
   organizationName?: string;
   organizationLogoUrl?: string;
+  avatarUrl?: string;
+  phoneNumber?: string;
+  createdAt?: string;
 }
 
 interface AuthState {
   token: string | null;
   user: User | null;
+  organizationId: string | null;
   isAuthenticated: boolean;
   isEmployee: boolean;
   isCustomer: boolean;
@@ -32,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       token: null,
       user: null,
+      organizationId: null,
       isAuthenticated: false,
       isEmployee: false,
       isCustomer: false,
@@ -43,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
         set({
           token,
           user,
+          organizationId: user.organizationId || null,
           isAuthenticated: true,
           isEmployee: user.role !== 'Customer',
           isCustomer: user.role === 'Customer',
@@ -58,6 +64,7 @@ export const useAuthStore = create<AuthState>()(
         set({
           token: null,
           user: null,
+          organizationId: null,
           isAuthenticated: false,
           isEmployee: false,
           isCustomer: false,
@@ -83,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         token: state.token,
         user: state.user,
+        organizationId: state.organizationId,
         isAuthenticated: state.isAuthenticated,
         isEmployee: state.isEmployee,
         isCustomer: state.isCustomer,

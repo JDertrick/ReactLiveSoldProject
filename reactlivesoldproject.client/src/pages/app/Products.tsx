@@ -54,6 +54,7 @@ const ProductsPage = () => {
     color: variant.color || undefined,
     price: variant.price,
     stock: variant.stockQuantity,
+    stockQuantity: variant.stockQuantity,
     imageUrl: variant.imageUrl,
   });
 
@@ -127,7 +128,7 @@ const ProductsPage = () => {
         await createProduct.mutateAsync(createData);
       }
       handleCloseModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving product:", error);
       setAlertDialog({
         open: true,

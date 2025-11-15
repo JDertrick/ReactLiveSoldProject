@@ -23,5 +23,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string PrimaryContactEmail { get; set; } = string.Empty;
 
         public PlanType PlanType { get; set; } = PlanType.Standard;
+
+        public string? CustomizationSettings { get; set; }
     }
 }

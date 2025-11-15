@@ -34,6 +34,12 @@ namespace ReactLiveSoldProject.ServerBL.Models.Authentication
 
         public bool IsActive { get; set; } = true;
 
+        /// <summary>
+        /// Configuración de personalización de la interfaz (colores, temas, etc.)
+        /// Almacenado como JSON
+        /// </summary>
+        public string? CustomizationSettings { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

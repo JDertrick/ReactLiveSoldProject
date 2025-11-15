@@ -608,7 +608,7 @@ const StockMovementsPage = () => {
                   <Label className="text-base font-semibold">Tipo de Movimiento</Label>
                   <Select
                     value={formData.movementType}
-                    onValueChange={(value) =>
+                    onValueChange={(value: string) =>
                       setFormData({ ...formData, movementType: value })
                     }
                   >

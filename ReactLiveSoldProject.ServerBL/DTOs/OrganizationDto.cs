@@ -11,6 +11,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string PrimaryContactEmail { get; set; } = string.Empty;
         public string PlanType { get; set; } = string.Empty;
         public bool IsActive { get; set; }
+        public string? CustomizationSettings { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

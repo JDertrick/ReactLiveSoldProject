@@ -8,6 +8,7 @@ export interface Customer {
   lastName?: string;
   email: string;
   phone?: string;
+  phoneNumber?: string; // Alias for phone
   assignedSellerId?: string;
   assignedSellerName?: string;
   notes?: string;

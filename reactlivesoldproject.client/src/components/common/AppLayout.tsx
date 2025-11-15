@@ -1,12 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { useOrganizations } from '../../hooks/useOrganizations';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Settings, LogOut, User, Building2 } from "lucide-react";
+import { OrganizationSettingsModal } from './OrganizationSettingsModal';
+import { CustomizationSettings } from '../../types/organization.types';
 
 const AppLayout = () => {
-  const { user, logout, isSuperAdmin } = useAuthStore();
+  const { user, logout, isSuperAdmin, organizationId } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Load organization settings (only for non-super-admin users)
+  const { data: organization } = useOrganizations(
+    !isSuperAdmin && organizationId ? organizationId : undefined
+  );
+
+  // Apply custom colors when organization settings change
+  useEffect(() => {
+    if (organization?.customizationSettings) {
+      try {
+        const settings: CustomizationSettings = JSON.parse(organization.customizationSettings);
+        applyCustomColors(settings);
+      } catch (e) {
+        console.error('Error parsing customization settings:', e);
+      }
+    }
+  }, [organization]);
+
+  const applyCustomColors = (colors: CustomizationSettings) => {
+    const root = document.documentElement;
+    if (colors.primaryColor) root.style.setProperty('--primary-color', colors.primaryColor);
+    if (colors.sidebarBg) root.style.setProperty('--sidebar-bg', colors.sidebarBg);
+    if (colors.sidebarText) root.style.setProperty('--sidebar-text', colors.sidebarText);
+    if (colors.sidebarActiveBg) root.style.setProperty('--sidebar-active-bg', colors.sidebarActiveBg);
+    if (colors.sidebarActiveText) root.style.setProperty('--sidebar-active-text', colors.sidebarActiveText);
+  };
 
   const handleLogout = () => {
     logout();
@@ -100,18 +141,32 @@ const AppLayout = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 ${sidebarOpen ? 'w-64' : 'w-20'} bg-gray-900 transition-all duration-300`}>
+      <div
+        className={`fixed inset-y-0 left-0 z-50 ${sidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300`}
+        style={{
+          backgroundColor: 'var(--sidebar-bg, #111827)',
+          color: 'var(--sidebar-text, #D1D5DB)'
+        }}
+      >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-4 bg-gray-800">
+          <div
+            className="flex items-center justify-between h-16 px-4"
+            style={{ backgroundColor: 'var(--sidebar-active-bg, #1F2937)' }}
+          >
             {sidebarOpen ? (
-              <h1 className="text-lg font-bold text-white">LiveSold</h1>
+              <h1 className="text-lg font-bold" style={{ color: 'var(--sidebar-active-text, #FFFFFF)' }}>
+                LiveSold
+              </h1>
             ) : (
-              <span className="text-lg font-bold text-white">LS</span>
+              <span className="text-lg font-bold" style={{ color: 'var(--sidebar-active-text, #FFFFFF)' }}>
+                LS
+              </span>
             )}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-700"
+              className="p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity"
+              style={{ color: 'var(--sidebar-text, #D1D5DB)' }}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M11 19l-7-7 7-7m8 14l-7-7 7-7" : "M13 5l7 7-7 7M5 5l7 7-7 7"} />
@@ -127,11 +182,29 @@ const AppLayout = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all"
+                  style={
                     active
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                  }`}
+                      ? {
+                          backgroundColor: 'var(--sidebar-active-bg, #1F2937)',
+                          color: 'var(--sidebar-active-text, #FFFFFF)',
+                        }
+                      : {
+                          color: 'var(--sidebar-text, #D1D5DB)',
+                        }
+                  }
+                  onMouseEnter={(e) => {
+                    if (!active) {
+                      e.currentTarget.style.backgroundColor = 'var(--sidebar-active-bg, #1F2937)';
+                      e.currentTarget.style.opacity = '0.7';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.opacity = '1';
+                    }
+                  }}
                   title={!sidebarOpen ? item.name : undefined}
                 >
                   <span className="flex-shrink-0">{item.icon}</span>
@@ -142,28 +215,45 @@ const AppLayout = () => {
           </nav>
 
           {/* User Section */}
-          <div className="border-t border-gray-800">
+          <div className="border-t border-opacity-20" style={{ borderColor: 'var(--sidebar-text, #D1D5DB)' }}>
             <div className="px-3 py-4">
               {sidebarOpen ? (
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: 'var(--primary-color, #4F46E5)' }}
+                      >
                         <span className="text-xs font-medium text-white">
                           {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
                         </span>
                       </div>
                     </div>
                     <div className="ml-3 flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--sidebar-active-text, #FFFFFF)' }}>
                         {user?.firstName || user?.email}
                       </p>
-                      <p className="text-xs text-gray-400 truncate">{user?.role}</p>
+                      <p className="text-xs truncate opacity-70" style={{ color: 'var(--sidebar-text, #D1D5DB)' }}>
+                        {user?.role}
+                      </p>
                     </div>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-gray-800 hover:text-white"
+                    className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all hover:opacity-80"
+                    style={{
+                      color: 'var(--sidebar-text, #D1D5DB)',
+                      backgroundColor: 'transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--sidebar-active-bg, #1F2937)';
+                      e.currentTarget.style.opacity = '0.7';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.opacity = '1';
+                    }}
                   >
                     <svg className="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -174,7 +264,16 @@ const AppLayout = () => {
               ) : (
                 <button
                   onClick={handleLogout}
-                  className="w-full flex justify-center px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-gray-800 hover:text-white"
+                  className="w-full flex justify-center px-3 py-2 text-sm font-medium rounded-md transition-all"
+                  style={{ color: 'var(--sidebar-text, #D1D5DB)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--sidebar-active-bg, #1F2937)';
+                    e.currentTarget.style.opacity = '0.7';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.opacity = '1';
+                  }}
                   title="Logout"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -189,13 +288,79 @@ const AppLayout = () => {
 
       {/* Main Content */}
       <div className={`${sidebarOpen ? 'pl-64' : 'pl-20'} transition-all duration-300`}>
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
+        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-xl font-bold text-gray-900">
               {navigation.find(item => isActive(item.path))?.name || 'LiveSold Platform'}
             </h2>
-            <div className="text-sm text-gray-500">
-              {user?.email}
+
+            {/* User Menu with Avatar */}
+            <div className="flex items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-3 h-12">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={user?.avatarUrl} alt={user?.firstName || user?.email} />
+                      <AvatarFallback className="bg-indigo-600 text-white font-semibold">
+                        {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-left hidden md:block">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user?.firstName || user?.email}
+                      </p>
+                      <p className="text-xs text-gray-500">{user?.role}</p>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{user?.firstName} {user?.lastName}</span>
+                      <span className="text-xs text-gray-500">{user?.email}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Mi Perfil</span>
+                  </DropdownMenuItem>
+                  {!isSuperAdmin && (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onSelect={() => setSettingsOpen(true)}
+                    >
+                      <Building2 className="mr-2 h-4 w-4" />
+                      <span>Configuración de Organización</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configuración</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                    onSelect={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Cerrar Sesión</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Settings Button */}
+              {!isSuperAdmin && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSettingsOpen(true)}
+                  title="Configuración de Organización"
+                  className="h-10 w-10"
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -204,6 +369,12 @@ const AppLayout = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Settings Modal */}
+      <OrganizationSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
     </div>
   );
 };

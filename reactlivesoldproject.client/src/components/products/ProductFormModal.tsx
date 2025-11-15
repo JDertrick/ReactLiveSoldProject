@@ -78,7 +78,13 @@ const ProductFormModal = ({
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      variants: variants,
+      variants: variants.map(v => ({
+        sku: v.sku,
+        price: v.price,
+        stockQuantity: v.stockQuantity || v.stock,
+        attributes: v.attributes,
+        imageUrl: v.imageUrl,
+      })),
     }));
   }, [variants]);
 

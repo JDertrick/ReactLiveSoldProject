@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../services/api';
-import { SalesOrder, CreateSalesOrderDto, CreateSalesOrderItemDto, UpdateSalesOrderItemDto } from '../types/salesOrder.types';
+import { SalesOrder, CreateSalesOrderDto, CreateSalesOrderItemDto, UpdateSalesOrderItemDto } from '../types/salesorder.types';
 
 // Get All Sales Orders for Organization
 export const useGetSalesOrders = (status?: string) => {

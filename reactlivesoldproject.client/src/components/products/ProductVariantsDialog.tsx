@@ -45,15 +45,6 @@ export default function ProductVariantsDialog({
       // Convert product variants to editable format
       setVariants(
         product.variants.map((v) => {
-          let attributes: { size?: string; color?: string } = {};
-          if (v.attributes) {
-            try {
-              attributes = JSON.parse(v.attributes);
-            } catch (e) {
-              console.error("Error parsing attributes:", e);
-            }
-          }
-
           return {
             sku: v.sku || "",
             price: v.price,
@@ -69,8 +60,8 @@ export default function ProductVariantsDialog({
   }, [product]);
 
   const handleAddOrUpdateVariant = () => {
-    const price = parseFloat(variantInput.price);
-    const stockQuantity = parseInt(variantInput.stockQuantity);
+    const price = typeof variantInput.price === 'string' ? parseFloat(variantInput.price) : variantInput.price;
+    const stockQuantity = typeof variantInput.stockQuantity === 'string' ? parseInt(variantInput.stockQuantity) : variantInput.stockQuantity;
 
     if (
       !variantInput.sku ||

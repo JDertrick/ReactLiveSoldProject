@@ -102,6 +102,13 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             organization.LogoUrl = dto.LogoUrl;
             organization.PrimaryContactEmail = dto.PrimaryContactEmail;
             organization.PlanType = dto.PlanType;
+
+            // Solo actualizar CustomizationSettings si se proporciona
+            if (dto.CustomizationSettings != null)
+            {
+                organization.CustomizationSettings = dto.CustomizationSettings;
+            }
+
             organization.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
@@ -149,6 +156,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 PrimaryContactEmail = organization.PrimaryContactEmail,
                 PlanType = organization.PlanType.ToString(),
                 IsActive = organization.IsActive,
+                CustomizationSettings = organization.CustomizationSettings,
                 CreatedAt = organization.CreatedAt
             };
         }

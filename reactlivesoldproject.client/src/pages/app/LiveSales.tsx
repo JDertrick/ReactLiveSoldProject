@@ -10,7 +10,7 @@ import {
   useCancelSalesOrder,
   useGetSalesOrders
 } from '../../hooks/useSalesOrders';
-import { Product, ProductVariant, ProductVariantDto, CreateProductDto } from '../../types/product.types';
+import { Product, ProductVariant, ProductVariantDto, CreateProductDto, UpdateProductDto } from '../../types/product.types';
 import { Customer } from '../../types/customer.types';
 import { SalesOrder } from '../../types/salesorder.types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
@@ -319,11 +319,11 @@ const LiveSalesPage = () => {
   };
 
   // Handle product creation
-  const handleCreateProduct = async (data: CreateProductDto, isEditing: boolean) => {
+  const handleCreateProduct = async (data: CreateProductDto | UpdateProductDto, isEditing: boolean) => {
     if (isEditing) return; // Solo crear, no editar
 
     try {
-      await createProduct.mutateAsync(data);
+      await createProduct.mutateAsync(data as CreateProductDto);
       setShowProductModal(false);
       setProductVariants([]);
     } catch (error) {
@@ -434,7 +434,7 @@ const LiveSalesPage = () => {
                       <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
                       <p className="text-sm text-gray-500">${product.basePrice.toFixed(2)}</p>
                       <p className="text-xs text-gray-400 mt-1">
-                        {product.variants?.reduce((sum, v) => sum + v.stock, 0) || 0} unidades disponibles
+                        {product.variants?.reduce((sum, v) => sum + v.stockQuantity, 0) || 0} unidades disponibles
                       </p>
                     </div>
                   </div>
@@ -749,7 +749,7 @@ const LiveSalesPage = () => {
                     <button
                       key={variant.id}
                       onClick={() => handleAddToOrder(selectedProduct, variant)}
-                      disabled={variant.stock === 0 || !selectedCustomer}
+                      disabled={variant.stockQuantity === 0 || !selectedCustomer}
                       className="w-full p-3 text-left border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <div className="flex justify-between items-center">
@@ -761,7 +761,7 @@ const LiveSalesPage = () => {
                             {variant.color && `Color: ${variant.color}`}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            Stock: {variant.stock}
+                            Stock: {variant.stockQuantity}
                           </p>
                         </div>
                         <div className="text-right">

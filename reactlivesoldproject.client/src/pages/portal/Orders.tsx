@@ -117,7 +117,7 @@ const CustomerOrders = () => {
       </div>
 
       {/* Order History Stats */}
-      {orders.length > 0 && (
+      {orders && orders.length > 0 && (
         <div className="mt-8 bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
             <h3 className="text-lg leading-6 font-medium text-gray-900">

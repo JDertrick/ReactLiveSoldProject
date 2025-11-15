@@ -22,6 +22,7 @@ export interface SalesOrder {
   status: string;
   totalAmount: number;
   notes?: string;
+  orderNumber?: string;
   items: SalesOrderItem[];
   createdAt: string;
   updatedAt: string;

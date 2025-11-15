@@ -15,7 +15,7 @@ interface VariantModalProps {
   variants: ProductVariantDto[];
   onClose: () => void;
   onSaveVariants: (variants: ProductVariantDto[]) => void;
-  customAlertDialog: React.Dispatch<React.SetStateAction<AlertDialogState>>;
+  customAlertDialog?: React.Dispatch<React.SetStateAction<AlertDialogState>>;
 }
 
 const VariantModal = ({

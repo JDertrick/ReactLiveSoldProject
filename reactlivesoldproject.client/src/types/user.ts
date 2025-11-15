@@ -6,6 +6,8 @@ export interface User {
     role: string;
     organizationId?: string;
     isSuperAdmin: boolean;
+    phoneNumber?: string;
+    createdAt?: string;
 }
 
 export interface CreateUserDto {

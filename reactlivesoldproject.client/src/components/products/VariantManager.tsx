@@ -48,6 +48,7 @@ const VariantManager = ({
           size: variantInput.size || undefined,
           color: variantInput.color || undefined,
           stock,
+          stockQuantity: stock,
           price,
         };
 
@@ -72,6 +73,7 @@ const VariantManager = ({
             size: variantInput.size || undefined,
             color: variantInput.color || undefined,
             stock,
+            stockQuantity: stock,
             price,
           };
           onVariantsChange([...variants, newVariant]);

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../services/api';
-import { Organization, OrganizationPublic, CreateOrganizationDto } from '../types';
+import { Organization, OrganizationPublic, CreateOrganizationDto, UpdateOrganizationSettingsDto } from '../types';
 
 // Get Organization by Slug (Public)
 export const useGetOrganizationBySlug = (slug: string) => {
@@ -80,4 +80,34 @@ export const useDeleteOrganization = () => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
     },
   });
+};
+
+// Hook wrapper that provides both query and mutation
+export const useOrganizations = (organizationId?: string) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ['organization', organizationId],
+    queryFn: async (): Promise<Organization> => {
+      const response = await apiClient.get(`/superadmin/organizations/${organizationId}`);
+      return response.data;
+    },
+    enabled: !!organizationId,
+  });
+
+  const updateOrganization = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateOrganizationSettingsDto }): Promise<Organization> => {
+      const response = await apiClient.put(`/superadmin/organizations/${id}`, data);
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['organization', variables.id] });
+    },
+  });
+
+  return {
+    ...query,
+    updateOrganization,
+  };
 };

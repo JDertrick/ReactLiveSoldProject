@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useGetUserByOrganizationId, useCreateUser } from "../../hooks/useUsers";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Dialog,
   DialogBackdrop,
@@ -11,7 +11,6 @@ import { CreateUserDto } from "../../types/user";
 
 const OrganizationUsersPage = () => {
   const { organizationId } = useParams();
-  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<CreateUserDto>({
