@@ -21,6 +21,7 @@ import ProductsPage from "../pages/app/Products";
 import LiveSalesPage from "../pages/app/LiveSales";
 import WalletPage from "../pages/app/Wallet";
 import StockMovementsPage from "../pages/app/StockMovements";
+import CustomerWalletPage from "../pages/app/CustomerWalletPage";
 
 // Portal Pages (Customer)
 import CustomerDashboard from "../pages/portal/Dashboard";
@@ -102,6 +103,10 @@ export const router = createBrowserRouter([
       {
         path: "customers",
         element: <CustomersPage />,
+      },
+      {
+        path: "customers/:customerId/wallet",
+        element: <CustomerWalletPage />,
       },
       {
         path: "products",

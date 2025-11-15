@@ -28,5 +28,15 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// Crea un retiro de la wallet del cliente
         /// </summary>
         Task<WalletTransactionDto> CreateWithdrawalAsync(Guid organizationId, Guid authorizedByUserId, CreateWalletTransactionDto dto);
+
+        /// <summary>
+        /// Crea un recibo y la transacción de wallet asociada
+        /// </summary>
+        Task<ReceiptDto> CreateReceiptAsync(Guid organizationId, Guid authorizedByUserId, CreateReceiptDto dto);
+
+        /// <summary>
+        /// Obtiene todos los recibos de un cliente
+        /// </summary>
+        Task<List<ReceiptDto>> GetReceiptsByCustomerIdAsync(Guid customerId, Guid organizationId);
     }
 }

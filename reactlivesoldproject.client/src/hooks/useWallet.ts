@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../services/api';
-import { Wallet, WalletTransaction, CreateWalletTransactionDto } from '../types/wallet.types';
+import { Wallet, WalletTransaction, CreateWalletTransactionDto, Receipt, CreateReceiptDto } from '../types/wallet.types';
 
 // Get Customer Wallet
 export const useGetCustomerWallet = (customerId: string) => {
@@ -54,6 +54,37 @@ export const useCreateWalletTransaction = () => {
       queryClient.invalidateQueries({ queryKey: ['wallets'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
     },
+  });
+};
+
+// Create Receipt
+export const useCreateReceipt = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateReceiptDto): Promise<Receipt> => {
+      const response = await apiClient.post('/wallet/receipt', data);
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['wallet', variables.customerId] });
+      queryClient.invalidateQueries({ queryKey: ['walletTransactions', variables.customerId] });
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['receipts', variables.customerId] });
+    },
+  });
+};
+
+// Get Receipts for a Customer
+export const useGetReceipts = (customerId: string) => {
+  return useQuery({
+    queryKey: ['receipts', customerId],
+    queryFn: async (): Promise<Receipt[]> => {
+      const response = await apiClient.get(`/wallet/customer/${customerId}/receipts`);
+      return response.data;
+    },
+    enabled: !!customerId,
   });
 };
 

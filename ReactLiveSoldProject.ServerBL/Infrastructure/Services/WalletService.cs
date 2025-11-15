@@ -176,6 +176,154 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return MapToDto(transaction);
         }
 
+        public async Task<ReceiptDto> CreateReceiptAsync(Guid organizationId, Guid authorizedByUserId, CreateReceiptDto dto)
+        {
+            await using var dbTransaction = await _dbContext.Database.BeginTransactionAsync();
+
+            try
+            {
+                // 1. Validations
+                var customer = await _dbContext.Customers
+                    .Include(c => c.Wallet)
+                    .FirstOrDefaultAsync(c => c.Id == dto.CustomerId && c.OrganizationId == organizationId);
+
+                if (customer == null)
+                    throw new KeyNotFoundException("Cliente no encontrado");
+
+                if (customer.Wallet == null)
+                    throw new InvalidOperationException("El cliente no tiene una wallet asociada");
+
+                var user = await _dbContext.Users.FindAsync(authorizedByUserId);
+                if (user == null || !await _dbContext.OrganizationMembers.AnyAsync(om => om.OrganizationId == organizationId && om.UserId == authorizedByUserId))
+                    throw new UnauthorizedAccessException("El usuario no está autorizado para realizar esta acción.");
+
+                // 2. Calculate Total Amount
+                var totalAmount = dto.Items.Sum(i => i.UnitPrice * i.Quantity);
+                if (totalAmount <= 0)
+                    throw new InvalidOperationException("El monto total del recibo debe ser mayor a cero.");
+
+                // 3. Create Wallet Transaction
+                var walletTransaction = new WalletTransaction
+                {
+                    OrganizationId = organizationId,
+                    WalletId = customer.Wallet.Id,
+                    Type = dto.Type,
+                    Amount = totalAmount,
+                    Notes = $"Recibo generado: {dto.Notes}",
+                    AuthorizedByUserId = authorizedByUserId,
+                    IsPosted = true, // Receipts are posted immediately
+                    PostedAt = DateTime.UtcNow,
+                    PostedByUserId = authorizedByUserId,
+                    BalanceBefore = customer.Wallet.Balance
+                };
+
+                // 4. Update Wallet Balance
+                if (dto.Type == TransactionType.Deposit)
+                {
+                    customer.Wallet.Balance += totalAmount;
+                }
+                else // Withdrawal
+                {
+                    if (customer.Wallet.Balance < totalAmount)
+                        throw new InvalidOperationException("Fondos insuficientes en la wallet.");
+                    customer.Wallet.Balance -= totalAmount;
+                }
+                customer.Wallet.UpdatedAt = DateTime.UtcNow;
+                walletTransaction.BalanceAfter = customer.Wallet.Balance;
+
+                _dbContext.WalletTransactions.Add(walletTransaction);
+                await _dbContext.SaveChangesAsync(); // Save to get the transaction ID
+
+                // 5. Create Receipt and Items
+                var receipt = new Receipt
+                {
+                    OrganizationId = organizationId,
+                    CustomerId = dto.CustomerId,
+                    WalletTransactionId = walletTransaction.Id,
+                    Type = dto.Type,
+                    TotalAmount = totalAmount,
+                    Notes = dto.Notes,
+                    CreatedByUserId = authorizedByUserId,
+                    Items = dto.Items.Select(i => new ReceiptItem
+                    {
+                        Description = i.Description,
+                        UnitPrice = i.UnitPrice,
+                        Quantity = i.Quantity,
+                        Subtotal = i.UnitPrice * i.Quantity
+                    }).ToList()
+                };
+
+                _dbContext.Receipts.Add(receipt);
+                await _dbContext.SaveChangesAsync();
+
+                // 6. Commit transaction
+                await dbTransaction.CommitAsync();
+
+                // 7. Return DTO
+                return new ReceiptDto
+                {
+                    Id = receipt.Id,
+                    OrganizationId = receipt.OrganizationId,
+                    CustomerId = receipt.CustomerId,
+                    CustomerName = $"{customer.FirstName} {customer.LastName}".Trim(),
+                    WalletTransactionId = receipt.WalletTransactionId,
+                    Type = receipt.Type,
+                    TotalAmount = receipt.TotalAmount,
+                    Notes = receipt.Notes,
+                    CreatedByUserId = receipt.CreatedByUserId,
+                    CreatedByUserName = $"{user.FirstName} {user.LastName}".Trim(),
+                    CreatedAt = receipt.CreatedAt,
+                    Items = receipt.Items.Select(i => new ReceiptItemDto
+                    {
+                        Id = i.Id,
+                        Description = i.Description,
+                        UnitPrice = i.UnitPrice,
+                        Quantity = i.Quantity,
+                        Subtotal = i.Subtotal
+                    }).ToList()
+                };
+            }
+            catch (Exception)
+            {
+                await dbTransaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<List<ReceiptDto>> GetReceiptsByCustomerIdAsync(Guid customerId, Guid organizationId)
+        {
+            var receipts = await _dbContext.Receipts
+                .Include(r => r.Customer)
+                .Include(r => r.CreatedByUser)
+                .Include(r => r.Items)
+                .Where(r => r.CustomerId == customerId && r.OrganizationId == organizationId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            return receipts.Select(receipt => new ReceiptDto
+            {
+                Id = receipt.Id,
+                OrganizationId = receipt.OrganizationId,
+                CustomerId = receipt.CustomerId,
+                CustomerName = $"{receipt.Customer.FirstName} {receipt.Customer.LastName}".Trim(),
+                WalletTransactionId = receipt.WalletTransactionId,
+                Type = receipt.Type,
+                TotalAmount = receipt.TotalAmount,
+                Notes = receipt.Notes,
+                CreatedByUserId = receipt.CreatedByUserId,
+                CreatedByUserName = $"{receipt.CreatedByUser.FirstName} {receipt.CreatedByUser.LastName}".Trim(),
+                CreatedAt = receipt.CreatedAt,
+                Items = receipt.Items.Select(i => new ReceiptItemDto
+                {
+                    Id = i.Id,
+                    Description = i.Description,
+                    UnitPrice = i.UnitPrice,
+                    Quantity = i.Quantity,
+                    Subtotal = i.Subtotal
+                }).ToList()
+            }).ToList();
+        }
+
         private static WalletTransactionDto MapToDto(WalletTransaction transaction)
         {
             return new WalletTransactionDto

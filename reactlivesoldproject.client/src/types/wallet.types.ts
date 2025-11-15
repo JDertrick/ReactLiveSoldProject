@@ -14,6 +14,7 @@ export interface WalletTransaction {
   type: string;
   amount: number;
   relatedSalesOrderId?: string;
+  receiptId?: string; // New property to link to a Receipt
   authorizedByUserId?: string;
   authorizedByUserName?: string;
   notes?: string;
@@ -33,4 +34,41 @@ export interface CreateWalletTransactionDto {
   amount: number;
   reference?: string;
   notes?: string;
+}
+
+// New Receipt Types
+export interface ReceiptItem {
+  id: string;
+  description: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+}
+
+export interface Receipt {
+  id: string;
+  organizationId: string;
+  customerId: string;
+  customerName: string;
+  walletTransactionId: string;
+  type: 'Deposit' | 'Withdrawal';
+  totalAmount: number;
+  notes?: string;
+  createdByUserId: string;
+  createdByUserName: string;
+  createdAt: string;
+  items: ReceiptItem[];
+}
+
+export interface CreateReceiptItemDto {
+  description: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+export interface CreateReceiptDto {
+  customerId: string;
+  type: 'Deposit' | 'Withdrawal';
+  notes?: string;
+  items: CreateReceiptItemDto[];
 }

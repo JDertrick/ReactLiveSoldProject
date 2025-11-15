@@ -1,63 +1,35 @@
 import { useState } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
-import { useGetAllWallets, useCreateWalletTransaction, useGetWalletTransactions } from '../../hooks/useWallet';
-import { Wallet } from '../../types/wallet.types';
+import { useGetAllWallets, useGetReceipts } from '../../hooks/useWallet';
+import { Wallet, Receipt } from '../../types/wallet.types';
+import { CreateReceiptModal } from '../../components/customers/CreateReceiptModal';
+import { ReceiptDetails } from '../../components/customers/ReceiptDetails';
 
 const WalletPage = () => {
   const { data: wallets, isLoading } = useGetAllWallets();
-  const createTransaction = useCreateWalletTransaction();
 
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [transactionType, setTransactionType] = useState<'Credit' | 'Debit'>('Credit');
-  const [amount, setAmount] = useState('');
-  const [notes, setNotes] = useState('');
-  const [viewTransactions, setViewTransactions] = useState(false);
+  const [isCreateReceiptModalOpen, setIsCreateReceiptModalOpen] = useState(false);
+  const [isReceiptDetailsModalOpen, setIsReceiptDetailsModalOpen] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
 
-  const { data: transactions } = useGetWalletTransactions(selectedWallet?.customerId || '');
+  const { data: receipts } = useGetReceipts(selectedWallet?.customerId || '');
 
-  const handleOpenModal = (wallet: Wallet, type: 'Credit' | 'Debit') => {
+  const handleOpenCreateReceiptModal = (wallet: Wallet) => {
     setSelectedWallet(wallet);
-    setTransactionType(type);
-    setAmount('');
-    setNotes('');
-    setIsModalOpen(true);
-    setViewTransactions(false);
+    setIsCreateReceiptModalOpen(true);
   };
 
-  const handleViewTransactions = (wallet: Wallet) => {
+  const handleViewReceipts = (wallet: Wallet) => {
     setSelectedWallet(wallet);
-    setViewTransactions(true);
-    setIsModalOpen(true);
+    setIsReceiptDetailsModalOpen(true); // This will open the ReceiptDetails modal, but it will show a list of receipts
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseModals = () => {
+    setIsCreateReceiptModalOpen(false);
+    setIsReceiptDetailsModalOpen(false);
     setSelectedWallet(null);
-    setViewTransactions(false);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!selectedWallet || !amount || parseFloat(amount) <= 0) {
-      alert('Please enter a valid amount');
-      return;
-    }
-
-    try {
-      await createTransaction.mutateAsync({
-        customerId: selectedWallet.customerId,
-        type: transactionType,
-        amount: parseFloat(amount),
-        notes: notes || undefined,
-      });
-
-      handleCloseModal();
-    } catch (error) {
-      console.error('Error creating transaction:', error);
-      alert('Failed to process transaction. Please try again.');
-    }
+    setSelectedReceipt(null);
   };
 
   if (isLoading) {
@@ -74,7 +46,7 @@ const WalletPage = () => {
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">Customer Wallets</h1>
           <p className="mt-2 text-sm text-gray-700">
-            Manage customer wallet balances and view transaction history.
+            Manage customer wallet balances and view receipt history.
           </p>
         </div>
       </div>
@@ -188,22 +160,16 @@ const WalletPage = () => {
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                           <div className="flex gap-2 justify-end">
                             <button
-                              onClick={() => handleOpenModal(wallet, 'Credit')}
-                              className="text-green-600 hover:text-green-900"
-                            >
-                              Add Funds
-                            </button>
-                            <button
-                              onClick={() => handleOpenModal(wallet, 'Debit')}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              Deduct
-                            </button>
-                            <button
-                              onClick={() => handleViewTransactions(wallet)}
+                              onClick={() => handleOpenCreateReceiptModal(wallet)}
                               className="text-indigo-600 hover:text-indigo-900"
                             >
-                              History
+                              Create Receipt
+                            </button>
+                            <button
+                              onClick={() => handleViewReceipts(wallet)}
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
+                              Receipts History
                             </button>
                           </div>
                         </td>
@@ -223,164 +189,85 @@ const WalletPage = () => {
         </div>
       </div>
 
-      {/* Modal with Headless UI Dialog */}
-      <Dialog open={isModalOpen} onClose={handleCloseModal} className="relative z-10">
-        <DialogBackdrop
-          transition
-          className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+      {/* Create Receipt Modal */}
+      {selectedWallet && (
+        <CreateReceiptModal
+          isOpen={isCreateReceiptModalOpen}
+          onClose={handleCloseModals}
+          customer={selectedWallet.customer} // Assuming customer object is available in wallet
         />
+      )}
 
-        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <DialogPanel
-              transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg data-closed:sm:translate-y-0 data-closed:sm:scale-95"
-            >
-              {viewTransactions && selectedWallet ? (
+      {/* Receipt Details Modal (or list of receipts) */}
+      {selectedWallet && (
+        <Dialog open={isReceiptDetailsModalOpen} onClose={handleCloseModals} className="relative z-10">
+          <DialogBackdrop
+            transition
+            className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+          />
+
+          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <DialogPanel
+                transition
+                className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+              >
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                   <DialogTitle as="h3" className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    Transaction History - {selectedWallet.customerName}
+                    Receipt History - {selectedWallet.customerName}
                   </DialogTitle>
                   <div className="mt-4 max-h-96 overflow-y-auto">
-                    {transactions && transactions.length > 0 ? (
+                    {receipts && receipts.length > 0 ? (
                       <ul className="divide-y divide-gray-200">
-                        {transactions.map((transaction) => (
-                          <li key={transaction.id} className="py-3">
+                        {receipts.map((receipt) => (
+                          <li key={receipt.id} className="py-3">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    transaction.type === 'Credit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    receipt.type === 'Deposit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                                   }`}>
-                                    {transaction.type}
+                                    {receipt.type}
                                   </span>
                                   <span className="text-sm text-gray-500">
-                                    {new Date(transaction.createdAt).toLocaleString()}
+                                    {new Date(receipt.createdAt).toLocaleString()}
                                   </span>
                                 </div>
-                                {transaction.notes && (
-                                  <p className="mt-1 text-sm text-gray-600">{transaction.notes}</p>
+                                {receipt.notes && (
+                                  <p className="mt-1 text-sm text-gray-600">{receipt.notes}</p>
                                 )}
-                                {transaction.authorizedByUserName && (
-                                  <p className="mt-1 text-xs text-gray-500">By: {transaction.authorizedByUserName}</p>
+                                {receipt.createdByUserName && (
+                                  <p className="mt-1 text-xs text-gray-500">By: {receipt.createdByUserName}</p>
                                 )}
                               </div>
                               <span className={`text-sm font-semibold ${
-                                transaction.type === 'Credit' ? 'text-green-600' : 'text-red-600'
+                                receipt.type === 'Deposit' ? 'text-green-600' : 'text-red-600'
                               }`}>
-                                {transaction.type === 'Credit' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                                {receipt.type === 'Deposit' ? '+' : '-'}${receipt.totalAmount.toFixed(2)}
                               </span>
                             </div>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm text-gray-500 text-center py-8">No transactions yet</p>
+                      <p className="text-sm text-gray-500 text-center py-8">No receipts yet</p>
                     )}
                   </div>
                   <div className="mt-5">
                     <button
                       type="button"
-                      onClick={handleCloseModal}
+                      onClick={handleCloseModals}
                       className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
                     >
                       Close
                     </button>
                   </div>
                 </div>
-              ) : selectedWallet ? (
-                <form onSubmit={handleSubmit}>
-                  <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
-                    <DialogTitle as="h3" className="text-lg leading-6 font-medium text-gray-900">
-                      {transactionType === 'Credit' ? 'Add Funds' : 'Deduct Funds'}
-                    </DialogTitle>
-                    <div className="mt-4">
-                      <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                        <p className="text-sm font-medium text-gray-900">{selectedWallet.customerName}</p>
-                        <p className="text-xs text-gray-500">{selectedWallet.customerEmail}</p>
-                        <p className="mt-2 text-sm">
-                          <span className="text-gray-600">Current Balance:</span>{' '}
-                          <span className="font-semibold text-gray-900">${selectedWallet.balance.toFixed(2)}</span>
-                        </p>
-                      </div>
-
-                      <div className="mb-4">
-                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-                          Amount
-                        </label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500 sm:text-sm">$</span>
-                          </div>
-                          <input
-                            type="number"
-                            name="amount"
-                            id="amount"
-                            step="0.01"
-                            min="0.01"
-                            required
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
-                            placeholder="0.00"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                          Notes (optional)
-                        </label>
-                        <textarea
-                          id="notes"
-                          name="notes"
-                          rows={3}
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-                          placeholder="Reason for transaction..."
-                        />
-                      </div>
-
-                      {amount && parseFloat(amount) > 0 && (
-                        <div className="bg-indigo-50 rounded-lg p-4 mb-4">
-                          <p className="text-sm">
-                            <span className="text-gray-600">New Balance:</span>{' '}
-                            <span className="font-semibold text-indigo-600">
-                              ${(selectedWallet.balance + (transactionType === 'Credit' ? parseFloat(amount) : -parseFloat(amount))).toFixed(2)}
-                            </span>
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                    <button
-                      type="submit"
-                      disabled={createTransaction.isPending}
-                      className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 ${
-                        transactionType === 'Credit'
-                          ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
-                          : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-                      }`}
-                    >
-                      {createTransaction.isPending ? 'Processing...' : transactionType === 'Credit' ? 'Add Funds' : 'Deduct Funds'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCloseModal}
-                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : null}
-            </DialogPanel>
+              </DialogPanel>
+            </div>
           </div>
-        </div>
-      </Dialog>
+        </Dialog>
+      )}
     </div>
   );
 };

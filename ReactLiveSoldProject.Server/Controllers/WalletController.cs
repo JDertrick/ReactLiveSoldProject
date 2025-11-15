@@ -152,6 +152,69 @@ namespace ReactLiveSoldProject.Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Crea un recibo y su transacción de wallet asociada.
+        /// </summary>
+        [HttpPost("receipt")]
+        public async Task<ActionResult<ReceiptDto>> CreateReceipt([FromBody] CreateReceiptDto dto)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var userId = GetUserId();
+                if (userId == null)
+                    return Unauthorized(new { message = "UserId no encontrado en el token" });
+
+                var receipt = await _walletService.CreateReceiptAsync(organizationId.Value, userId.Value, dto);
+                return Ok(receipt);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Entity not found while creating receipt: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation while creating receipt: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Unauthorized receipt attempt: {Message}", ex.Message);
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating receipt");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todos los recibos de un cliente.
+        /// </summary>
+        [HttpGet("customer/{customerId}/receipts")]
+        public async Task<ActionResult<List<ReceiptDto>>> GetReceiptsByCustomer(Guid customerId)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var receipts = await _walletService.GetReceiptsByCustomerIdAsync(customerId, organizationId.Value);
+                return Ok(receipts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting receipts for customer {CustomerId}", customerId);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
         private Guid? GetOrganizationId()
         {
             var claim = User.FindFirst("OrganizationId");

@@ -1,36 +1,42 @@
 import { useState } from "react";
 import { Customer } from "../../types/customer.types";
-import { useGetWalletTransactions } from "../../hooks/useWallet";
-import { TransactionList } from "./TransactionList";
-import { AddTransactionModal } from "./AddTransactionModal";
+import { useGetReceipts } from "../../hooks/useWallet";
+import { ReceiptList } from "./ReceiptList";
+import { CreateReceiptModal } from "./CreateReceiptModal";
+import { ReceiptDetails } from "./ReceiptDetails";
+import { Receipt } from "../../types/wallet.types";
 
 interface CustomerWalletTabProps {
   customer: Customer;
 }
 
 export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
-  const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] =
-    useState(false);
-  const { data: transactions, isLoading } = useGetWalletTransactions(
-    customer.id
-  );
+  const [isCreateReceiptModalOpen, setIsCreateReceiptModalOpen] = useState(false);
+  const [isReceiptDetailsModalOpen, setIsReceiptDetailsModalOpen] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
+
+  const { data: receipts, isLoading } = useGetReceipts(customer.id);
 
   const currentBalance = customer.wallet?.balance ?? 0;
-  const transactionCount = transactions?.length ?? 0;
+  const receiptCount = receipts?.length ?? 0;
 
-  // Calculate some statistics
+  // Calculate some statistics based on receipts
   const totalCredits =
-    transactions?.reduce(
-      (sum, t) => (t.type.toLowerCase() === "deposit" ? sum + t.amount : sum),
+    receipts?.reduce(
+      (sum, r) => (r.type === "Deposit" ? sum + r.totalAmount : sum),
       0
     ) ?? 0;
 
   const totalDebits =
-    transactions?.reduce(
-      (sum, t) =>
-        t.type.toLowerCase() === "withdrawal" ? sum + t.amount : sum,
+    receipts?.reduce(
+      (sum, r) => (r.type === "Withdrawal" ? sum + r.totalAmount : sum),
       0
     ) ?? 0;
+
+  const handleViewReceiptDetails = (receipt: Receipt) => {
+    setSelectedReceipt(receipt);
+    setIsReceiptDetailsModalOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -82,8 +88,8 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
               </p>
             </div>
             <div>
-              <p className="text-xs opacity-80 font-medium">Transactions</p>
-              <p className="text-xl font-bold mt-1">{transactionCount}</p>
+              <p className="text-xs opacity-80 font-medium">Receipts</p>
+              <p className="text-xl font-bold mt-1">{receiptCount}</p>
             </div>
           </div>
         </div>
@@ -92,7 +98,7 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
       {/* Action Buttons */}
       <div className="flex gap-3">
         <button
-          onClick={() => setIsAddTransactionModalOpen(true)}
+          onClick={() => setIsCreateReceiptModalOpen(true)}
           className="flex-1 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-indigo-700 hover:shadow-xl transition-all hover:scale-105"
         >
           <svg
@@ -108,11 +114,11 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Add Transaction
+          Create Receipt
         </button>
         <button
           className="inline-flex items-center justify-center rounded-xl border-2 border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-          title="Export transactions"
+          title="Export receipts"
         >
           <svg
             className="w-5 h-5"
@@ -130,7 +136,7 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
         </button>
       </div>
 
-      {/* Transaction History */}
+      {/* Receipt History */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center">
@@ -147,28 +153,37 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            Transaction History
+            Receipt History
           </h3>
-          {transactionCount > 0 && (
+          {receiptCount > 0 && (
             <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700">
-              {transactionCount}{" "}
-              {transactionCount === 1 ? "transaction" : "transactions"}
+              {receiptCount}{" "}
+              {receiptCount === 1 ? "receipt" : "receipts"}
             </span>
           )}
         </div>
 
-        <TransactionList
-          transactions={transactions ?? []}
+        <ReceiptList
+          receipts={receipts ?? []}
           isLoading={isLoading}
         />
       </div>
 
-      {/* Add Transaction Modal */}
-      <AddTransactionModal
-        isOpen={isAddTransactionModalOpen}
-        onClose={() => setIsAddTransactionModalOpen(false)}
+      {/* Create Receipt Modal */}
+      <CreateReceiptModal
+        isOpen={isCreateReceiptModalOpen}
+        onClose={() => setIsCreateReceiptModalOpen(false)}
         customer={customer}
       />
+
+      {/* Receipt Details Modal */}
+      {selectedReceipt && (
+        <ReceiptDetails
+          isOpen={isReceiptDetailsModalOpen}
+          onClose={() => setIsReceiptDetailsModalOpen(false)}
+          receipt={selectedReceipt}
+        />
+      )}
     </div>
   );
 };

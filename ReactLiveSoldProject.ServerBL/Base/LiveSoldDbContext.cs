@@ -22,6 +22,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
+        public DbSet<Receipt> Receipts { get; set; }
+        public DbSet<ReceiptItem> ReceiptItems { get; set; }
 
         // BLOQUE 3: INVENTARIO
         public DbSet<Tag> Tags { get; set; }
@@ -202,6 +204,60 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .OnDelete(DeleteBehavior.SetNull); // Como en el SQL
 
                 // Relación con SalesOrder (configurada en SalesOrder)
+            });
+
+            modelBuilder.Entity<Receipt>(e =>
+            {
+                e.ToTable("Receipts");
+                e.HasKey(r => r.Id);
+                e.Property(r => r.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(r => r.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(r => r.CustomerId).HasColumnName("customer_id").IsRequired();
+                e.Property(r => r.WalletTransactionId).HasColumnName("wallet_transaction_id").IsRequired();
+                e.Property(r => r.Type).HasColumnName("type").HasConversion<string>().IsRequired();
+                e.Property(r => r.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(10, 2)").IsRequired();
+                e.Property(r => r.Notes).HasColumnName("notes");
+                e.Property(r => r.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
+                e.Property(r => r.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(r => r.WalletTransactionId).IsUnique();
+
+                e.HasOne(r => r.Organization)
+                    .WithMany()
+                    .HasForeignKey(r => r.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(r => r.Customer)
+                    .WithMany()
+                    .HasForeignKey(r => r.CustomerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(r => r.WalletTransaction)
+                    .WithOne(wt => wt.Receipt)
+                    .HasForeignKey<Receipt>(r => r.WalletTransactionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(r => r.CreatedByUser)
+                    .WithMany()
+                    .HasForeignKey(r => r.CreatedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ReceiptItem>(e =>
+            {
+                e.ToTable("ReceiptItems");
+                e.HasKey(ri => ri.Id);
+                e.Property(ri => ri.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(ri => ri.ReceiptId).HasColumnName("receipt_id").IsRequired();
+                e.Property(ri => ri.Description).HasColumnName("description").IsRequired();
+                e.Property(ri => ri.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(10, 2)").IsRequired();
+                e.Property(ri => ri.Quantity).HasColumnName("quantity").IsRequired();
+                e.Property(ri => ri.Subtotal).HasColumnName("subtotal").HasColumnType("decimal(10, 2)").IsRequired();
+
+                e.HasOne(ri => ri.Receipt)
+                    .WithMany(r => r.Items)
+                    .HasForeignKey(ri => ri.ReceiptId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // --- BLOQUE 3: INVENTARIO ---
