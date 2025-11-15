@@ -6,11 +6,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class _1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+
             migrationBuilder.CreateTable(
                 name: "Organizations",
                 columns: table => new
@@ -22,6 +23,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     primary_contact_email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     plan_type = table.Column<string>(type: "text", nullable: false, defaultValue: "Standard"),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    custom_settings = table.Column<string>(type: "text", nullable: false, defaultValue: "True"),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
@@ -57,6 +59,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
                     product_type = table.Column<string>(type: "text", nullable: false, defaultValue: "Simple"),
+                    base_price = table.Column<decimal>(type: "numeric", nullable: false, defaultValue: 0m),
+                    image_url = table.Column<string>(type: "text", nullable: true),
                     is_published = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
@@ -135,7 +139,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     assigned_seller_id = table.Column<Guid>(type: "uuid", nullable: true),
                     notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
                 },
                 constraints: table =>
                 {
@@ -193,6 +198,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     stock_quantity = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     attributes = table.Column<string>(type: "jsonb", nullable: true),
                     image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    size = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    color = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    average_cost = table.Column<decimal>(type: "numeric", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
@@ -282,6 +290,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
                     customer_id = table.Column<Guid>(type: "uuid", nullable: false),
                     balance = table.Column<decimal>(type: "numeric(10,2)", nullable: false, defaultValue: 0.00m),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
                 constraints: table =>
@@ -312,6 +321,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     quantity = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     original_price = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
                     unit_price = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
+                    unit_cost = table.Column<decimal>(type: "numeric", nullable: false),
                     item_description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
@@ -338,6 +348,61 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "StockMovements",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    organization_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    product_variant_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    movement_type = table.Column<string>(type: "text", nullable: false),
+                    quantity = table.Column<int>(type: "integer", nullable: false),
+                    stock_before = table.Column<int>(type: "integer", nullable: false),
+                    stock_after = table.Column<int>(type: "integer", nullable: false),
+                    related_sales_order_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    created_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    reference = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    unit_cost = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
+                    is_posted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    posted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    posted_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StockMovements", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_StockMovements_Organizations_organization_id",
+                        column: x => x.organization_id,
+                        principalTable: "Organizations",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StockMovements_ProductVariants_product_variant_id",
+                        column: x => x.product_variant_id,
+                        principalTable: "ProductVariants",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StockMovements_SalesOrders_related_sales_order_id",
+                        column: x => x.related_sales_order_id,
+                        principalTable: "SalesOrders",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StockMovements_Users_created_by_user_id",
+                        column: x => x.created_by_user_id,
+                        principalTable: "Users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StockMovements_Users_posted_by_user_id",
+                        column: x => x.posted_by_user_id,
+                        principalTable: "Users",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WalletTransactions",
                 columns: table => new
                 {
@@ -349,6 +414,12 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     related_sales_order_id = table.Column<Guid>(type: "uuid", nullable: true),
                     authorized_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
                     notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    is_posted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    BalanceBefore = table.Column<decimal>(type: "numeric", nullable: true),
+                    BalanceAfter = table.Column<decimal>(type: "numeric", nullable: true),
+                    posted_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    posted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Reference = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
                 constraints: table =>
@@ -372,6 +443,12 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         principalTable: "Users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_WalletTransactions_Users_posted_by_user_id",
+                        column: x => x.posted_by_user_id,
+                        principalTable: "Users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_WalletTransactions_Wallets_wallet_id",
                         column: x => x.wallet_id,
@@ -483,6 +560,36 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 column: "organization_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_StockMovements_created_at",
+                table: "StockMovements",
+                column: "created_at");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockMovements_created_by_user_id",
+                table: "StockMovements",
+                column: "created_by_user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockMovements_organization_id",
+                table: "StockMovements",
+                column: "organization_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockMovements_posted_by_user_id",
+                table: "StockMovements",
+                column: "posted_by_user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockMovements_product_variant_id",
+                table: "StockMovements",
+                column: "product_variant_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockMovements_related_sales_order_id",
+                table: "StockMovements",
+                column: "related_sales_order_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tags_organization_id_name",
                 table: "Tags",
                 columns: new[] { "organization_id", "name" },
@@ -516,6 +623,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 column: "organization_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_WalletTransactions_posted_by_user_id",
+                table: "WalletTransactions",
+                column: "posted_by_user_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WalletTransactions_related_sales_order_id",
                 table: "WalletTransactions",
                 column: "related_sales_order_id");
@@ -540,6 +652,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
             migrationBuilder.DropTable(
                 name: "SalesOrderItems");
+
+            migrationBuilder.DropTable(
+                name: "StockMovements");
 
             migrationBuilder.DropTable(
                 name: "WalletTransactions");

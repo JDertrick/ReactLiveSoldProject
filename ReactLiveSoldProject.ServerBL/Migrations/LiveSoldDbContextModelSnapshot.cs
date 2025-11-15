@@ -88,7 +88,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<string>("CustomizationSettings")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("True")
+                        .HasColumnName("custom_settings");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -373,11 +377,23 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("authorized_by_user_id");
 
+                    b.Property<decimal?>("BalanceAfter")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("BalanceBefore")
+                        .HasColumnType("numeric");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<bool>("IsPosted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_posted");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -387,6 +403,18 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
+
+                    b.Property<DateTime>("PostedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("posted_at");
+
+                    b.Property<Guid>("PostedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("posted_by_user_id");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid?>("RelatedSalesOrderId")
                         .HasColumnType("uuid")
@@ -406,6 +434,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.HasIndex("AuthorizedByUserId");
 
                     b.HasIndex("OrganizationId");
+
+                    b.HasIndex("PostedByUserId");
 
                     b.HasIndex("RelatedSalesOrderId");
 
@@ -509,7 +539,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("attributes");
 
                     b.Property<decimal>("AverageCost")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("average_cost");
 
                     b.Property<string>("Color")
                         .HasMaxLength(100)
@@ -593,7 +624,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("created_by_user_id");
 
                     b.Property<bool>("IsPosted")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_posted");
 
                     b.Property<string>("MovementType")
                         .IsRequired()
@@ -610,10 +644,12 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("organization_id");
 
                     b.Property<DateTime?>("PostedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("posted_at");
 
                     b.Property<Guid?>("PostedByUserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("posted_by_user_id");
 
                     b.Property<Guid>("ProductVariantId")
                         .HasColumnType("uuid")
@@ -784,7 +820,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("sales_order_id");
 
                     b.Property<decimal>("UnitCost")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("unit_cost");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(10, 2)")
@@ -887,6 +924,12 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "PostedByUser")
+                        .WithMany()
+                        .HasForeignKey("PostedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Sales.SalesOrder", "RelatedSalesOrder")
                         .WithMany("WalletTransactions")
                         .HasForeignKey("RelatedSalesOrderId")
@@ -901,6 +944,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("AuthorizedByUser");
 
                     b.Navigation("Organization");
+
+                    b.Navigation("PostedByUser");
 
                     b.Navigation("RelatedSalesOrder");
 

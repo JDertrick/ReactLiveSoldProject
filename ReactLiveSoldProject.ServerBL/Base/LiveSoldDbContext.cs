@@ -183,7 +183,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(wt => wt.Notes).HasColumnName("notes");
                 e.Property(wt => wt.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(wt => wt.PostedAt).HasColumnName("posted_at").IsRequired();
-                e.Property(wt => wt.PostedByUser).HasColumnName("posted_by_user").IsRequired();
+                e.Property(wt => wt.PostedByUserId).HasColumnName("posted_by_user_id").IsRequired();
                 e.Property(wt => wt.IsPosted).HasColumnName("is_posted").IsRequired().HasDefaultValue(false);
 
                 e.HasOne(wt => wt.Organization)
@@ -309,7 +309,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(sm => sm.Notes).HasColumnName("notes");
                 e.Property(sm => sm.Reference).HasColumnName("reference");
                 e.Property(sm => sm.IsPosted).HasColumnName("is_posted").IsRequired().HasDefaultValue(false);
-                e.Property(sm => sm.PostedByUser).HasColumnName("posted_by_user");
+                e.Property(sm => sm.PostedByUserId).HasColumnName("posted_by_user_id");
                 e.Property(sm => sm.PostedAt).HasColumnName("posted_at");
                 e.Property(sm => sm.UnitCost).HasColumnName("unit_cost").HasColumnType("decimal(10, 2)");
                 e.Property(sm => sm.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
