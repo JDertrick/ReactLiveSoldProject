@@ -48,5 +48,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// Rechaza un recibo que está en estado de borrador.
         /// </summary>
         Task<ReceiptDto> RejectReceiptAsync(Guid receiptId, Guid organizationId, Guid userId);
+
+        /// <summary>
+        /// Obtiene todos los recibos de una organización con filtros opcionales.
+        /// </summary>
+        Task<List<ReceiptDto>> GetReceiptsByOrganizationAsync(Guid organizationId, Guid? customerId, string? status, DateTime? fromDate, DateTime? toDate);
     }
 }

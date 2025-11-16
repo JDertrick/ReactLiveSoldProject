@@ -27,6 +27,7 @@ import CustomerWalletPage from "../pages/app/CustomerWalletPage";
 import CustomerDashboard from "../pages/portal/Dashboard";
 import CustomerOrders from "../pages/portal/Orders";
 import OrganizationUsersPage from "../pages/superadmin/OrganizationUsers";
+import AllReceiptsPage from "../pages/app/AllReceiptsPage";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -123,6 +124,10 @@ export const router = createBrowserRouter([
       {
         path: "stock-movements",
         element: <StockMovementsPage />,
+      },
+      {
+        path: "receipts",
+        element: <AllReceiptsPage />,
       },
     ],
   },

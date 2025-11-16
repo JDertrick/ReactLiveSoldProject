@@ -297,6 +297,32 @@ namespace ReactLiveSoldProject.Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtiene todos los recibos de la organización con filtros opcionales.
+        /// </summary>
+        [HttpGet("receipts")]
+        public async Task<ActionResult<List<ReceiptDto>>> GetReceiptsByOrganization(
+            [FromQuery] Guid? customerId,
+            [FromQuery] string? status,
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var receipts = await _walletService.GetReceiptsByOrganizationAsync(organizationId.Value, customerId, status, fromDate, toDate);
+                return Ok(receipts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting receipts for organization");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
         private Guid? GetOrganizationId()
         {
             var claim = User.FindFirst("OrganizationId");

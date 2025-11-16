@@ -45,6 +45,14 @@ export interface ReceiptItem {
   subtotal: number;
 }
 
+export interface ReceiptItemDto {
+  id: string;
+  description: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+}
+
 export interface Receipt {
   id: string;
   organizationId: string;
@@ -77,4 +85,23 @@ export interface CreateReceiptDto {
   type: 'Deposit' | 'Withdrawal';
   notes?: string;
   items: CreateReceiptItemDto[];
+}
+
+export interface ReceiptDto {
+  id: string;
+  organizationId: string;
+  customerId: string;
+  customerName: string;
+  walletTransactionId?: string; // Nullable
+  type: 'Deposit' | 'Withdrawal';
+  totalAmount: number;
+  notes?: string;
+  createdAt: string;
+  isPosted: boolean;
+  postedAt?: string;
+  postedByUserName?: string;
+  isRejected: boolean;
+  rejectedAt?: string;
+  rejectedByUserName?: string;
+  items: ReceiptItemDto[];
 }

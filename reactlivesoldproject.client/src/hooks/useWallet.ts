@@ -123,6 +123,30 @@ export const useRejectReceipt = () => {
   });
 };
 
+// Get All Receipts in Organization
+export const useGetReceiptsByOrganization = (
+  customerId?: string,
+  status?: string,
+  fromDate?: string,
+  toDate?: string
+) => {
+  return useQuery({
+    queryKey: ['receipts', 'organization', customerId || '', status || '', fromDate || '', toDate || ''],
+    queryFn: async (): Promise<Receipt[]> => {
+      const params = new URLSearchParams();
+      if (customerId) params.append('customerId', customerId);
+      if (status) params.append('status', status);
+      if (fromDate) params.append('fromDate', fromDate);
+      if (toDate) params.append('toDate', toDate);
+
+      const response = await apiClient.get(`/wallet/receipts?${params.toString()}`);
+      return response.data;
+    },
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false,
+  });
+};
+
 // Add Funds to Wallet (convenience wrapper)
 export const useAddFundsToWallet = () => {
   const createTransaction = useCreateWalletTransaction();

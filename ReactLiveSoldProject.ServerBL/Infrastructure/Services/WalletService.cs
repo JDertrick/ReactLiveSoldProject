@@ -446,6 +446,81 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             };
         }
 
+        public async Task<List<ReceiptDto>> GetReceiptsByOrganizationAsync(Guid organizationId, Guid? customerId, string? status, DateTime? fromDate, DateTime? toDate)
+        {
+            var query = _dbContext.Receipts
+                .Include(r => r.Customer)
+                .Include(r => r.CreatedByUser)
+                .Include(r => r.PostedByUser)
+                .Include(r => r.RejectedByUser)
+                .Include(r => r.Items)
+                .Where(r => r.OrganizationId == organizationId);
+
+            if (customerId.HasValue)
+            {
+                query = query.Where(r => r.CustomerId == customerId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                switch (status.ToLower())
+                {
+                    case "draft":
+                        query = query.Where(r => !r.IsPosted && !r.IsRejected);
+                        break;
+                    case "posted":
+                        query = query.Where(r => r.IsPosted);
+                        break;
+                    case "rejected":
+                        query = query.Where(r => r.IsRejected);
+                        break;
+                }
+            }
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(r => r.CreatedAt >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                query = query.Where(r => r.CreatedAt <= toDate.Value);
+            }
+
+            var receipts = await query
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            return receipts.Select(receipt => new ReceiptDto
+            {
+                Id = receipt.Id,
+                OrganizationId = receipt.OrganizationId,
+                CustomerId = receipt.CustomerId,
+                CustomerName = $"{receipt.Customer.FirstName} {receipt.Customer.LastName}".Trim(),
+                WalletTransactionId = receipt.WalletTransactionId,
+                Type = receipt.Type,
+                TotalAmount = receipt.TotalAmount,
+                Notes = receipt.Notes,
+                CreatedByUserId = receipt.CreatedByUserId,
+                CreatedByUserName = $"{receipt.CreatedByUser.FirstName} {receipt.CreatedByUser.LastName}".Trim(),
+                CreatedAt = receipt.CreatedAt,
+                IsPosted = receipt.IsPosted,
+                PostedAt = receipt.PostedAt,
+                PostedByUserName = receipt.PostedByUser != null ? $"{receipt.PostedByUser.FirstName} {receipt.PostedByUser.LastName}".Trim() : null,
+                IsRejected = receipt.IsRejected,
+                RejectedAt = receipt.RejectedAt,
+                RejectedByUserName = receipt.RejectedByUser != null ? $"{receipt.RejectedByUser.FirstName} {receipt.RejectedByUser.LastName}".Trim() : null,
+                Items = receipt.Items.Select(i => new ReceiptItemDto
+                {
+                    Id = i.Id,
+                    Description = i.Description,
+                    UnitPrice = i.UnitPrice,
+                    Quantity = i.Quantity,
+                    Subtotal = i.Subtotal
+                }).ToList()
+            }).ToList();
+        }
+
         private static WalletTransactionDto MapToDto(WalletTransaction transaction)
         {
             return new WalletTransactionDto
