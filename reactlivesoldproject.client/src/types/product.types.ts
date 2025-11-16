@@ -1,3 +1,6 @@
+import { Category } from "./category.types";
+import { Location } from "./location.types";
+
 // Product Types
 export interface Tag {
   id: string;
@@ -32,6 +35,10 @@ export interface Product {
   basePrice: number;
   imageUrl: string;
   isPublished: boolean;
+  categoryId?: string;
+  category?: Category;
+  locationId?: string;
+  location?: Location;
   tags: Tag[];
   variants: ProductVariant[];
   createdAt: string;
@@ -61,6 +68,8 @@ export interface CreateProductDto {
   isPublished: boolean;
   basePrice: number;
   imageUrl: string;
+  categoryId?: string;
+  locationId?: string;
   tagIds: string[];
   variants: CreateProductVariantDto[];
 }
@@ -72,6 +81,8 @@ export interface UpdateProductDto {
   basePrice: number;
   imageUrl: string;
   isPublished: boolean;
+  categoryId?: string;
+  locationId?: string;
   tagIds: string[];
   variants: UpdateProductVariantDto[];
 }

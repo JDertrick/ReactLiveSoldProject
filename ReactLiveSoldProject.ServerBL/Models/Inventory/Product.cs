@@ -31,6 +31,12 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
 
         public bool IsPublished { get; set; } = true;
 
+        public Guid? CategoryId { get; set; }
+        public virtual Category? Category { get; set; }
+
+        public Guid? LocationId { get; set; }
+        public virtual Location? Location { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

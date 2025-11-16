@@ -26,6 +26,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<ReceiptItem> ReceiptItems { get; set; }
 
         // BLOQUE 3: INVENTARIO
+        public DbSet<Location> Locations { get; set; }
+        public DbSet<Category> Categories { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductTag> ProductTags { get; set; }
@@ -306,6 +308,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(p => p.IsPublished).HasColumnName("is_published").IsRequired().HasDefaultValue(true);
                 e.Property(p => p.ImageUrl).HasColumnName("image_url").IsRequired(false);
                 e.Property(p => p.BasePrice).HasColumnName("base_price").HasDefaultValue(0);
+                e.Property(p => p.CategoryId).HasColumnName("category_id");
+                e.Property(p => p.LocationId).HasColumnName("location_id");
                 e.Property(p => p.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(p => p.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
@@ -313,7 +317,62 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany(o => o.Products)
                     .HasForeignKey(p => p.OrganizationId)
                     .OnDelete(DeleteBehavior.Restrict); // Como en el SQL
+
+                e.HasOne(p => p.Category)
+                    .WithMany(c => c.Products)
+                    .HasForeignKey(p => p.CategoryId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasOne(p => p.Location)
+                    .WithMany(l => l.Products)
+                    .HasForeignKey(p => p.LocationId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
+
+            modelBuilder.Entity<Location>(e =>
+            {
+                e.ToTable("Locations");
+                e.HasKey(l => l.Id);
+                e.Property(l => l.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(l => l.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(l => l.Name).HasColumnName("name").IsRequired();
+                e.Property(l => l.Description).HasColumnName("description");
+                e.Property(l => l.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(l => l.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(l => new { l.OrganizationId, l.Name }).IsUnique();
+
+                e.HasOne(l => l.Organization)
+                    .WithMany()
+                    .HasForeignKey(l => l.OrganizationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Category>(e =>
+            {
+                e.ToTable("Categories");
+                e.HasKey(c => c.Id);
+                e.Property(c => c.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(c => c.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(c => c.Name).HasColumnName("name").IsRequired();
+                e.Property(c => c.Description).HasColumnName("description");
+                e.Property(c => c.ParentId).HasColumnName("parent_id");
+                e.Property(c => c.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(c => c.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(c => new { c.OrganizationId, c.Name }).IsUnique();
+
+                e.HasOne(c => c.Organization)
+                    .WithMany()
+                    .HasForeignKey(c => c.OrganizationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(c => c.Parent)
+                    .WithMany(c => c.Children)
+                    .HasForeignKey(c => c.ParentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
 
             modelBuilder.Entity<ProductTag>(e =>
             {

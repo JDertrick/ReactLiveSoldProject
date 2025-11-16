@@ -30,7 +30,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
             CreateMap<Product, ProductDto>()
                 .ForMember(dest => dest.ProductType, opt => opt.MapFrom(src => src.ProductType.ToString()))
                 .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.TagLinks.Select(pt => pt.Tag)))
-                .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants));
+                .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
+                .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location));
 
             CreateMap<CreateProductDto, Product>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -60,6 +62,14 @@ namespace ReactLiveSoldProject.ServerBL.Base
 
             // Tag Mappings
             CreateMap<Tag, TagDto>();
+
+            // Location Mappings
+            CreateMap<Location, LocationDto>();
+            CreateMap<LocationDto, Location>();
+
+            // Category Mappings
+            CreateMap<Category, CategoryDto>();
+            CreateMap<CategoryDto, Category>();
 
             // Customers
             CreateMap<CustomerDto, Customer>();
