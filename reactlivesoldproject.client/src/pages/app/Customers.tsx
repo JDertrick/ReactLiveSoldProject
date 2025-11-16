@@ -168,7 +168,7 @@ const CustomersPage = () => {
       id: "actions",
       header: "Actions",
       cell: (info) => (
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-end">
           <Button
             variant="ghost"
             size="sm"
@@ -233,7 +233,10 @@ const CustomersPage = () => {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={header.id === "actions" ? "text-right" : ""}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(

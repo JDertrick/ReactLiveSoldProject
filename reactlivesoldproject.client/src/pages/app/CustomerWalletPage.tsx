@@ -5,13 +5,14 @@ import { CustomerWalletTab } from "../../components/customers/CustomerWalletTab"
 
 const CustomerWalletPage = () => {
   const { customerId } = useParams<{ customerId: string }>();
-  const { data: customer, isLoading, error } = useGetCustomer(customerId);
 
   if (!customerId) {
     return (
       <div className="text-center text-red-500">Customer ID is missing.</div>
     );
   }
+
+  const { data: customer, isLoading, error } = useGetCustomer(customerId);
 
   if (isLoading) {
     return (

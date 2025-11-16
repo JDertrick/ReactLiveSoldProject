@@ -9,7 +9,16 @@ import {
   CreateOrganizationDto,
   Organization,
 } from "../../types/organization.types";
-
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
 import { Link, Outlet } from "react-router-dom";
 
 const OrganizationsPage = () => {
@@ -118,129 +127,161 @@ const OrganizationsPage = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <button
-            type="button"
-            onClick={() => handleOpenModal()}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-          >
+          <Button onClick={() => handleOpenModal()}>
             Add Organization
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col">
-        <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                    >
-                      Name
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                    >
-                      Slug
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                    >
-                      Plan
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                    >
-                      Status
-                    </th>
-                    <th
-                      scope="col"
-                      className="relative py-3.5 pl-3 pr-4 sm:pr-6"
-                    >
-                      <span className="sr-only">Edit</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {organizations && organizations.length > 0 ? (
-                    organizations.map((org) => (
-                      <tr key={org.id}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                          <div className="flex items-center">
-                            {org.logoUrl && (
-                              <div className="h-10 w-10 flex-shrink-0">
-                                <img
-                                  className="h-10 w-10 rounded-full"
-                                  src={org.logoUrl}
-                                  alt=""
-                                />
-                              </div>
-                            )}
-                            <div className={org.logoUrl ? "ml-4" : ""}>
-                              <div className="font-medium text-gray-900">
-                                {org.name}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                            /{org.slug}
-                          </code>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {org.planType}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                              org.isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {org.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </td>
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <button
-                            onClick={() => handleOpenModal(org)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            Edit
-                          </button>
-                          <Link
-                            to={`/superadmin/organizations/${org.id}/users`}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            Users
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="px-3 py-4 text-sm text-gray-500 text-center"
+      {/* Desktop Table View */}
+      <div className="mt-8 hidden md:block rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Plan</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {organizations && organizations.length > 0 ? (
+              organizations.map((org) => (
+                <TableRow key={org.id}>
+                  <TableCell>
+                    <div className="flex items-center">
+                      {org.logoUrl && (
+                        <div className="h-10 w-10 flex-shrink-0">
+                          <img
+                            className="h-10 w-10 rounded-full"
+                            src={org.logoUrl}
+                            alt=""
+                          />
+                        </div>
+                      )}
+                      <div className={org.logoUrl ? "ml-4" : ""}>
+                        <div className="font-medium text-gray-900">
+                          {org.name}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                      /{org.slug}
+                    </code>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{org.planType}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={org.isActive ? "default" : "destructive"}>
+                      {org.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenModal(org)}
                       >
-                        No organizations found. Create one to get started.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <Outlet />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                      >
+                        <Link to={`/superadmin/organizations/${org.id}/users`}>
+                          Users
+                        </Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center"
+                >
+                  No organizations found. Create one to get started.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
+
+      {/* Mobile Card View */}
+      <div className="mt-8 md:hidden space-y-4">
+        {organizations && organizations.length > 0 ? (
+          organizations.map((org) => (
+            <div
+              key={org.id}
+              className="bg-white border rounded-lg p-4 shadow-sm space-y-3"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  {org.logoUrl && (
+                    <img
+                      className="h-12 w-12 rounded-full"
+                      src={org.logoUrl}
+                      alt=""
+                    />
+                  )}
+                  <div>
+                    <div className="font-medium text-lg">{org.name}</div>
+                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                      /{org.slug}
+                    </code>
+                  </div>
+                </div>
+                <Badge variant={org.isActive ? "default" : "destructive"}>
+                  {org.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm border-t pt-3">
+                <div>
+                  <div className="text-muted-foreground">Plan</div>
+                  <Badge variant="secondary">{org.planType}</Badge>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenModal(org)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                >
+                  <Link to={`/superadmin/organizations/${org.id}/users`}>
+                    Users
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="bg-white border rounded-lg p-8 text-center">
+            <p className="text-muted-foreground">
+              No organizations found. Create one to get started.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <Outlet />
 
       {/* Modal with Headless UI Dialog */}
       <Dialog open={isModalOpen} onClose={handleCloseModal} className="relative z-10">

@@ -73,10 +73,10 @@ export const OrganizationSettingsModal = ({
 
     setIsSaving(true);
     try {
-      // Prepare data - convert empty strings to null for optional fields
+      // Prepare data - convert empty strings to undefined for optional fields
       const dataToSend = {
         name: formData.name,
-        logoUrl: formData.logoUrl || null,
+        logoUrl: formData.logoUrl || undefined,
         primaryContactEmail: formData.primaryContactEmail,
         customizationSettings: JSON.stringify(customization),
       };

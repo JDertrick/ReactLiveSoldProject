@@ -110,7 +110,7 @@ export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptM
             >
               <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex justify-between items-center">
-                  Create New Receipt for {customer.customerName}
+                  Create New Receipt for {customer.firstName} {customer.lastName}
                   <Button variant="ghost" size="icon" onClick={onClose}>
                     <X className="h-5 w-5" />
                   </Button>

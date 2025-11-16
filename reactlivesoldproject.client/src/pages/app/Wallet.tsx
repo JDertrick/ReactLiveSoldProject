@@ -6,9 +6,9 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { useGetAllWallets, useGetReceipts } from "../../hooks/useWallet";
-import { Wallet, Receipt } from "../../types/wallet.types";
+import { useGetCustomer } from "../../hooks/useCustomers";
+import { Wallet } from "../../types/wallet.types";
 import { CreateReceiptModal } from "../../components/customers/CreateReceiptModal";
-import { ReceiptDetails } from "../../components/customers/ReceiptDetails";
 
 const WalletPage = () => {
   const { data: wallets, isLoading } = useGetAllWallets();
@@ -18,9 +18,9 @@ const WalletPage = () => {
     useState(false);
   const [isReceiptDetailsModalOpen, setIsReceiptDetailsModalOpen] =
     useState(false);
-  const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
 
   const { data: receipts } = useGetReceipts(selectedWallet?.customerId || "");
+  const { data: selectedCustomer } = useGetCustomer(selectedWallet?.customerId || "");
 
   const handleOpenCreateReceiptModal = (wallet: Wallet) => {
     setSelectedWallet(wallet);
@@ -36,7 +36,6 @@ const WalletPage = () => {
     setIsCreateReceiptModalOpen(false);
     setIsReceiptDetailsModalOpen(false);
     setSelectedWallet(null);
-    setSelectedReceipt(null);
   };
 
   if (isLoading) {
@@ -271,11 +270,11 @@ const WalletPage = () => {
       </div>
 
       {/* Create Receipt Modal */}
-      {selectedWallet && (
+      {selectedWallet && selectedCustomer && (
         <CreateReceiptModal
           isOpen={isCreateReceiptModalOpen}
           onClose={handleCloseModals}
-          customer={selectedWallet.customer} // Assuming customer object is available in wallet
+          customer={selectedCustomer}
         />
       )}
 

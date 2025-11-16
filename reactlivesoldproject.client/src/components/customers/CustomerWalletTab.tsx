@@ -13,7 +13,7 @@ interface CustomerWalletTabProps {
 export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
   const [isCreateReceiptModalOpen, setIsCreateReceiptModalOpen] = useState(false);
   const [isReceiptDetailsModalOpen, setIsReceiptDetailsModalOpen] = useState(false);
-  const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
+  const [selectedReceipt] = useState<Receipt | null>(null);
 
   const { data: receipts, isLoading } = useGetReceipts(customer.id);
 
@@ -33,10 +33,6 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
       0
     ) ?? 0;
 
-  const handleViewReceiptDetails = (receipt: Receipt) => {
-    setSelectedReceipt(receipt);
-    setIsReceiptDetailsModalOpen(true);
-  };
 
   return (
     <div className="space-y-6 animate-fadeIn">
