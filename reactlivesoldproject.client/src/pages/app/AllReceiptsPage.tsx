@@ -37,7 +37,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Filter, CalendarIcon, KeyboardMusic } from "lucide-react";
+import { ArrowUpDown, Filter, CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -50,8 +50,12 @@ import { cn } from "@/lib/utils";
 const AllReceiptsPage = () => {
   const [customerId, setCustomerId] = useState("");
   const [status, setStatus] = useState("");
-  const [fromDateString, setFromDateString] = useState<string | undefined>(undefined);
-  const [toDateString, setToDateString] = useState<string | undefined>(undefined);
+  const [fromDateString, setFromDateString] = useState<string | undefined>(
+    undefined
+  );
+  const [toDateString, setToDateString] = useState<string | undefined>(
+    undefined
+  );
 
   const { data: receipts, isLoading } = useGetReceiptsByOrganization(
     customerId,
@@ -219,7 +223,9 @@ const AllReceiptsPage = () => {
               <Label>Cliente</Label>
               <Select
                 value={customerId || "all"}
-                onValueChange={(value) => handleFilterChange("customerId", value)}
+                onValueChange={(value) =>
+                  handleFilterChange("customerId", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los clientes" />
@@ -273,7 +279,9 @@ const AllReceiptsPage = () => {
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={fromDateString ? new Date(fromDateString) : undefined}
+                    selected={
+                      fromDateString ? new Date(fromDateString) : undefined
+                    }
                     onSelect={(date) => handleFilterChange("fromDate", date)}
                     initialFocus
                   />
