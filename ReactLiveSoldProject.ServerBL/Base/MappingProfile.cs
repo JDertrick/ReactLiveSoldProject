@@ -31,8 +31,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.ProductType, opt => opt.MapFrom(src => src.ProductType.ToString()))
                 .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.TagLinks.Select(pt => pt.Tag)))
                 .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants))
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
-                .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location));
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
 
             CreateMap<CreateProductDto, Product>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -90,6 +89,32 @@ namespace ReactLiveSoldProject.ServerBL.Base
             CreateMap<WalletTransactionDto, WalletTransaction>();
             CreateMap<CreateWalletTransactionDto, WalletTransaction>();
             CreateMap<WalletTransaction, CreateWalletTransactionDto>();
+
+            // StockMovement Mappings
+            CreateMap<StockMovement, StockMovementDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductVariant.Product.Name))
+                .ForMember(dest => dest.VariantSku, opt => opt.MapFrom(src => src.ProductVariant.Sku))
+                .ForMember(dest => dest.MovementType, opt => opt.MapFrom(src => src.MovementType.ToString()))
+                .ForMember(dest => dest.CreatedByUserName, opt => opt.MapFrom(src =>
+                    src.CreatedByUser != null ? $"{src.CreatedByUser.FirstName} {src.CreatedByUser.LastName}" : null))
+                .ForMember(dest => dest.PostedByUserName, opt => opt.MapFrom(src =>
+                    src.PostedByUser != null ? $"{src.PostedByUser.FirstName} {src.PostedByUser.LastName}" : null))
+                .ForMember(dest => dest.RejectedByUserName, opt => opt.MapFrom(src =>
+                    src.RejectedByUser != null ? $"{src.RejectedByUser.FirstName} {src.RejectedByUser.LastName}" : null));
+
+            CreateMap<CreateStockMovementDto, StockMovement>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.StockBefore, opt => opt.Ignore())
+                .ForMember(dest => dest.StockAfter, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedByUserId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.IsPosted, opt => opt.Ignore())
+                .ForMember(dest => dest.PostedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.PostedByUserId, opt => opt.Ignore())
+                .ForMember(dest => dest.IsRejected, opt => opt.Ignore())
+                .ForMember(dest => dest.RejectedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.RejectedByUserId, opt => opt.Ignore());
         }
     }
 }

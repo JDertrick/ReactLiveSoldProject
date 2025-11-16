@@ -1,3 +1,5 @@
+import { Location } from "./location.types";
+
 export enum StockMovementType {
   InitialStock = 'InitialStock',
   Purchase = 'Purchase',
@@ -23,6 +25,10 @@ export interface StockMovementDto {
   notes?: string;
   reference?: string;
   unitCost?: number;
+  sourceLocationId?: string;
+  sourceLocation?: Location;
+  destinationLocationId?: string;
+  destinationLocation?: Location;
   isPosted: boolean;
   postedAt?: string;
   postedByUserName?: string;
@@ -39,6 +45,8 @@ export interface CreateStockMovementDto {
   notes?: string;
   reference?: string;
   unitCost?: number;
+  sourceLocationId?: string;
+  destinationLocationId?: string;
 }
 
 export interface StockMovementFilters {

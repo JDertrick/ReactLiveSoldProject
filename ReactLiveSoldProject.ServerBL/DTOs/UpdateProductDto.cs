@@ -21,7 +21,6 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public bool IsPublished { get; set; } = true;
 
         public Guid? CategoryId { get; set; }
-        public Guid? LocationId { get; set; }
 
         /// <summary>
         /// Lista de IDs de tags a asociar con el producto

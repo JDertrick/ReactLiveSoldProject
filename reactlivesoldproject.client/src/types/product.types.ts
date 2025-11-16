@@ -1,5 +1,4 @@
 import { Category } from "./category.types";
-import { Location } from "./location.types";
 
 // Product Types
 export interface Tag {
@@ -37,8 +36,6 @@ export interface Product {
   isPublished: boolean;
   categoryId?: string;
   category?: Category;
-  locationId?: string;
-  location?: Location;
   tags: Tag[];
   variants: ProductVariant[];
   createdAt: string;
@@ -69,7 +66,6 @@ export interface CreateProductDto {
   basePrice: number;
   imageUrl: string;
   categoryId?: string;
-  locationId?: string;
   tagIds: string[];
   variants: CreateProductVariantDto[];
 }
@@ -82,7 +78,6 @@ export interface UpdateProductDto {
   imageUrl: string;
   isPublished: boolean;
   categoryId?: string;
-  locationId?: string;
   tagIds: string[];
   variants: UpdateProductVariantDto[];
 }

@@ -22,6 +22,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .ThenInclude(pv => pv.Product)
                 .Include(sm => sm.CreatedByUser)
                 .Include(sm => sm.PostedByUser)
+                .Include(sm => sm.SourceLocation)
+                .Include(sm => sm.DestinationLocation)
                 .Where(sm => sm.ProductVariantId == productVariantId && sm.OrganizationId == organizationId)
                 .OrderByDescending(sm => sm.CreatedAt)
                 .ToListAsync();
@@ -36,6 +38,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .ThenInclude(pv => pv.Product)
                 .Include(sm => sm.CreatedByUser)
                 .Include(sm => sm.PostedByUser)
+                .Include(sm => sm.SourceLocation)
+                .Include(sm => sm.DestinationLocation)
                 .Where(sm => sm.OrganizationId == organizationId);
 
             if (fromDate.HasValue)
@@ -83,6 +87,23 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (dto.Quantity > 0 && movementType == StockMovementType.Purchase && !dto.UnitCost.HasValue)
                 throw new InvalidOperationException("Las compras deben incluir un costo unitario");
 
+            // Validar ubicaciones para transferencias
+            if (movementType == StockMovementType.Transfer)
+            {
+                if (!dto.SourceLocationId.HasValue || !dto.DestinationLocationId.HasValue)
+                    throw new InvalidOperationException("Las transferencias requieren ubicación de origen y destino");
+
+                if (dto.SourceLocationId == dto.DestinationLocationId)
+                    throw new InvalidOperationException("La ubicación de origen y destino no pueden ser la misma");
+
+                // Validar que las ubicaciones existan
+                var sourceLocationExists = await _dbContext.Locations.AnyAsync(l => l.Id == dto.SourceLocationId.Value && l.OrganizationId == organizationId);
+                var destLocationExists = await _dbContext.Locations.AnyAsync(l => l.Id == dto.DestinationLocationId.Value && l.OrganizationId == organizationId);
+
+                if (!sourceLocationExists || !destLocationExists)
+                    throw new InvalidOperationException("Una o ambas ubicaciones no existen");
+            }
+
             // Crear el movimiento en estado borrador (IsPosted = false)
             var movement = new StockMovement
             {
@@ -97,6 +118,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Notes = dto.Notes,
                 Reference = dto.Reference,
                 UnitCost = dto.UnitCost,
+                SourceLocationId = dto.SourceLocationId,
+                DestinationLocationId = dto.DestinationLocationId,
                 IsPosted = false, // Se crea como borrador
                 CreatedAt = DateTime.UtcNow
             };
@@ -108,6 +131,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             await _dbContext.Entry(movement).Reference(m => m.ProductVariant).LoadAsync();
             await _dbContext.Entry(movement.ProductVariant).Reference(pv => pv.Product).LoadAsync();
             await _dbContext.Entry(movement).Reference(m => m.CreatedByUser).LoadAsync();
+
+            if (movement.SourceLocationId.HasValue)
+                await _dbContext.Entry(movement).Reference(m => m.SourceLocation).LoadAsync();
+
+            if (movement.DestinationLocationId.HasValue)
+                await _dbContext.Entry(movement).Reference(m => m.DestinationLocation).LoadAsync();
 
             return MapToDto(movement);
         }
@@ -398,6 +427,22 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Notes = movement.Notes,
                 Reference = movement.Reference,
                 UnitCost = movement.UnitCost,
+                SourceLocationId = movement.SourceLocationId,
+                SourceLocation = movement.SourceLocation != null ? new LocationDto
+                {
+                    Id = movement.SourceLocation.Id,
+                    Name = movement.SourceLocation.Name,
+                    Description = movement.SourceLocation.Description,
+                    OrganizationId = movement.SourceLocation.OrganizationId
+                } : null,
+                DestinationLocationId = movement.DestinationLocationId,
+                DestinationLocation = movement.DestinationLocation != null ? new LocationDto
+                {
+                    Id = movement.DestinationLocation.Id,
+                    Name = movement.DestinationLocation.Name,
+                    Description = movement.DestinationLocation.Description,
+                    OrganizationId = movement.DestinationLocation.OrganizationId
+                } : null,
                 IsPosted = movement.IsPosted,
                 PostedAt = movement.PostedAt,
                 PostedByUserName = movement.PostedByUser != null

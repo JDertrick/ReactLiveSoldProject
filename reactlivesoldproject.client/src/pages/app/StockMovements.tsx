@@ -7,6 +7,7 @@ import {
   useRejectStockMovement,
 } from "../../hooks/useStockMovements";
 import { useGetProducts } from "../../hooks/useProducts";
+import { useLocations } from "../../hooks/useLocations";
 import {
   CreateStockMovementDto,
   StockMovementDto,
@@ -82,6 +83,7 @@ const StockMovementsPage = () => {
     toDate
   );
   const { data: products } = useGetProducts(true);
+  const { locations, isLoading: isLoadingLocations } = useLocations();
   const createMovement = useCreateStockMovement();
   const postMovement = usePostStockMovement();
   const unpostMovement = useUnpostStockMovement();
@@ -100,6 +102,8 @@ const StockMovementsPage = () => {
     notes: "",
     reference: "",
     unitCost: undefined,
+    sourceLocationId: undefined,
+    destinationLocationId: undefined,
   });
 
   // Flatten products and variants for the combobox
@@ -173,6 +177,18 @@ const StockMovementsPage = () => {
       return;
     }
 
+    // Validar transferencias
+    if (formData.movementType === StockMovementType.Transfer) {
+      if (!formData.sourceLocationId || !formData.destinationLocationId) {
+        toast.error("Las transferencias requieren ubicación de origen y destino");
+        return;
+      }
+      if (formData.sourceLocationId === formData.destinationLocationId) {
+        toast.error("La ubicación de origen y destino no pueden ser la misma");
+        return;
+      }
+    }
+
     try {
       await createMovement.mutateAsync(formData);
       toast.success("Movimiento creado como borrador. Debe postearlo para que afecte el inventario.");
@@ -184,6 +200,8 @@ const StockMovementsPage = () => {
         notes: "",
         reference: "",
         unitCost: undefined,
+        sourceLocationId: undefined,
+        destinationLocationId: undefined,
       });
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Error al registrar el movimiento");
@@ -359,6 +377,7 @@ const StockMovementsPage = () => {
                   <TableHead>Producto</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Tipo</TableHead>
+                  <TableHead>Ubicación</TableHead>
                   <TableHead className="text-right">Cantidad</TableHead>
                   <TableHead className="text-right">Costo Unit.</TableHead>
                   <TableHead>Usuario</TableHead>
@@ -403,6 +422,25 @@ const StockMovementsPage = () => {
                       <TableCell>{movement.variantSku}</TableCell>
                       <TableCell>
                         {getMovementTypeBadge(movement.movementType)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {movement.movementType === "Transfer" ? (
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline" className="text-xs">
+                              {movement.sourceLocation?.name || "N/A"}
+                            </Badge>
+                            <span>→</span>
+                            <Badge variant="outline" className="text-xs">
+                              {movement.destinationLocation?.name || "N/A"}
+                            </Badge>
+                          </div>
+                        ) : movement.destinationLocation ? (
+                          <Badge variant="outline" className="text-xs">
+                            {movement.destinationLocation.name}
+                          </Badge>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </TableCell>
                       <TableCell
                         className={`text-right font-semibold ${
@@ -469,7 +507,7 @@ const StockMovementsPage = () => {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={10}
                       className="text-center py-8 text-gray-500"
                     >
                       No hay movimientos de inventario registrados
@@ -533,6 +571,28 @@ const StockMovementsPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Location Info */}
+                  {(movement.sourceLocation || movement.destinationLocation) && (
+                    <div className="text-sm border-t pt-3">
+                      <span className="text-gray-600">Ubicación: </span>
+                      {movement.movementType === "Transfer" ? (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            {movement.sourceLocation?.name || "N/A"}
+                          </Badge>
+                          <span>→</span>
+                          <Badge variant="outline" className="text-xs">
+                            {movement.destinationLocation?.name || "N/A"}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <Badge variant="outline" className="text-xs ml-1">
+                          {movement.destinationLocation?.name}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
 
                   {/* User Info */}
                   <div className="text-sm border-t pt-3">
@@ -762,6 +822,14 @@ const StockMovementsPage = () => {
                           Devolución
                         </div>
                       </SelectItem>
+                      {locations && locations.length >= 2 && (
+                        <SelectItem value={StockMovementType.Transfer}>
+                          <div className="flex items-center gap-2">
+                            <Package className="w-4 h-4 text-purple-600" />
+                            Transferencia
+                          </div>
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -832,6 +900,90 @@ const StockMovementsPage = () => {
                   />
                 </div>
               </div>
+
+              {/* Location Selectors */}
+              {formData.movementType === StockMovementType.Transfer ? (
+                // Para transferencias: mostrar origen y destino
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-base font-semibold flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      Ubicación Origen
+                      <Badge variant="destructive" className="ml-2">Requerido</Badge>
+                    </Label>
+                    <Select
+                      value={formData.sourceLocationId || ""}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, sourceLocationId: value })
+                      }
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Seleccionar origen..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations?.map((location) => (
+                          <SelectItem key={location.id} value={location.id}>
+                            {location.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-base font-semibold flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      Ubicación Destino
+                      <Badge variant="destructive" className="ml-2">Requerido</Badge>
+                    </Label>
+                    <Select
+                      value={formData.destinationLocationId || ""}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, destinationLocationId: value })
+                      }
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Seleccionar destino..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations?.map((location) => (
+                          <SelectItem key={location.id} value={location.id}>
+                            {location.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              ) : (
+                // Para otros movimientos: solo ubicación de destino
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Ubicación
+                  </Label>
+                  <Select
+                    value={formData.destinationLocationId || ""}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, destinationLocationId: value })
+                    }
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Seleccionar ubicación (opcional)..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations?.map((location) => (
+                        <SelectItem key={location.id} value={location.id}>
+                          {location.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    💡 Especifica donde ocurre el movimiento
+                  </p>
+                </div>
+              )}
 
               {/* Notes */}
               <div className="space-y-2">

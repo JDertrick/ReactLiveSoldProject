@@ -2,7 +2,6 @@ import React from "react";
 import { CreateProductDto, UpdateProductDto } from "../../types/product.types";
 import { TagDto } from "../../types/product.types";
 import { useCategories } from "../../hooks/useCategories";
-import { useLocations } from "../../hooks/useLocations";
 
 interface ProductFormProps {
   formData: CreateProductDto | UpdateProductDto;
@@ -22,7 +21,6 @@ const ProductForm = ({
   onTagToggle,
 }: ProductFormProps) => {
   const { categories, isLoading: isLoadingCategories } = useCategories();
-  const { locations, isLoading: isLoadingLocations } = useLocations();
 
   const renderCategoryOptions = (categories: any[], depth = 0) => {
     return categories.map((category) => (
@@ -129,31 +127,6 @@ const ProductForm = ({
         >
           <option value="">-- Select Category --</option>
           {categories && renderCategoryOptions(categories)}
-        </select>
-      </div>
-
-      {/* Location Dropdown */}
-      <div>
-        <label
-          htmlFor="locationId"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Location
-        </label>
-        <select
-          name="locationId"
-          id="locationId"
-          value={formData.locationId || ""}
-          onChange={onFormChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-          disabled={isLoadingLocations}
-        >
-          <option value="">-- Select Location --</option>
-          {locations?.map((location) => (
-            <option key={location.id} value={location.id}>
-              {location.name}
-            </option>
-          ))}
         </select>
       </div>
 

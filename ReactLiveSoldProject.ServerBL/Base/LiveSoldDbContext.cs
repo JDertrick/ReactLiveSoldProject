@@ -309,7 +309,6 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(p => p.ImageUrl).HasColumnName("image_url").IsRequired(false);
                 e.Property(p => p.BasePrice).HasColumnName("base_price").HasDefaultValue(0);
                 e.Property(p => p.CategoryId).HasColumnName("category_id");
-                e.Property(p => p.LocationId).HasColumnName("location_id");
                 e.Property(p => p.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(p => p.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
@@ -321,11 +320,6 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasOne(p => p.Category)
                     .WithMany(c => c.Products)
                     .HasForeignKey(p => p.CategoryId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                e.HasOne(p => p.Location)
-                    .WithMany(l => l.Products)
-                    .HasForeignKey(p => p.LocationId)
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
@@ -447,6 +441,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(sm => sm.IsRejected).HasColumnName("is_rejected").IsRequired().HasDefaultValue(false);
                 e.Property(sm => sm.RejectedAt).HasColumnName("rejected_at");
                 e.Property(sm => sm.RejectedByUserId).HasColumnName("rejected_by_user_id");
+                e.Property(sm => sm.SourceLocationId).HasColumnName("source_location_id");
+                e.Property(sm => sm.DestinationLocationId).HasColumnName("destination_location_id");
 
                 // Índices para consultas frecuentes
                 e.HasIndex(sm => sm.ProductVariantId);
@@ -482,6 +478,16 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany()
                     .HasForeignKey(sm => sm.RejectedByUserId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(sm => sm.SourceLocation)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.SourceLocationId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasOne(sm => sm.DestinationLocation)
+                    .WithMany()
+                    .HasForeignKey(sm => sm.DestinationLocationId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // --- BLOQUE 4: VENTAS ---

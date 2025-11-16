@@ -77,6 +77,22 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         public decimal? UnitCost { get; set; }
 
         /// <summary>
+        /// Ubicación de origen para transferencias (null para otros tipos de movimientos)
+        /// </summary>
+        public Guid? SourceLocationId { get; set; }
+
+        public virtual Location? SourceLocation { get; set; }
+
+        /// <summary>
+        /// Ubicación de destino (obligatoria para todos los movimientos excepto ventas)
+        /// Para transferencias: ubicación destino
+        /// Para otros movimientos: ubicación donde ocurre el movimiento
+        /// </summary>
+        public Guid? DestinationLocationId { get; set; }
+
+        public virtual Location? DestinationLocation { get; set; }
+
+        /// <summary>
         /// Indica si el movimiento ha sido posteado y afecta el inventario
         /// Los movimientos no posteados son borradores que no afectan el stock
         /// </summary>

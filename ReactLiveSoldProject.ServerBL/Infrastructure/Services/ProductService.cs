@@ -27,7 +27,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Include(p => p.TagLinks)
                     .ThenInclude(pt => pt.Tag)
                 .Include(p => p.Category)
-                .Include(p => p.Location)
                 .Where(p => p.OrganizationId == organizationId);
 
             if (!includeUnpublished)
@@ -47,7 +46,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Include(p => p.TagLinks)
                     .ThenInclude(pt => pt.Tag)
                 .Include(p => p.Category)
-                .Include(p => p.Location)
                 .FirstOrDefaultAsync(p => p.Id == productId && p.OrganizationId == organizationId);
 
             return product != null ? _mapper.Map<ProductDto>(product) : null;
@@ -62,7 +60,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Include(p => p.TagLinks)
                     .ThenInclude(pt => pt.Tag)
                 .Include(p => p.Category)
-                .Include(p => p.Location)
                 .Where(p => p.OrganizationId == organizationId &&
                     (p.Name.ToLower().Contains(normalizedSearch) ||
                      p.Description != null && p.Description.ToLower().Contains(normalizedSearch)))
@@ -117,7 +114,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 product.OrganizationId = organizationId;
                 product.ProductType = productType;
                 product.CategoryId = dto.CategoryId;
-                product.LocationId = dto.LocationId;
 
                 _dbContext.Products.Add(product);
 
@@ -205,7 +201,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 product.ImageUrl = dto.ImageUrl;
                 product.IsPublished = dto.IsPublished;
                 product.CategoryId = dto.CategoryId;
-                product.LocationId = dto.LocationId;
                 product.UpdatedAt = DateTime.UtcNow;
 
                 // Actualizar tags (eliminar existentes y agregar nuevos)

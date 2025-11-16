@@ -11,8 +11,6 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public bool IsPublished { get; set; }
         public Guid? CategoryId { get; set; }
         public CategoryDto? Category { get; set; }
-        public Guid? LocationId { get; set; }
-        public LocationDto? Location { get; set; }
         public List<TagDto> Tags { get; set; } = new();
         public List<ProductVariantDto> Variants { get; set; } = new();
         public DateTime CreatedAt { get; set; }

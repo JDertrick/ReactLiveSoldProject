@@ -20,5 +20,9 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string? Reference { get; set; }
 
         public decimal? UnitCost { get; set; }
+
+        public Guid? SourceLocationId { get; set; }
+
+        public Guid? DestinationLocationId { get; set; }
     }
 }

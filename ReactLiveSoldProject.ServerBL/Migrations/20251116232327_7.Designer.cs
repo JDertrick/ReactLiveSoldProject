@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReactLiveSoldProject.ServerBL.Base;
@@ -11,9 +12,11 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    partial class LiveSoldDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251116232327_7")]
+    partial class _7
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -857,10 +860,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by_user_id");
 
-                    b.Property<Guid?>("DestinationLocationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("destination_location_id");
-
                     b.Property<bool>("IsPosted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -872,6 +871,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_rejected");
+
+                    b.Property<Guid?>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
 
                     b.Property<string>("MovementType")
                         .IsRequired()
@@ -920,10 +923,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("related_sales_order_id");
 
-                    b.Property<Guid?>("SourceLocationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("source_location_id");
-
                     b.Property<int>("StockAfter")
                         .HasColumnType("integer")
                         .HasColumnName("stock_after");
@@ -942,7 +941,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("DestinationLocationId");
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("OrganizationId");
 
@@ -953,8 +952,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.HasIndex("RejectedByUserId");
 
                     b.HasIndex("RelatedSalesOrderId");
-
-                    b.HasIndex("SourceLocationId");
 
                     b.ToTable("StockMovements", (string)null);
                 });
@@ -1370,9 +1367,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", "DestinationLocation")
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", "Location")
                         .WithMany()
-                        .HasForeignKey("DestinationLocationId")
+                        .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
@@ -1402,14 +1399,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasForeignKey("RelatedSalesOrderId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", "SourceLocation")
-                        .WithMany()
-                        .HasForeignKey("SourceLocationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("CreatedByUser");
 
-                    b.Navigation("DestinationLocation");
+                    b.Navigation("Location");
 
                     b.Navigation("Organization");
 
@@ -1420,8 +1412,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("RejectedByUser");
 
                     b.Navigation("RelatedSalesOrder");
-
-                    b.Navigation("SourceLocation");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.Tag", b =>
