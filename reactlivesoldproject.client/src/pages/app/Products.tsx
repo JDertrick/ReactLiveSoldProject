@@ -35,6 +35,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ScanBarcode } from "lucide-react";
 
 const ProductsPage = () => {
   const { data: products, isLoading } = useGetProducts(true); // Include unpublished
@@ -174,16 +175,26 @@ const ProductsPage = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {/* Page Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Inventario</h1>
+          <p className="text-gray-500 mt-1">
+            Gestiona tu catálogo de productos, variantes y niveles de
+            inventario.
+          </p>
+        </div>
+        <Button onClick={() => handleOpenModal()} size="lg" className="gap-2">
+          <ScanBarcode className="w-4 h-4" />
+          Agregar producto
+        </Button>
+      </div>
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Products</CardTitle>
-              <CardDescription>
-                Manage your product catalog, variants, and inventory levels
-              </CardDescription>
+              <CardTitle>Lista de productos</CardTitle>
             </div>
-            <Button onClick={() => handleOpenModal()}>Add Product</Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -232,7 +243,9 @@ const ProductsPage = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{product.productType}</Badge>
+                          <Badge variant="secondary">
+                            {product.productType}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-2">
@@ -280,7 +293,8 @@ const ProductsPage = () => {
                                           );
                                           return Object.entries(attrs)
                                             .map(
-                                              ([key, value]) => `${key}: ${value}`
+                                              ([key, value]) =>
+                                                `${key}: ${value}`
                                             )
                                             .join(", ");
                                         } catch {
@@ -304,7 +318,9 @@ const ProductsPage = () => {
                         <TableCell className="text-right">
                           <span
                             className={`font-semibold ${
-                              totalStock < 10 ? "text-red-600" : "text-green-600"
+                              totalStock < 10
+                                ? "text-red-600"
+                                : "text-green-600"
                             }`}
                           >
                             {totalStock}
@@ -367,9 +383,15 @@ const ProductsPage = () => {
             {products && products.length > 0 ? (
               products.map((product) => {
                 const totalStock =
-                  product.variants?.reduce((sum, v) => sum + v.stockQuantity, 0) || 0;
+                  product.variants?.reduce(
+                    (sum, v) => sum + v.stockQuantity,
+                    0
+                  ) || 0;
                 return (
-                  <div key={product.id} className="border rounded-lg p-4 space-y-3 bg-white shadow-sm">
+                  <div
+                    key={product.id}
+                    className="border rounded-lg p-4 space-y-3 bg-white shadow-sm"
+                  >
                     {/* Product Header */}
                     <div className="flex gap-3">
                       {product.imageUrl && (
@@ -380,7 +402,9 @@ const ProductsPage = () => {
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-lg truncate">{product.name}</div>
+                        <div className="font-medium text-lg truncate">
+                          {product.name}
+                        </div>
                         {product.description && (
                           <div className="text-sm text-gray-500 line-clamp-2">
                             {product.description}
@@ -392,7 +416,9 @@ const ProductsPage = () => {
                     {/* Status and Type */}
                     <div className="flex gap-2 flex-wrap">
                       <Badge variant="secondary">{product.productType}</Badge>
-                      <Badge variant={product.isPublished ? "default" : "secondary"}>
+                      <Badge
+                        variant={product.isPublished ? "default" : "secondary"}
+                      >
                         {product.isPublished ? "Published" : "Draft"}
                       </Badge>
                     </div>
@@ -401,11 +427,17 @@ const ProductsPage = () => {
                     <div className="grid grid-cols-2 gap-3 text-sm border-t pt-3">
                       <div>
                         <div className="text-muted-foreground">Base Price</div>
-                        <div className="font-semibold">${(product.basePrice || 0).toFixed(2)}</div>
+                        <div className="font-semibold">
+                          ${(product.basePrice || 0).toFixed(2)}
+                        </div>
                       </div>
                       <div>
                         <div className="text-muted-foreground">Total Stock</div>
-                        <div className={`font-semibold ${totalStock < 10 ? "text-red-600" : "text-green-600"}`}>
+                        <div
+                          className={`font-semibold ${
+                            totalStock < 10 ? "text-red-600" : "text-green-600"
+                          }`}
+                        >
                           {totalStock}
                         </div>
                       </div>
@@ -417,22 +449,35 @@ const ProductsPage = () => {
                         <div className="text-sm font-medium mb-2">Variants</div>
                         <div className="space-y-2">
                           {product.variants.map((variant) => (
-                            <div key={variant.id} className="text-sm bg-gray-50 rounded p-2">
+                            <div
+                              key={variant.id}
+                              className="text-sm bg-gray-50 rounded p-2"
+                            >
                               <div className="font-medium">{variant.sku}</div>
                               <div className="grid grid-cols-3 gap-2 mt-1 text-xs">
                                 <div>
                                   <span className="text-gray-600">Stock: </span>
-                                  <span className={`font-bold ${variant.stockQuantity < 5 ? "text-red-600" : "text-green-600"}`}>
+                                  <span
+                                    className={`font-bold ${
+                                      variant.stockQuantity < 5
+                                        ? "text-red-600"
+                                        : "text-green-600"
+                                    }`}
+                                  >
                                     {variant.stockQuantity}
                                   </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-600">Price: </span>
-                                  <span className="font-bold">${variant.price.toFixed(2)}</span>
+                                  <span className="font-bold">
+                                    ${variant.price.toFixed(2)}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-600">Cost: </span>
-                                  <span className="font-bold">${variant.averageCost.toFixed(2)}</span>
+                                  <span className="font-bold">
+                                    ${variant.averageCost.toFixed(2)}
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -446,7 +491,11 @@ const ProductsPage = () => {
                       <div className="border-t pt-3">
                         <div className="flex flex-wrap gap-1">
                           {product.tags.map((tag) => (
-                            <Badge key={tag.id} variant="outline" className="text-xs">
+                            <Badge
+                              key={tag.id}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {tag.name}
                             </Badge>
                           ))}
