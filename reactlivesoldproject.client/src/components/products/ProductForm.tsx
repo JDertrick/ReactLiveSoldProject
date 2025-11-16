@@ -1,3 +1,4 @@
+import React from "react";
 import { CreateProductDto, UpdateProductDto } from "../../types/product.types";
 import { TagDto } from "../../types/product.types";
 import { useCategories } from "../../hooks/useCategories";
@@ -7,7 +8,9 @@ interface ProductFormProps {
   formData: CreateProductDto | UpdateProductDto;
   tags: TagDto[] | undefined;
   onFormChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => void;
   onTagToggle: (tagId: string) => void;
 }
@@ -27,7 +30,8 @@ const ProductForm = ({
         <option value={category.id}>
           {"--".repeat(depth)} {category.name}
         </option>
-        {category.children && category.children.length > 0 &&
+        {category.children &&
+          category.children.length > 0 &&
           renderCategoryOptions(category.children, depth + 1)}
       </React.Fragment>
     ));
@@ -162,7 +166,10 @@ const ProductForm = ({
           onChange={onFormChange}
           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
         />
-        <label htmlFor="isPublished" className="ml-2 block text-sm text-gray-900">
+        <label
+          htmlFor="isPublished"
+          className="ml-2 block text-sm text-gray-900"
+        >
           Published (visible to customers)
         </label>
       </div>

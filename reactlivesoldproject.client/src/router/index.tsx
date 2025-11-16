@@ -22,6 +22,10 @@ import LiveSalesPage from "../pages/app/LiveSales";
 import WalletPage from "../pages/app/Wallet";
 import StockMovementsPage from "../pages/app/StockMovements";
 import CustomerWalletPage from "../pages/app/CustomerWalletPage";
+import CategoryListPage from "../pages/app/CategoryListPage";
+import CategoryFormPage from "../pages/app/CategoryFormPage";
+import LocationListPage from "../pages/app/LocationListPage";
+import LocationFormPage from "../pages/app/LocationFormPage";
 
 // Portal Pages (Customer)
 import CustomerDashboard from "../pages/portal/Dashboard";
@@ -112,6 +116,30 @@ export const router = createBrowserRouter([
       {
         path: "products",
         element: <ProductsPage />,
+      },
+      {
+        path: "categories",
+        element: <CategoryListPage />,
+      },
+      {
+        path: "categories/new",
+        element: <CategoryFormPage />,
+      },
+      {
+        path: "categories/edit/:id",
+        element: <CategoryFormPage />,
+      },
+      {
+        path: "locations",
+        element: <LocationListPage />,
+      },
+      {
+        path: "locations/new",
+        element: <LocationFormPage />,
+      },
+      {
+        path: "locations/edit/:id",
+        element: <LocationFormPage />,
       },
       {
         path: "live-sales",

@@ -21,7 +21,10 @@ interface ProductFormModalProps {
   isLoading: boolean;
   variants: ProductVariantDto[];
   onClose: () => void;
-  onSubmit: (data: CreateProductDto | UpdateProductDto, isEditing: boolean) => Promise<void>;
+  onSubmit: (
+    data: CreateProductDto | UpdateProductDto,
+    isEditing: boolean
+  ) => Promise<void>;
   onOpenVariantModal: () => void;
 }
 
@@ -35,16 +38,18 @@ const ProductFormModal = ({
   onSubmit,
   onOpenVariantModal,
 }: ProductFormModalProps) => {
-  const [formData, setFormData] = useState<CreateProductDto | UpdateProductDto>({
-    name: "",
-    description: "",
-    basePrice: 0,
-    imageUrl: "",
-    isPublished: true,
-    productType: "",
-    variants: [],
-    tagIds: [],
-  });
+  const [formData, setFormData] = useState<CreateProductDto | UpdateProductDto>(
+    {
+      name: "",
+      description: "",
+      basePrice: 0,
+      imageUrl: "",
+      isPublished: true,
+      productType: "",
+      variants: [],
+      tagIds: [],
+    }
+  );
 
   // Actualizar formData cuando editingProduct cambie
   useEffect(() => {
@@ -78,7 +83,7 @@ const ProductFormModal = ({
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      variants: variants.map(v => ({
+      variants: variants.map((v) => ({
         sku: v.sku,
         price: v.price,
         stockQuantity: v.stockQuantity || v.stock,
@@ -140,7 +145,7 @@ const ProductFormModal = ({
         <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <DialogPanel
             transition
-            className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-4xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+            className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
           >
             <form onSubmit={handleSubmit}>
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
