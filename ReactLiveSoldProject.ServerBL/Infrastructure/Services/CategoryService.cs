@@ -73,7 +73,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             }
         }
 
-        public async Task UpdateCategoryAsync(Guid organizationId, Guid Id, UpdateCategoryDto categoryDto)
+        public async Task UpdateCategoryAsync(Guid organizationId, Guid Id, UpdateCategoryDto dto)
         {
             try
             {
@@ -84,7 +84,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new InvalidOperationException("No se puede actualizar una categoria que no existe o no pertenece a esta organización");
                 }
 
-                category = _mapper.Map<Category>(categoryDto);
+                _mapper.Map(dto, category);
                 category.UpdatedAt = DateTime.UtcNow;
 
                 await _dbContext.SaveChangesAsync();
@@ -103,7 +103,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
                 if (category == null || category.OrganizationId != organizationId)
                 {
-                    throw new InvalidOperationException("No se puede actualizar una categoria que no existe o no pertenece a esta organización");
+                    throw new InvalidOperationException("No se puede eliminar una categoria que no existe o no pertenece a esta organización");
                 }
 
                 _dbContext.Categories.Remove(category);

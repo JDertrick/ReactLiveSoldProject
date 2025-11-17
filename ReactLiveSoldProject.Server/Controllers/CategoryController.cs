@@ -1,13 +1,9 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.Server.Controllers.Base;
-using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
-using ReactLiveSoldProject.ServerBL.Models.Inventory;
-using System.Security.Claims;
 
 namespace ReactLiveSoldProject.Server.Controllers
 {
@@ -16,15 +12,13 @@ namespace ReactLiveSoldProject.Server.Controllers
     [Route("api/[controller]")]
     public class CategoryController : BaseController
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<CategoryController> _logger;
         private readonly ICategoryService _categoryService;
-        private readonly IMapper _mapper;
 
-        public CategoryController(ILogger logger, ICategoryService categoryService, IMapper mapper)
+        public CategoryController(ILogger<CategoryController> logger, ICategoryService categoryService)
         {
             _logger = logger;
             _categoryService = categoryService;
-            _mapper = mapper;
         }
 
         [HttpGet]

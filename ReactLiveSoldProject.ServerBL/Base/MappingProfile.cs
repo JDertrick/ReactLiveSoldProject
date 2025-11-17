@@ -65,6 +65,10 @@ namespace ReactLiveSoldProject.ServerBL.Base
             // Location Mappings
             CreateMap<Location, LocationDto>();
             CreateMap<LocationDto, Location>();
+            CreateMap<Location, CreateLocationDto>();
+            CreateMap<CreateLocationDto, Location>();
+            CreateMap<Location, UpdateLocationDto>();
+            CreateMap<UpdateLocationDto, Location>();
 
             // Category Mappings
             CreateMap<Category, CategoryDto>();

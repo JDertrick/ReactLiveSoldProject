@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.Server.Controllers.Base;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using System.Security.Claims;
 
@@ -15,136 +16,126 @@ namespace ReactLiveSoldProject.Server.Controllers
     [Route("api/[controller]")]
     public class LocationController : BaseController
     {
-        private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly ILocationService _locationService;
+        private readonly ILogger<LocationController> _logger;
 
-        public LocationController(LiveSoldDbContext context, IMapper mapper)
+
+        public LocationController(ILocationService locationService, ILogger<LocationController> logger)
         {
-            _context = context;
-            _mapper = mapper;
+            _locationService = locationService;
+            _logger = logger;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LocationDto>>> GetLocations()
+        public async Task<ActionResult<IList<LocationDto>>> GetLocations()
         {
-            var organizationId = GetOrganizationId();
-            if (organizationId == null)
+            try
             {
-                return Unauthorized();
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                {
+                    return Unauthorized();
+                }
+
+                var locations = await _locationService.GetLocationsAsync(organizationId.Value);
+
+                return Ok(locations);
             }
-
-            var locations = await _context.Locations
-                .Where(l => l.OrganizationId == organizationId)
-                .ToListAsync();
-
-            return _mapper.Map<List<LocationDto>>(locations);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cargando las bodegas");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<LocationDto>> GetLocation(Guid id)
         {
-            var organizationId = GetOrganizationId();
-            if (organizationId == null)
-            {
-                return Unauthorized();
-            }
-
-            var location = await _context.Locations
-                .FirstOrDefaultAsync(l => l.Id == id && l.OrganizationId == organizationId);
-
-            if (location == null)
-            {
-                return NotFound();
-            }
-
-            return _mapper.Map<LocationDto>(location);
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<LocationDto>> CreateLocation(LocationDto locationDto)
-        {
-            var organizationId = GetOrganizationId();
-            if (organizationId == null)
-            {
-                return Unauthorized();
-            }
-
-            var location = _mapper.Map<Location>(locationDto);
-            location.OrganizationId = organizationId.Value;
-
-            _context.Locations.Add(location);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetLocation), new { id = location.Id }, _mapper.Map<LocationDto>(location));
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateLocation(Guid id, LocationDto locationDto)
-        {
-            if (id != locationDto.Id)
-            {
-                return BadRequest();
-            }
-
-            var organizationId = GetOrganizationId();
-            if (organizationId == null)
-            {
-                return Unauthorized();
-            }
-
-            var location = await _context.Locations.FindAsync(id);
-
-            if (location == null || location.OrganizationId != organizationId)
-            {
-                return NotFound();
-            }
-
-            _mapper.Map(locationDto, location);
-            location.UpdatedAt = DateTime.UtcNow;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!LocationExists(id))
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                {
+                    return Unauthorized();
+                }
+
+                var location = await _locationService.GetLocationAsync(organizationId.Value, id);
+
+                if (location == null)
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return NoContent();
+                return Ok(location);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cargando la bodega");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<LocationDto>> CreateLocation(CreateLocationDto locationDto)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                {
+                    return Unauthorized();
+                }
+
+                await _locationService.CreateLocationAsync(organizationId.Value, locationDto);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creando la bodega");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateLocation(Guid id, UpdateLocationDto locationDto)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                {
+                    return Unauthorized();
+                }
+
+                await _locationService.UpdateLocationAsync(organizationId.Value, id, locationDto);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error actualizando la bodega");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLocation(Guid id)
         {
-            var organizationId = GetOrganizationId();
-            if (organizationId == null)
+            try
             {
-                return Unauthorized();
-            }
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                {
+                    return Unauthorized();
+                }
 
-            var location = await _context.Locations.FindAsync(id);
-            if (location == null || location.OrganizationId != organizationId)
+                await _locationService.DeleteLocationAsync(organizationId.Value, id);
+                return Ok();
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogError(ex, "Error eliminando la bodega");
+                return StatusCode(500, new { message = "Error interno del servidor" });
             }
-
-            _context.Locations.Remove(location);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool LocationExists(Guid id)
-        {
-            return _context.Locations.Any(e => e.Id == id);
         }
     }
 }
