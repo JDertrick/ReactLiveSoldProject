@@ -76,14 +76,14 @@ export const CreateReceiptModal = ({
       )
     ) {
       toast.error(
-        "Please ensure all receipt items have a description, positive unit price, and positive quantity."
+        "Por favor, asegúrese de que todos los artículos del recibo tengan una descripción, un precio unitario positivo y una cantidad positiva."
       );
       return;
     }
 
     const totalAmount = calculateTotal();
     if (totalAmount <= 0) {
-      toast.error("The total amount of the receipt must be greater than zero.");
+      toast.error("El monto total del recibo debe ser mayor que cero.");
       return;
     }
 
@@ -96,7 +96,7 @@ export const CreateReceiptModal = ({
 
     try {
       await createReceiptMutation.mutateAsync(receiptData);
-      toast.success("Receipt created successfully!");
+      toast.success("¡Recibo creado con éxito!");
       onClose();
       // Reset form
       setReceiptType("Deposit");
@@ -104,7 +104,7 @@ export const CreateReceiptModal = ({
       setItems([{ description: "", unitPrice: 0, quantity: 1 }]);
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || "Failed to create receipt.";
+        error.response?.data?.message || "Error al crear el recibo.";
       toast.error(errorMessage);
       console.error("Error creating receipt:", error);
     }
@@ -141,7 +141,7 @@ export const CreateReceiptModal = ({
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900 flex justify-between items-center"
                 >
-                  Create New Receipt for {customer.firstName}{" "}
+                  Crear Nuevo Recibo para {customer.firstName}{" "}
                   {customer.lastName}
                   <Button variant="ghost" size="icon" onClick={onClose}>
                     <X className="h-5 w-5" />
@@ -150,7 +150,7 @@ export const CreateReceiptModal = ({
                 <div className="mt-2">
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="receiptType">Receipt Type</Label>
+                      <Label htmlFor="receiptType">Tipo de Recibo</Label>
                       <Select
                         value={receiptType}
                         onValueChange={(value: "Deposit" | "Withdrawal") =>
@@ -158,28 +158,28 @@ export const CreateReceiptModal = ({
                         }
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder="Seleccionar tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Deposit">Deposit</SelectItem>
-                          <SelectItem value="Withdrawal">Withdrawal</SelectItem>
+                          <SelectItem value="Deposit">Depósito</SelectItem>
+                          <SelectItem value="Withdrawal">Retiro</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div>
-                      <Label htmlFor="notes">Notes (optional)</Label>
+                      <Label htmlFor="notes">Notas (opcional)</Label>
                       <Textarea
                         id="notes"
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Add notes for this receipt..."
+                        placeholder="Añadir notas para este recibo..."
                       />
                     </div>
 
                     <div className="space-y-3">
                       <h4 className="text-md font-medium flex items-center">
-                        Receipt Items
+                        Artículos del Recibo
                         <Button
                           type="button"
                           variant="outline"
@@ -187,7 +187,7 @@ export const CreateReceiptModal = ({
                           onClick={handleAddItem}
                           className="ml-auto"
                         >
-                          <Plus className="h-4 w-4 mr-2" /> Add Item
+                          <Plus className="h-4 w-4 mr-2" /> Añadir Artículo
                         </Button>
                       </h4>
                       {items.map((item, index) => (
@@ -198,7 +198,7 @@ export const CreateReceiptModal = ({
                           <div className="flex-1 grid grid-cols-2 gap-2">
                             <div>
                               <Label htmlFor={`description-${index}`}>
-                                Description
+                                Descripción
                               </Label>
                               <Input
                                 id={`description-${index}`}
@@ -210,13 +210,13 @@ export const CreateReceiptModal = ({
                                     e.target.value
                                   )
                                 }
-                                placeholder="Item description"
+                                placeholder="Descripción del artículo"
                                 required
                               />
                             </div>
                             <div>
                               <Label htmlFor={`unitPrice-${index}`}>
-                                Unit Price
+                                Precio Unitario
                               </Label>
                               <Input
                                 id={`unitPrice-${index}`}

@@ -14,17 +14,17 @@ export const CustomerProfileTab = ({ customer }: CustomerProfileTabProps) => {
             <svg className="w-4 h-4 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            Personal Information
+            Información Personal
           </h3>
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Full Name</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Nombre Completo</p>
               <p className="mt-1 text-sm text-gray-900 font-medium">
                 {customer.firstName} {customer.lastName}
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Customer ID</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">ID de Cliente</p>
               <p className="mt-1 text-sm text-gray-600 font-mono">
                 {customer.id}
               </p>
@@ -38,11 +38,11 @@ export const CustomerProfileTab = ({ customer }: CustomerProfileTabProps) => {
             <svg className="w-4 h-4 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            Contact Information
+            Información de Contacto
           </h3>
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Correo Electrónico</p>
               <a
                 href={`mailto:${customer.email}`}
                 className="mt-1 text-sm text-indigo-600 hover:text-indigo-700 block"
@@ -51,7 +51,7 @@ export const CustomerProfileTab = ({ customer }: CustomerProfileTabProps) => {
               </a>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Phone</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Teléfono</p>
               <a
                 href={`tel:${customer.phone}`}
                 className="mt-1 text-sm text-indigo-600 hover:text-indigo-700 block"
@@ -68,11 +68,11 @@ export const CustomerProfileTab = ({ customer }: CustomerProfileTabProps) => {
             <svg className="w-4 h-4 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Account Status
+            Estado de la Cuenta
           </h3>
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Estado</p>
               <div className="mt-2">
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
@@ -82,7 +82,7 @@ export const CustomerProfileTab = ({ customer }: CustomerProfileTabProps) => {
                   }`}
                 >
                   <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${customer.isActive ? 'bg-green-600' : 'bg-red-600'}`}></span>
-                  {customer.isActive ? "Active" : "Inactive"}
+                  {customer.isActive ? "Activo" : "Inactivo"}
                 </span>
               </div>
             </div>
@@ -95,32 +95,32 @@ export const CustomerProfileTab = ({ customer }: CustomerProfileTabProps) => {
             <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
-            Wallet Balance
+            Saldo de la Billetera
           </h3>
           <div>
             <p className="text-3xl font-bold">
               ${(customer.wallet?.balance ?? 0).toFixed(2)}
             </p>
-            <p className="text-xs opacity-75 mt-1">Available Balance</p>
+            <p className="text-xs opacity-75 mt-1">Saldo Disponible</p>
           </div>
         </div>
       </div>
 
       {/* Additional Stats */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Estadísticas Rápidas</h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
             <p className="text-2xl font-bold text-indigo-600">-</p>
-            <p className="text-xs text-gray-500 mt-1">Total Orders</p>
+            <p className="text-xs text-gray-500 mt-1">Pedidos Totales</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-indigo-600">-</p>
-            <p className="text-xs text-gray-500 mt-1">Total Spent</p>
+            <p className="text-xs text-gray-500 mt-1">Total Gastado</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-indigo-600">-</p>
-            <p className="text-xs text-gray-500 mt-1">Transactions</p>
+            <p className="text-xs text-gray-500 mt-1">Transacciones</p>
           </div>
         </div>
       </div>

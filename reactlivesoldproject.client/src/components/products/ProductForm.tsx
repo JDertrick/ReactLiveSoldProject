@@ -43,7 +43,7 @@ const ProductForm = ({
           htmlFor="name"
           className="block text-sm font-medium text-gray-700"
         >
-          Product Name
+          Nombre del Producto
         </label>
         <input
           type="text"
@@ -61,7 +61,7 @@ const ProductForm = ({
           htmlFor="description"
           className="block text-sm font-medium text-gray-700"
         >
-          Description
+          Descripción
         </label>
         <textarea
           name="description"
@@ -78,7 +78,7 @@ const ProductForm = ({
           htmlFor="basePrice"
           className="block text-sm font-medium text-gray-700"
         >
-          Base Price
+          Precio Base
         </label>
         <input
           type="number"
@@ -98,7 +98,7 @@ const ProductForm = ({
           htmlFor="imageUrl"
           className="block text-sm font-medium text-gray-700"
         >
-          Image URL
+          URL de la Imagen
         </label>
         <input
           type="url"
@@ -116,7 +116,7 @@ const ProductForm = ({
           htmlFor="categoryId"
           className="block text-sm font-medium text-gray-700"
         >
-          Category
+          Categoría
         </label>
         <select
           name="categoryId"
@@ -126,7 +126,7 @@ const ProductForm = ({
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
           disabled={isLoadingCategories}
         >
-          <option value="">-- Select Category --</option>
+          <option value="">-- Seleccione una Categoría --</option>
           {categories && renderCategoryOptions(categories)}
         </select>
       </div>
@@ -144,7 +144,7 @@ const ProductForm = ({
           htmlFor="isPublished"
           className="ml-2 block text-sm text-gray-900"
         >
-          Published (visible to customers)
+          Publicado (visible para los clientes)
         </label>
       </div>
 
@@ -152,7 +152,7 @@ const ProductForm = ({
       {tags && tags.length > 0 && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tags
+            Etiquetas
           </label>
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (

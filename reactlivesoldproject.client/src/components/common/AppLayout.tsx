@@ -89,7 +89,7 @@ const AppLayout = () => {
       ),
     },
     {
-      name: "Organizations",
+      name: "Organizaciones",
       path: "/superadmin/organizations",
       icon: (
         <svg
@@ -491,7 +491,7 @@ const AppLayout = () => {
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
                     </svg>
-                    Logout
+                    Cerrar Sesión
                   </button>
                 </div>
               ) : (
@@ -508,7 +508,7 @@ const AppLayout = () => {
                     e.currentTarget.style.backgroundColor = "transparent";
                     e.currentTarget.style.opacity = "1";
                   }}
-                  title="Logout"
+                  title="Cerrar Sesión"
                 >
                   <svg
                     className="w-5 h-5"
@@ -560,7 +560,7 @@ const AppLayout = () => {
 
             <h2 className="text-xl font-bold text-gray-900 md:block hidden">
               {navigation.find((item) => isActive(item.path))?.name ||
-                "LiveSold Platform"}
+                "Plataforma LiveSold"}
             </h2>
             <h2 className="text-lg font-bold text-gray-900 md:hidden">
               {navigation.find((item) => isActive(item.path))?.name ||

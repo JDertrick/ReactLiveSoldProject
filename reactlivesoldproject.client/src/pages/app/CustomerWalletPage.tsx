@@ -10,7 +10,7 @@ const CustomerWalletPage = () => {
 
   if (!customerId) {
     return (
-      <div className="text-center text-red-500">Customer ID is missing.</div>
+      <div className="text-center text-red-500">Falta el ID del cliente.</div>
     );
   }
 
@@ -25,19 +25,19 @@ const CustomerWalletPage = () => {
   if (error) {
     return (
       <div className="text-center text-red-500">
-        Error loading customer data.
+        Error al cargar los datos del cliente.
       </div>
     );
   }
 
   if (!customer) {
-    return <div className="text-center text-gray-500">Customer not found.</div>;
+    return <div className="text-center text-gray-500">Cliente no encontrado.</div>;
   }
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">
-        Wallet for {customer.firstName} {customer.lastName}
+        Billetera de {customer.firstName} {customer.lastName}
       </h1>
       <CustomerWalletTab customer={customer} />
     </div>

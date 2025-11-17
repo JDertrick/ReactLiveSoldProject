@@ -161,7 +161,7 @@ const CustomersPage = () => {
       header: "Estado",
       cell: (info) => (
         <Badge variant={info.getValue() ? "default" : "destructive"}>
-          {info.getValue() ? "Active" : "Inactive"}
+          {info.getValue() ? "Activo" : "Inactivo"}
         </Badge>
       ),
     }),
@@ -295,7 +295,7 @@ const CustomersPage = () => {
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No customers found. Add your first customer to get started.
+                    No se encontraron clientes. Agrega tu primer cliente para comenzar.
                   </TableCell>
                 </TableRow>
               )}
@@ -326,17 +326,17 @@ const CustomersPage = () => {
                   <Badge
                     variant={customer.isActive ? "default" : "destructive"}
                   >
-                    {customer.isActive ? "Active" : "Inactive"}
+                    {customer.isActive ? "Activo" : "Inactivo"}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-sm border-t pt-3">
                   <div>
-                    <div className="text-muted-foreground">Phone</div>
+                    <div className="text-muted-foreground">Teléfono</div>
                     <div className="font-medium">{customer.phone}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Wallet</div>
+                    <div className="text-muted-foreground">Billetera</div>
                     <div className="font-medium">
                       ${(customer.wallet?.balance ?? 0).toFixed(2)}
                     </div>
@@ -349,14 +349,14 @@ const CustomersPage = () => {
                     size="sm"
                     onClick={() => handleOpenDetailModal(customer)}
                   >
-                    View
+                    Ver
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleOpenModal(customer)}
                   >
-                    Edit
+                    Editar
                   </Button>
                   <Button
                     variant="outline"
@@ -366,7 +366,7 @@ const CustomersPage = () => {
                     }
                     className="text-green-600 hover:text-green-700"
                   >
-                    Wallet
+                    Billetera
                   </Button>
                 </div>
               </div>
@@ -375,7 +375,7 @@ const CustomersPage = () => {
         ) : (
           <div className="bg-white border rounded-lg p-8 text-center">
             <p className="text-muted-foreground">
-              No customers found. Add your first customer to get started.
+              No se encontraron clientes. Agrega tu primer cliente para comenzar.
             </p>
           </div>
         )}
@@ -404,7 +404,7 @@ const CustomersPage = () => {
                     as="h3"
                     className="text-lg leading-6 font-medium text-gray-900"
                   >
-                    {editingCustomer ? "Edit Customer" : "Create Customer"}
+                    {editingCustomer ? "Editar Cliente" : "Crear Cliente"}
                   </DialogTitle>
                   <div className="mt-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -413,7 +413,7 @@ const CustomersPage = () => {
                           htmlFor="firstName"
                           className="block text-sm font-medium text-gray-700"
                         >
-                          First Name
+                          Nombre
                         </label>
                         <input
                           type="text"
@@ -431,7 +431,7 @@ const CustomersPage = () => {
                           htmlFor="lastName"
                           className="block text-sm font-medium text-gray-700"
                         >
-                          Last Name
+                          Apellido
                         </label>
                         <input
                           type="text"
@@ -450,7 +450,7 @@ const CustomersPage = () => {
                         htmlFor="email"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Email
+                        Correo Electrónico
                       </label>
                       <input
                         type="email"
@@ -468,7 +468,7 @@ const CustomersPage = () => {
                         htmlFor="phoneNumber"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Phone Number
+                        Número de Teléfono
                       </label>
                       <input
                         type="tel"
@@ -487,7 +487,7 @@ const CustomersPage = () => {
                           htmlFor="password"
                           className="block text-sm font-medium text-gray-700"
                         >
-                          Password
+                          Contraseña
                         </label>
                         <input
                           type="password"
@@ -514,7 +514,7 @@ const CustomersPage = () => {
                         htmlFor="isActive"
                         className="ml-2 block text-sm text-gray-900"
                       >
-                        Active
+                        Activo
                       </label>
                     </div>
                   </div>
@@ -529,15 +529,15 @@ const CustomersPage = () => {
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                   >
                     {createCustomer.isPending || updateCustomer.isPending
-                      ? "Saving..."
-                      : "Save"}
+                      ? "Guardando..."
+                      : "Guardar"}
                   </button>
                   <button
                     type="button"
                     onClick={handleCloseModal}
                     className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
                   >
-                    Cancel
+                    Cancelar
                   </button>
                 </div>
               </form>
@@ -603,7 +603,7 @@ const CustomersPage = () => {
                           : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                       } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                     >
-                      Profile
+                      Perfil
                     </button>
                     <button
                       data-tab="orders"
@@ -614,7 +614,7 @@ const CustomersPage = () => {
                           : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                       } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                     >
-                      Orders
+                      Pedidos
                     </button>
                   </nav>
                 </div>

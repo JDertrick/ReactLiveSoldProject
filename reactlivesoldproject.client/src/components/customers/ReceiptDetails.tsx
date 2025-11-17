@@ -46,7 +46,7 @@ export const ReceiptDetails = ({
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900 flex justify-between items-center"
                 >
-                  Receipt Details
+                  Detalles del Recibo
                   <Button variant="ghost" size="icon" onClick={onClose}>
                     <X className="h-5 w-5" />
                   </Button>
@@ -55,26 +55,26 @@ export const ReceiptDetails = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Customer
+                        Cliente
                       </p>
                       <p className="text-base text-gray-900">
                         {receipt.customerName}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Type</p>
+                      <p className="text-sm font-medium text-gray-500">Tipo</p>
                       <p className="text-base text-gray-900">{receipt.type}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Created By
+                        Creado por
                       </p>
                       <p className="text-base text-gray-900">
                         {receipt.createdByUserName}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Date</p>
+                      <p className="text-sm font-medium text-gray-500">Fecha</p>
                       <p className="text-base text-gray-900">
                         {new Date(receipt.createdAt).toLocaleString()}
                       </p>
@@ -83,14 +83,14 @@ export const ReceiptDetails = ({
 
                   {receipt.notes && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Notes</p>
+                      <p className="text-sm font-medium text-gray-500">Notas</p>
                       <p className="text-base text-gray-900">{receipt.notes}</p>
                     </div>
                   )}
 
                   <div className="border-t pt-4">
                     <h4 className="text-md font-medium text-gray-900 mb-2">
-                      Items
+                      Artículos
                     </h4>
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
@@ -100,13 +100,13 @@ export const ReceiptDetails = ({
                               scope="col"
                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                             >
-                              Description
+                              Descripción
                             </th>
                             <th
                               scope="col"
                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                             >
-                              Unit Price
+                              Precio Unitario
                             </th>
                             <th
                               scope="col"
@@ -136,7 +136,7 @@ export const ReceiptDetails = ({
                   </div>
 
                   <div className="flex justify-end items-center pt-4 border-t">
-                    <span className="text-lg font-semibold">Total Amount:</span>
+                    <span className="text-lg font-semibold">Monto Total:</span>
                     <span className="text-2xl font-bold ml-2 flex items-center">
                       <DollarSign className="h-6 w-6 mr-1" />
                       {receipt.totalAmount.toFixed(2)}
@@ -146,7 +146,7 @@ export const ReceiptDetails = ({
 
                 <div className="mt-5 flex justify-end">
                   <Button type="button" onClick={onClose}>
-                    Close
+                    Cerrar
                   </Button>
                 </div>
               </Dialog.Panel>

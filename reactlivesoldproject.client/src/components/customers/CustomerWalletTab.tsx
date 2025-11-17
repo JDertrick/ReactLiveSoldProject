@@ -49,7 +49,7 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
           <div className="flex items-start justify-between mb-6">
             <div>
               <p className="text-sm opacity-80 font-medium uppercase tracking-wide">
-                Wallet Balance
+                Saldo de la Billetera
               </p>
               <p className="text-5xl font-bold mt-2 tracking-tight">
                 ${currentBalance.toFixed(2)}
@@ -117,7 +117,7 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
         </button>
         <button
           className="inline-flex items-center justify-center rounded-xl border-2 border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-          title="Export receipts"
+          title="Exportar recibos"
         >
           <svg
             className="w-5 h-5"
@@ -152,11 +152,11 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            Receipt History
+            Historial de Recibos
           </h3>
           {receiptCount > 0 && (
             <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700">
-              {receiptCount} {receiptCount === 1 ? "receipt" : "receipts"}
+              {receiptCount} {receiptCount === 1 ? "recibo" : "recibos"}
             </span>
           )}
         </div>

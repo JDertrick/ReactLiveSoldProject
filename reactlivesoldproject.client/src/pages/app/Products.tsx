@@ -214,14 +214,14 @@ const ProductsPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Variants</TableHead>
-                  <TableHead className="text-right">Base Price</TableHead>
-                  <TableHead className="text-right">Total Stock</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Producto</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Variantes</TableHead>
+                  <TableHead className="text-right">Precio Base</TableHead>
+                  <TableHead className="text-right">Stock Total</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Etiquetas</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -318,7 +318,7 @@ const ProductsPage = () => {
                               ))
                             ) : (
                               <span className="text-sm text-gray-500">
-                                No variants
+                                Sin variantes
                               </span>
                             )}
                           </div>
@@ -343,7 +343,7 @@ const ProductsPage = () => {
                               product.isPublished ? "default" : "secondary"
                             }
                           >
-                            {product.isPublished ? "Published" : "Draft"}
+                            {product.isPublished ? "Publicado" : "Borrador"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -369,7 +369,7 @@ const ProductsPage = () => {
                             size="sm"
                             onClick={() => handleOpenModal(product)}
                           >
-                            Edit
+                            Editar
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -381,7 +381,7 @@ const ProductsPage = () => {
                       colSpan={8}
                       className="text-center py-8 text-gray-500"
                     >
-                      No products found. Add your first product to get started.
+                      No se encontraron productos. Agrega tu primer producto para comenzar.
                     </TableCell>
                   </TableRow>
                 )}
@@ -430,20 +430,20 @@ const ProductsPage = () => {
                       <Badge
                         variant={product.isPublished ? "default" : "secondary"}
                       >
-                        {product.isPublished ? "Published" : "Draft"}
+                        {product.isPublished ? "Publicado" : "Borrador"}
                       </Badge>
                     </div>
 
                     {/* Price and Stock */}
                     <div className="grid grid-cols-2 gap-3 text-sm border-t pt-3">
                       <div>
-                        <div className="text-muted-foreground">Base Price</div>
+                        <div className="text-muted-foreground">Precio Base</div>
                         <div className="font-semibold">
                           ${(product.basePrice || 0).toFixed(2)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-muted-foreground">Total Stock</div>
+                        <div className="text-muted-foreground">Stock Total</div>
                         <div
                           className={`font-semibold ${
                             totalStock < 10 ? "text-red-600" : "text-green-600"
@@ -457,7 +457,7 @@ const ProductsPage = () => {
                     {/* Variants */}
                     {product.variants && product.variants.length > 0 && (
                       <div className="border-t pt-3">
-                        <div className="text-sm font-medium mb-2">Variants</div>
+                        <div className="text-sm font-medium mb-2">Variantes</div>
                         <div className="space-y-2">
                           {product.variants.map((variant) => (
                             <div
@@ -479,13 +479,13 @@ const ProductsPage = () => {
                                   </span>
                                 </div>
                                 <div>
-                                  <span className="text-gray-600">Price: </span>
+                                  <span className="text-gray-600">Precio: </span>
                                   <span className="font-bold">
                                     ${variant.price.toFixed(2)}
                                   </span>
                                 </div>
                                 <div>
-                                  <span className="text-gray-600">Cost: </span>
+                                  <span className="text-gray-600">Costo: </span>
                                   <span className="font-bold">
                                     ${variant.averageCost.toFixed(2)}
                                   </span>
@@ -522,7 +522,7 @@ const ProductsPage = () => {
                         className="w-full"
                         onClick={() => handleOpenModal(product)}
                       >
-                        Edit Product
+                        Editar Producto
                       </Button>
                     </div>
                   </div>
@@ -530,7 +530,7 @@ const ProductsPage = () => {
               })
             ) : (
               <div className="text-center py-8 text-gray-500 border rounded-lg">
-                No products found. Add your first product to get started.
+                No se encontraron productos. Agrega tu primer producto para comenzar.
               </div>
             )}
           </div>
@@ -560,7 +560,7 @@ const ProductsPage = () => {
       {/* Variant Management Modal */}
       <VariantModal
         isOpen={isVariantModalOpen}
-        productName={editingProduct?.name || "New Product"}
+        productName={editingProduct?.name || "Nuevo Producto"}
         variants={variants}
         onClose={handleCloseVariantModal}
         onSaveVariants={handleVariantsChange}

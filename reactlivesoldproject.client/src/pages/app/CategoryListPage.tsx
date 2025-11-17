@@ -94,14 +94,14 @@ const CategoryListPage = () => {
           id: editingCategory.id,
           data: { ...formData, id: editingCategory.id },
         });
-        toast.success("Category updated successfully!");
+        toast.success("¡Categoría actualizada con éxito!");
       } else {
         await createCategory(formData);
-        toast.success("Category created successfully!");
+        toast.success("¡Categoría creada con éxito!");
       }
       handleCloseModal();
     } catch (err) {
-      toast.error("Failed to save category.");
+      toast.error("Error al guardar la categoría.");
       console.error("Error saving category:", err);
     }
   };
@@ -109,14 +109,14 @@ const CategoryListPage = () => {
   const handleDelete = async (id: string) => {
     try {
       await deleteCategory(id);
-      toast.success("Category deleted successfully!");
+      toast.success("¡Categoría eliminada con éxito!");
     } catch (err) {
-      toast.error("Failed to delete category.");
+      toast.error("Error al eliminar la categoría.");
       console.error("Error deleting category:", err);
     }
   };
 
-  if (isLoading) return <div>Loading categories...</div>;
+  if (isLoading) return <div>Cargando categorías...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   const renderCategories = (cats: Category[], depth = 0) => {
@@ -133,26 +133,26 @@ const CategoryListPage = () => {
               size="sm"
               onClick={() => handleOpenModal(category)}
             >
-              Edit
+              Editar
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm">
-                  Delete
+                  Eliminar
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    the category and remove its data from our servers.
+                    Esta acción no se puede deshacer. Esto eliminará permanentemente
+                    la categoría y eliminará sus datos de nuestros servidores.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction onClick={() => handleDelete(category.id)}>
-                    Continue
+                    Continuar
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -197,9 +197,9 @@ const CategoryListPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="w-[150px]">Actions</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead className="w-[150px]">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -208,7 +208,7 @@ const CategoryListPage = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center">
-                    No categories found.
+                    No se encontraron categorías.
                   </TableCell>
                 </TableRow>
               )}
@@ -238,7 +238,7 @@ const CategoryListPage = () => {
                     as="h3"
                     className="text-lg leading-6 font-medium text-gray-900"
                   >
-                    {editingCategory ? "Edit Category" : "Create Category"}
+                    {editingCategory ? "Editar Categoría" : "Crear Categoría"}
                   </DialogTitle>
                   <div className="mt-6 space-y-4">
                     <div>
@@ -246,7 +246,7 @@ const CategoryListPage = () => {
                         htmlFor="name"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Name
+                        Nombre
                       </label>
                       <input
                         type="text"
@@ -263,7 +263,7 @@ const CategoryListPage = () => {
                         htmlFor="description"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Description
+                        Descripción
                       </label>
                       <textarea
                         name="description"
@@ -280,14 +280,14 @@ const CategoryListPage = () => {
                     type="submit"
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
                   >
-                    Save
+                    Guardar
                   </button>
                   <button
                     type="button"
                     onClick={handleCloseModal}
                     className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
                   >
-                    Cancel
+                    Cancelar
                   </button>
                 </div>
               </form>

@@ -49,11 +49,11 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
 
     try {
       await postReceiptMutation.mutateAsync(selectedReceipt.id);
-      toast.success("Receipt posted successfully!");
+      toast.success("¡Recibo posteado con éxito!");
       setIsConfirmPostOpen(false);
       setSelectedReceipt(null);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Failed to post receipt.";
+      const errorMessage = error.response?.data?.message || "Error al postear el recibo.";
       toast.error(errorMessage);
       console.error("Error posting receipt:", error);
     }
@@ -64,11 +64,11 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
 
     try {
       await rejectReceiptMutation.mutateAsync(selectedReceipt.id);
-      toast.success("Receipt rejected successfully!");
+      toast.success("¡Recibo rechazado con éxito!");
       setIsConfirmRejectOpen(false);
       setSelectedReceipt(null);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Failed to reject receipt.";
+      const errorMessage = error.response?.data?.message || "Error al rechazar el recibo.";
       toast.error(errorMessage);
       console.error("Error rejecting receipt:", error);
     }
@@ -85,7 +85,7 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
   if (!receipts || receipts.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        No receipts found for this customer.
+        No se encontraron recibos para este cliente.
       </div>
     );
   }
@@ -104,15 +104,15 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
                     </p>
                     {receipt.isPosted ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <CheckCircle className="h-3 w-3 mr-1" /> Posted
+                        <CheckCircle className="h-3 w-3 mr-1" /> Posteado
                       </span>
                     ) : receipt.isRejected ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <XCircle className="h-3 w-3 mr-1" /> Rejected
+                        <XCircle className="h-3 w-3 mr-1" /> Rechazado
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Draft
+                        Borrador
                       </span>
                     )}
                   </div>
@@ -127,33 +127,33 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
                 <div className="mt-2 sm:flex justify-between">
                   <div className="sm:flex flex-col">
                     <p className="flex items-center text-sm text-gray-500">
-                      {receipt.notes || 'No notes'}
+                      {receipt.notes || 'Sin notas'}
                     </p>
                     {receipt.isPosted && (
                       <p className="text-xs text-gray-400">
-                        Posted by {receipt.postedByUserName} on {new Date(receipt.postedAt!).toLocaleDateString()}
+                        Posteado por {receipt.postedByUserName} el {new Date(receipt.postedAt!).toLocaleDateString()}
                       </p>
                     )}
                     {receipt.isRejected && (
                       <p className="text-xs text-gray-400">
-                        Rejected by {receipt.rejectedByUserName} on {new Date(receipt.rejectedAt!).toLocaleDateString()}
+                        Rechazado por {receipt.rejectedByUserName} el {new Date(receipt.rejectedAt!).toLocaleDateString()}
                       </p>
                     )}
                   </div>
                   <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
                     <p>
-                      Created on <time dateTime={receipt.createdAt}>{new Date(receipt.createdAt).toLocaleDateString()}</time>
+                      Creado el <time dateTime={receipt.createdAt}>{new Date(receipt.createdAt).toLocaleDateString()}</time>
                     </p>
                     <Button variant="ghost" size="sm" className="ml-2" onClick={() => handleViewDetails(receipt)}>
-                      <Eye className="h-4 w-4 mr-1" /> View Details
+                      <Eye className="h-4 w-4 mr-1" /> Ver Detalles
                     </Button>
                     {!receipt.isPosted && !receipt.isRejected && (
                       <>
                         <Button variant="ghost" size="sm" className="ml-2 text-blue-600" onClick={() => handlePostClick(receipt)}>
-                          <Send className="h-4 w-4 mr-1" /> Post
+                          <Send className="h-4 w-4 mr-1" /> Postear
                         </Button>
                         <Button variant="ghost" size="sm" className="ml-2 text-red-600" onClick={() => handleRejectClick(receipt)}>
-                          <XCircle className="h-4 w-4 mr-1" /> Reject
+                          <XCircle className="h-4 w-4 mr-1" /> Rechazar
                         </Button>
                       </>
                     )}
@@ -176,15 +176,15 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
       <AlertDialog open={isConfirmPostOpen} onOpenChange={setIsConfirmPostOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to post this receipt?</AlertDialogTitle>
+            <AlertDialogTitle>¿Estás seguro de que quieres postear este recibo?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will permanently affect the customer's wallet balance and cannot be undone.
+              Esta acción afectará permanentemente el saldo de la billetera del cliente y no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPost} disabled={postReceiptMutation.isPending}>
-              {postReceiptMutation.isPending ? "Posting..." : "Post Receipt"}
+              {postReceiptMutation.isPending ? "Posteando..." : "Postear Recibo"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -193,15 +193,15 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
       <AlertDialog open={isConfirmRejectOpen} onOpenChange={setIsConfirmRejectOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to reject this receipt?</AlertDialogTitle>
+            <AlertDialogTitle>¿Estás seguro de que quieres rechazar este recibo?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will mark the receipt as rejected and it cannot be posted. This cannot be undone.
+              Esta acción marcará el recibo como rechazado y no se podrá postear. Esto no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmReject} disabled={rejectReceiptMutation.isPending}>
-              {rejectReceiptMutation.isPending ? "Rejecting..." : "Reject Receipt"}
+              {rejectReceiptMutation.isPending ? "Rechazando..." : "Rechazar Recibo"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

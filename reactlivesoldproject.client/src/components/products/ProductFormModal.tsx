@@ -158,7 +158,7 @@ const ProductFormModal = ({
                   as="h3"
                   className="text-lg leading-6 font-medium text-gray-900 mb-4"
                 >
-                  {editingProduct ? "Edit Product" : "Create Product"}
+                  {editingProduct ? "Editar Producto" : "Crear Producto"}
                 </DialogTitle>
 
                 <div className="space-y-6">
@@ -175,14 +175,14 @@ const ProductFormModal = ({
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-medium text-gray-700">
-                          Product Variants
+                          Variantes de Producto
                         </h4>
                         <p className="text-sm text-gray-500 mt-1">
                           {variants.length > 0
-                            ? `${variants.length} variant${
+                            ? `${variants.length} variante${
                                 variants.length !== 1 ? "s" : ""
-                              } configured`
-                            : "No variants configured yet"}
+                              } configurada${variants.length !== 1 ? "s" : ""}`
+                            : "Aún no hay variantes configuradas"}
                         </p>
                       </div>
                       <button
@@ -203,7 +203,7 @@ const ProductFormModal = ({
                             d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                           />
                         </svg>
-                        Manage Variants
+                        Gestionar Variantes
                       </button>
                     </div>
 
@@ -219,7 +219,7 @@ const ProductFormModal = ({
                               {variant.sku}
                             </p>
                             <p className="text-gray-500">
-                              {variant.size && `Size: ${variant.size}`}
+                              {variant.size && `Talla: ${variant.size}`}
                               {variant.size && variant.color && " • "}
                               {variant.color && `Color: ${variant.color}`}
                             </p>
@@ -230,7 +230,7 @@ const ProductFormModal = ({
                         ))}
                         {variants.length > 4 && (
                           <div className="text-xs bg-gray-50 rounded p-2 border border-gray-200 flex items-center justify-center text-gray-500">
-                            +{variants.length - 4} more
+                            +{variants.length - 4} más
                           </div>
                         )}
                       </div>
@@ -245,14 +245,14 @@ const ProductFormModal = ({
                   disabled={isLoading}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                 >
-                  {isLoading ? "Saving..." : "Save Product"}
+                  {isLoading ? "Guardando..." : "Guardar Producto"}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
                 >
-                  Cancel
+                  Cancelar
                 </button>
               </div>
             </form>

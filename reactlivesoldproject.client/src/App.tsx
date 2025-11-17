@@ -16,14 +16,14 @@ function App() {
     }, []);
 
     const contents = forecasts === undefined
-        ? <p><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationreact">https://aka.ms/jspsintegrationreact</a> for more details.</em></p>
+        ? <p><em>Cargando... Por favor, actualice una vez que el backend de ASP.NET se haya iniciado. Consulte <a href="https://aka.ms/jspsintegrationreact">https://aka.ms/jspsintegrationreact</a> para obtener más detalles.</em></p>
         : <table className="table table-striped" aria-labelledby="tableLabel">
             <thead>
                 <tr>
-                    <th>Date</th>
+                    <th>Fecha</th>
                     <th>Temp. (C)</th>
                     <th>Temp. (F)</th>
-                    <th>Summary</th>
+                    <th>Resumen</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,8 +40,8 @@ function App() {
 
     return (
         <div>
-            <h1 id="tableLabel">Weather forecast</h1>
-            <p>This component demonstrates fetching data from the server.</p>
+            <h1 id="tableLabel">Pronóstico del tiempo</h1>
+            <p>Este componente demuestra la obtención de datos del servidor.</p>
             {contents}
         </div>
     );

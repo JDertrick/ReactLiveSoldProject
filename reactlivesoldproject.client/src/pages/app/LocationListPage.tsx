@@ -89,14 +89,14 @@ const LocationListPage = () => {
           id: editingLocation.id,
           data: { ...formData, id: editingLocation.id },
         });
-        toast.success("Location updated successfully!");
+        toast.success("¡Ubicación actualizada con éxito!");
       } else {
         await createLocation(formData);
-        toast.success("Location created successfully!");
+        toast.success("¡Ubicación creada con éxito!");
       }
       handleCloseModal();
     } catch (err) {
-      toast.error("Failed to save location.");
+      toast.error("Error al guardar la ubicación.");
       console.error("Error saving location:", err);
     }
   };
@@ -104,14 +104,14 @@ const LocationListPage = () => {
   const handleDelete = async (id: string) => {
     try {
       await deleteLocation(id);
-      toast.success("Location deleted successfully!");
+      toast.success("¡Ubicación eliminada con éxito!");
     } catch (err) {
-      toast.error("Failed to delete location.");
+      toast.error("Error al eliminar la ubicación.");
       console.error("Error deleting location:", err);
     }
   };
 
-  if (isLoading) return <div>Loading locations...</div>;
+  if (isLoading) return <div>Cargando ubicaciones...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
@@ -133,9 +133,9 @@ const LocationListPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="w-[150px]">Actions</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead className="w-[150px]">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -153,31 +153,29 @@ const LocationListPage = () => {
                           size="sm"
                           onClick={() => handleOpenModal(location)}
                         >
-                          Edit
+                          Editar
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="destructive" size="sm">
-                              Delete
+                              Eliminar
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>
-                                Are you absolutely sure?
+                                ¿Estás completamente seguro?
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone. This will
-                                permanently delete the location and remove its
-                                data from our servers.
+                                Esta acción no se puede deshacer. Esto eliminará permanentemente la ubicación y eliminará sus datos de nuestros servidores.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDelete(location.id)}
                               >
-                                Continue
+                                Continuar
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -189,7 +187,7 @@ const LocationListPage = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center">
-                    No locations found.
+                    No se encontraron ubicaciones.
                   </TableCell>
                 </TableRow>
               )}
@@ -219,7 +217,7 @@ const LocationListPage = () => {
                     as="h3"
                     className="text-lg leading-6 font-medium text-gray-900"
                   >
-                    {editingLocation ? "Edit Location" : "Create Location"}
+                    {editingLocation ? "Editar Ubicación" : "Crear Ubicación"}
                   </DialogTitle>
                   <div className="mt-6 space-y-4">
                     <div>
@@ -227,7 +225,7 @@ const LocationListPage = () => {
                         htmlFor="name"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Name
+                        Nombre
                       </label>
                       <input
                         type="text"
@@ -244,7 +242,7 @@ const LocationListPage = () => {
                         htmlFor="description"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Description
+                        Descripción
                       </label>
                       <textarea
                         name="description"
@@ -261,14 +259,14 @@ const LocationListPage = () => {
                     type="submit"
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
                   >
-                    Save
+                    Guardar
                   </button>
                   <button
                     type="button"
                     onClick={handleCloseModal}
                     className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
                   >
-                    Cancel
+                    Cancelar
                   </button>
                 </div>
               </form>
