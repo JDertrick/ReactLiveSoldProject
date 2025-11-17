@@ -32,7 +32,6 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.TagLinks.Select(pt => pt.Tag)))
                 .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
-
             CreateMap<CreateProductDto, Product>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
@@ -40,6 +39,14 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.TagLinks, opt => opt.Ignore())
                 .ForMember(dest => dest.Variants, opt => opt.Ignore());
+            CreateMap<Product, UpdateProductDto>();
+            CreateMap<UpdateProductDto, Product>()
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.TagLinks, opt => opt.Ignore())
+                .ForMember(dest => dest.Variants, opt => opt.Ignore());
+
 
             // ProductVariant Mappings
             CreateMap<ProductVariant, ProductVariantDto>();

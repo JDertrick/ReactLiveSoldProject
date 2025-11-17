@@ -46,6 +46,7 @@ const ProductFormModal = ({
       imageUrl: "",
       isPublished: true,
       productType: "",
+      categoryId: "",
       variants: [],
       tagIds: [],
     }
@@ -60,6 +61,7 @@ const ProductFormModal = ({
         basePrice: editingProduct.basePrice,
         imageUrl: editingProduct.imageUrl || "",
         isPublished: editingProduct.isPublished,
+        categoryId: editingProduct.categoryId || "",
         // No necesitamos las variantes aquí, se manejan por separado
         variants: [],
         tagIds: editingProduct.tags?.map((t) => t.id) || [],
@@ -73,6 +75,7 @@ const ProductFormModal = ({
         imageUrl: "",
         isPublished: true,
         productType: "",
+        categoryId: "",
         variants: [],
         tagIds: [],
       });
@@ -105,7 +108,9 @@ const ProductFormModal = ({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value, type } = e.target;
     setFormData({

@@ -22,21 +22,20 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
         public async Task<List<ProductDto>> GetProductsByOrganizationAsync(Guid organizationId, bool includeUnpublished = false)
         {
-            var query = _dbContext.Products
+            var products = await _dbContext.Products
                 .Include(p => p.Variants)
                 .Include(p => p.TagLinks)
                     .ThenInclude(pt => pt.Tag)
                 .Include(p => p.Category)
-                .Where(p => p.OrganizationId == organizationId);
-
-            if (!includeUnpublished)
-                query = query.Where(p => p.IsPublished);
-
-            var products = await query
-                .OrderByDescending(p => p.CreatedAt)
+                .Where(p => p.OrganizationId == organizationId)
+                .OrderBy(p => p.Name)
+                .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return _mapper.Map<List<ProductDto>>(products);
+            // if (!includeUnpublished)
+            //     query = query.Where(p => p.IsPublished);
+
+            return products;
         }
 
         public async Task<ProductDto?> GetProductByIdAsync(Guid productId, Guid organizationId)
@@ -46,9 +45,11 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Include(p => p.TagLinks)
                     .ThenInclude(pt => pt.Tag)
                 .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == productId && p.OrganizationId == organizationId);
+                .Where(p => p.Id == productId && p.OrganizationId == organizationId)
+                .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
 
-            return product != null ? _mapper.Map<ProductDto>(product) : null;
+            return product ?? new();
         }
 
         public async Task<List<ProductDto>> SearchProductsAsync(Guid organizationId, string searchTerm)
@@ -97,7 +98,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 var variants = await _dbContext.Products.Where(p => p.OrganizationId == organizationId)
                     .SelectMany(pv => pv.Variants)
                     .ProjectTo<ProductVariantDto>(_mapper.ConfigurationProvider).ToListAsync();
-                
+
                 // pasa los skus a un array[string]
                 var skusArray = variants.Select(v => v.Sku).ToHashSet();
 
@@ -108,7 +109,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
                 // Crear el producto
                 var productId = Guid.NewGuid();
-                
+
                 var product = _mapper.Map<Product>(dto);
                 product.Id = productId;
                 product.OrganizationId = organizationId;
@@ -160,7 +161,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 throw ex;
             }
-            
+
         }
 
         public async Task<ProductDto> UpdateProductAsync(Guid productId, Guid organizationId, UpdateProductDto dto)
@@ -194,13 +195,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 }
 
                 // Actualizar campos
-                product.Name = dto.Name;
-                product.Description = dto.Description;
-                product.ProductType = productType;
-                product.BasePrice = dto.BasePrice;
-                product.ImageUrl = dto.ImageUrl;
-                product.IsPublished = dto.IsPublished;
-                product.CategoryId = dto.CategoryId;
+                _mapper.Map(dto, product);
                 product.UpdatedAt = DateTime.UtcNow;
 
                 // Actualizar tags (eliminar existentes y agregar nuevos)
@@ -252,7 +247,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
                     if (variantsToDelete.Any())
                     {
-                        foreach(var variantToDelete in variantsToDelete)
+                        foreach (var variantToDelete in variantsToDelete)
                         {
                             var hasOrderItem = await _dbContext.ProductVariants
                                 .Where(pv => pv.Id == variantToDelete.Id)
@@ -312,7 +307,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
 
                 throw ex;
-            }            
+            }
         }
 
         public async Task DeleteProductAsync(Guid productId, Guid organizationId)

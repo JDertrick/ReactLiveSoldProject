@@ -21,6 +21,7 @@ const ProductForm = ({
   onTagToggle,
 }: ProductFormProps) => {
   const { categories, isLoading: isLoadingCategories } = useCategories();
+  console.log(formData);
 
   const renderCategoryOptions = (categories: any[], depth = 0) => {
     return categories.map((category) => (
