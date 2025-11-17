@@ -85,7 +85,10 @@ const LocationListPage = () => {
     e.preventDefault();
     try {
       if (editingLocation) {
-        await updateLocation({ id: editingLocation.id, data: formData });
+        await updateLocation({
+          id: editingLocation.id,
+          data: { ...formData, id: editingLocation.id },
+        });
         toast.success("Location updated successfully!");
       } else {
         await createLocation(formData);

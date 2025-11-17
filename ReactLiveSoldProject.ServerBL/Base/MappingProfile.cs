@@ -69,6 +69,10 @@ namespace ReactLiveSoldProject.ServerBL.Base
             // Category Mappings
             CreateMap<Category, CategoryDto>();
             CreateMap<CategoryDto, Category>();
+            CreateMap<UpdateCategoryDto, Category>();
+            CreateMap<Category, UpdateCategoryDto>();
+            CreateMap<CreateCategoryDto, Category>();
+            CreateMap<Category, CreateCategoryDto>();
 
             // Customers
             CreateMap<CustomerDto, Customer>();
@@ -115,6 +119,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.IsRejected, opt => opt.Ignore())
                 .ForMember(dest => dest.RejectedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.RejectedByUserId, opt => opt.Ignore());
+
         }
     }
 }

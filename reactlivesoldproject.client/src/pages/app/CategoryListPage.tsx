@@ -90,7 +90,10 @@ const CategoryListPage = () => {
     e.preventDefault();
     try {
       if (editingCategory) {
-        await updateCategory({ id: editingCategory.id, data: formData });
+        await updateCategory({
+          id: editingCategory.id,
+          data: { ...formData, id: editingCategory.id },
+        });
         toast.success("Category updated successfully!");
       } else {
         await createCategory(formData);
