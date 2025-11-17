@@ -63,7 +63,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Package, DollarSign, Hash, TrendingUp, TrendingDown, Send, XCircle } from "lucide-react";
+import {
+  Check,
+  ChevronsUpDown,
+  Package,
+  DollarSign,
+  Hash,
+  TrendingUp,
+  TrendingDown,
+  Send,
+  XCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -90,7 +100,8 @@ const StockMovementsPage = () => {
   const rejectMovement = useRejectStockMovement();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedMovement, setSelectedMovement] = useState<StockMovementDto | null>(null);
+  const [selectedMovement, setSelectedMovement] =
+    useState<StockMovementDto | null>(null);
   const [isConfirmPostOpen, setIsConfirmPostOpen] = useState(false);
   const [isConfirmRejectOpen, setIsConfirmRejectOpen] = useState(false);
   const [openCombobox, setOpenCombobox] = useState(false);
@@ -110,16 +121,17 @@ const StockMovementsPage = () => {
   const productVariantOptions = useMemo(() => {
     if (!products) return [];
 
-    return products.flatMap((product) =>
-      product.variants?.map((variant) => ({
-        value: variant.id,
-        label: `${product.name} - ${variant.sku || "Sin SKU"}`,
-        productName: product.name,
-        sku: variant.sku || "Sin SKU",
-        stock: variant.stockQuantity,
-        price: variant.price,
-        averageCost: variant.averageCost,
-      })) || []
+    return products.flatMap(
+      (product) =>
+        product.variants?.map((variant) => ({
+          value: variant.id,
+          label: `${product.name} - ${variant.sku || "Sin SKU"}`,
+          productName: product.name,
+          sku: variant.sku || "Sin SKU",
+          stock: variant.stockQuantity,
+          price: variant.price,
+          averageCost: variant.averageCost,
+        })) || []
     );
   }, [products]);
 
@@ -133,9 +145,9 @@ const StockMovementsPage = () => {
 
     return {
       total: movements.length,
-      posted: movements.filter(m => m.isPosted).length,
-      draft: movements.filter(m => !m.isPosted && !m.isRejected).length,
-      rejected: movements.filter(m => m.isRejected).length,
+      posted: movements.filter((m) => m.isPosted).length,
+      draft: movements.filter((m) => !m.isPosted && !m.isRejected).length,
+      rejected: movements.filter((m) => m.isRejected).length,
     };
   }, [movements]);
 
@@ -172,7 +184,10 @@ const StockMovementsPage = () => {
     }
 
     // Validar que las compras tengan costo unitario
-    if (formData.movementType === StockMovementType.Purchase && !formData.unitCost) {
+    if (
+      formData.movementType === StockMovementType.Purchase &&
+      !formData.unitCost
+    ) {
       toast.error("Las compras deben incluir un costo unitario");
       return;
     }
@@ -180,7 +195,9 @@ const StockMovementsPage = () => {
     // Validar transferencias
     if (formData.movementType === StockMovementType.Transfer) {
       if (!formData.sourceLocationId || !formData.destinationLocationId) {
-        toast.error("Las transferencias requieren ubicación de origen y destino");
+        toast.error(
+          "Las transferencias requieren ubicación de origen y destino"
+        );
         return;
       }
       if (formData.sourceLocationId === formData.destinationLocationId) {
@@ -191,7 +208,9 @@ const StockMovementsPage = () => {
 
     try {
       await createMovement.mutateAsync(formData);
-      toast.success("Movimiento creado como borrador. Debe postearlo para que afecte el inventario.");
+      toast.success(
+        "Movimiento creado como borrador. Debe postearlo para que afecte el inventario."
+      );
       setIsAddModalOpen(false);
       setFormData({
         productVariantId: "",
@@ -204,7 +223,9 @@ const StockMovementsPage = () => {
         destinationLocationId: undefined,
       });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al registrar el movimiento");
+      toast.error(
+        error.response?.data?.message || "Error al registrar el movimiento"
+      );
     }
   };
 
@@ -225,7 +246,9 @@ const StockMovementsPage = () => {
       toast.success("Movimiento posteado correctamente.");
       setIsConfirmPostOpen(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al postear el movimiento");
+      toast.error(
+        error.response?.data?.message || "Error al postear el movimiento"
+      );
     }
   };
 
@@ -236,7 +259,9 @@ const StockMovementsPage = () => {
       toast.success("Movimiento rechazado correctamente.");
       setIsConfirmRejectOpen(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al rechazar el movimiento");
+      toast.error(
+        error.response?.data?.message || "Error al rechazar el movimiento"
+      );
     }
   };
 
@@ -245,7 +270,9 @@ const StockMovementsPage = () => {
       await unpostMovement.mutateAsync(movementId);
       toast.success("Movimiento desposteado correctamente.");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al despostear el movimiento");
+      toast.error(
+        error.response?.data?.message || "Error al despostear el movimiento"
+      );
     }
   };
 
@@ -262,12 +289,18 @@ const StockMovementsPage = () => {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Movimientos de Inventario</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight">
+            Movimientos de Inventario
+          </h1>
+          <p className="text-gray-500 mt-2 text-sm">
             Sistema de ledger con costo promedio ponderado y posteo
           </p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)} size="lg" className="gap-2">
+        <Button
+          onClick={() => setIsAddModalOpen(true)}
+          size="lg"
+          className="gap-2"
+        >
           <Package className="w-4 h-4" />
           Nuevo Movimiento
         </Button>
@@ -284,19 +317,25 @@ const StockMovementsPage = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Posteados</CardDescription>
-            <CardTitle className="text-3xl text-green-600">{stats.posted}</CardTitle>
+            <CardTitle className="text-3xl text-green-600">
+              {stats.posted}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Borradores</CardDescription>
-            <CardTitle className="text-3xl text-orange-600">{stats.draft}</CardTitle>
+            <CardTitle className="text-3xl text-orange-600">
+              {stats.draft}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Rechazados</CardDescription>
-            <CardTitle className="text-3xl text-red-600">{stats.rejected}</CardTitle>
+            <CardTitle className="text-3xl text-red-600">
+              {stats.rejected}
+            </CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -305,8 +344,10 @@ const StockMovementsPage = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-xl">Historial de Movimientos</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl">
+                Historial de Movimientos
+              </CardTitle>
+              <CardDescription className="text-sm text-gray-500">
                 Ledger completo de entradas y salidas de inventario
               </CardDescription>
             </div>
@@ -320,13 +361,16 @@ const StockMovementsPage = () => {
                 <Package className="w-5 h-5 text-blue-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-blue-900 mb-1">
+                <h3 className="font-semibold text-blue-900 mb-2">
                   Sistema de Posteo y Costo Promedio Ponderado
                 </h3>
                 <p className="text-sm text-blue-700">
-                  Los movimientos se crean como <strong>borradores</strong> y deben ser <strong>posteados</strong> para afectar el inventario.
-                  Al postear compras con costo, el sistema calcula automáticamente el <strong>costo promedio ponderado</strong> del producto.
-                  Solo puede despostear el último movimiento posteado de cada producto.
+                  Los movimientos se crean como <strong>borradores</strong> y
+                  deben ser <strong>posteados</strong> para afectar el
+                  inventario. Al postear compras con costo, el sistema calcula
+                  automáticamente el <strong>costo promedio ponderado</strong>{" "}
+                  del producto. Solo puede despostear el último movimiento
+                  posteado de cada producto.
                 </p>
               </div>
             </div>
@@ -336,7 +380,9 @@ const StockMovementsPage = () => {
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="flex gap-4 items-end">
               <div className="flex-1">
-                <Label htmlFor="fromDate" className="font-semibold">Desde</Label>
+                <Label htmlFor="fromDate" className="font-semibold">
+                  Desde
+                </Label>
                 <Input
                   id="fromDate"
                   type="date"
@@ -346,7 +392,9 @@ const StockMovementsPage = () => {
                 />
               </div>
               <div className="flex-1">
-                <Label htmlFor="toDate" className="font-semibold">Hasta</Label>
+                <Label htmlFor="toDate" className="font-semibold">
+                  Hasta
+                </Label>
                 <Input
                   id="toDate"
                   type="date"
@@ -459,7 +507,11 @@ const StockMovementsPage = () => {
                           : "-"}
                       </TableCell>
                       <TableCell className="text-sm text-gray-600">
-                        {movement.isPosted ? movement.postedByUserName : movement.isRejected ? movement.rejectedByUserName : movement.createdByUserName || "Sistema"}
+                        {movement.isPosted
+                          ? movement.postedByUserName
+                          : movement.isRejected
+                          ? movement.rejectedByUserName
+                          : movement.createdByUserName || "Sistema"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -493,7 +545,9 @@ const StockMovementsPage = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleUnpostMovement(movement.id)}
+                                onClick={() =>
+                                  handleUnpostMovement(movement.id)
+                                }
                                 disabled={unpostMovement.isPending}
                                 className="gap-1"
                               >
@@ -522,19 +576,28 @@ const StockMovementsPage = () => {
           <div className="lg:hidden space-y-4">
             {movements && movements.length > 0 ? (
               movements.map((movement) => (
-                <div key={movement.id} className={cn(
-                  "border rounded-lg p-4 space-y-3 bg-white shadow-sm",
-                  movement.isPosted && "bg-green-50 border-green-200",
-                  movement.isRejected && "bg-red-50 border-red-200"
-                )}>
+                <div
+                  key={movement.id}
+                  className={cn(
+                    "border rounded-lg p-4 space-y-3 bg-white shadow-sm",
+                    movement.isPosted && "bg-green-50 border-green-200",
+                    movement.isRejected && "bg-red-50 border-red-200"
+                  )}
+                >
                   {/* Header with Status and Type */}
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <div className="font-medium text-lg">{movement.productName}</div>
-                      <div className="text-sm text-gray-500">SKU: {movement.variantSku}</div>
+                      <div className="font-medium text-lg">
+                        {movement.productName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        SKU: {movement.variantSku}
+                      </div>
                     </div>
                     {movement.isPosted ? (
-                      <Badge variant="default" className="bg-green-600">Posteado</Badge>
+                      <Badge variant="default" className="bg-green-600">
+                        Posteado
+                      </Badge>
                     ) : movement.isRejected ? (
                       <Badge variant="destructive">Rechazado</Badge>
                     ) : (
@@ -546,13 +609,16 @@ const StockMovementsPage = () => {
                   <div className="flex gap-2 items-center border-t pt-3">
                     {getMovementTypeBadge(movement.movementType)}
                     <span className="text-xs text-gray-500">
-                      {new Date(movement.createdAt).toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(movement.createdAt).toLocaleDateString(
+                        "es-ES",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </span>
                   </div>
 
@@ -560,20 +626,31 @@ const StockMovementsPage = () => {
                   <div className="grid grid-cols-2 gap-3 text-sm border-t pt-3">
                     <div>
                       <div className="text-gray-600">Cantidad</div>
-                      <div className={`font-bold text-lg ${movement.quantity >= 0 ? "text-green-600" : "text-red-600"}`}>
-                        {movement.quantity > 0 ? `+${movement.quantity}` : movement.quantity}
+                      <div
+                        className={`font-bold text-lg ${
+                          movement.quantity >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {movement.quantity > 0
+                          ? `+${movement.quantity}`
+                          : movement.quantity}
                       </div>
                     </div>
                     <div>
                       <div className="text-gray-600">Costo Unit.</div>
                       <div className="font-medium">
-                        {movement.unitCost ? `$${movement.unitCost.toFixed(2)}` : "-"}
+                        {movement.unitCost
+                          ? `$${movement.unitCost.toFixed(2)}`
+                          : "-"}
                       </div>
                     </div>
                   </div>
 
                   {/* Location Info */}
-                  {(movement.sourceLocation || movement.destinationLocation) && (
+                  {(movement.sourceLocation ||
+                    movement.destinationLocation) && (
                     <div className="text-sm border-t pt-3">
                       <span className="text-gray-600">Ubicación: </span>
                       {movement.movementType === "Transfer" ? (
@@ -597,7 +674,13 @@ const StockMovementsPage = () => {
                   {/* User Info */}
                   <div className="text-sm border-t pt-3">
                     <span className="text-gray-600">Usuario: </span>
-                    <span className="text-gray-700">{movement.isPosted ? movement.postedByUserName : movement.isRejected ? movement.rejectedByUserName : movement.createdByUserName || "Sistema"}</span>
+                    <span className="text-gray-700">
+                      {movement.isPosted
+                        ? movement.postedByUserName
+                        : movement.isRejected
+                        ? movement.rejectedByUserName
+                        : movement.createdByUserName || "Sistema"}
+                    </span>
                   </div>
 
                   {/* Actions */}
@@ -654,32 +737,49 @@ const StockMovementsPage = () => {
       <AlertDialog open={isConfirmPostOpen} onOpenChange={setIsConfirmPostOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Está seguro que desea postear este movimiento?</AlertDialogTitle>
+            <AlertDialogTitle>
+              ¿Está seguro que desea postear este movimiento?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción afectará permanentemente el inventario y no se puede deshacer directamente (requeriría un movimiento de ajuste).
+              Esta acción afectará permanentemente el inventario y no se puede
+              deshacer directamente (requeriría un movimiento de ajuste).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmPost} disabled={postMovement.isPending}>
+            <AlertDialogAction
+              onClick={handleConfirmPost}
+              disabled={postMovement.isPending}
+            >
               {postMovement.isPending ? "Posteando..." : "Postear Movimiento"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={isConfirmRejectOpen} onOpenChange={setIsConfirmRejectOpen}>
+      <AlertDialog
+        open={isConfirmRejectOpen}
+        onOpenChange={setIsConfirmRejectOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Está seguro que desea rechazar este movimiento?</AlertDialogTitle>
+            <AlertDialogTitle>
+              ¿Está seguro que desea rechazar este movimiento?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción marcará el movimiento como rechazado y no podrá ser posteado. Esta acción no se puede deshacer.
+              Esta acción marcará el movimiento como rechazado y no podrá ser
+              posteado. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmReject} disabled={rejectMovement.isPending}>
-              {rejectMovement.isPending ? "Rechazando..." : "Rechazar Movimiento"}
+            <AlertDialogAction
+              onClick={handleConfirmReject}
+              disabled={rejectMovement.isPending}
+            >
+              {rejectMovement.isPending
+                ? "Rechazando..."
+                : "Rechazar Movimiento"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -695,7 +795,8 @@ const StockMovementsPage = () => {
                 Registrar Movimiento de Inventario
               </DialogTitle>
               <DialogDescription className="text-base">
-                Los movimientos se crean como <strong>borrador</strong>. Deberá postearlos para que afecten el inventario.
+                Los movimientos se crean como <strong>borrador</strong>. Deberá
+                postearlos para que afecten el inventario.
               </DialogDescription>
             </DialogHeader>
 
@@ -716,10 +817,13 @@ const StockMovementsPage = () => {
                     >
                       {selectedVariant ? (
                         <div className="flex flex-col items-start gap-1 text-left">
-                          <span className="font-semibold">{selectedVariant.productName}</span>
+                          <span className="font-semibold">
+                            {selectedVariant.productName}
+                          </span>
                           <span className="text-xs text-gray-500">
-                            SKU: {selectedVariant.sku} | Stock: {selectedVariant.stock} |
-                            Costo Prom: ${selectedVariant.averageCost.toFixed(2)}
+                            SKU: {selectedVariant.sku} | Stock:{" "}
+                            {selectedVariant.stock} | Costo Prom: $
+                            {selectedVariant.averageCost.toFixed(2)}
                           </span>
                         </div>
                       ) : (
@@ -732,7 +836,9 @@ const StockMovementsPage = () => {
                     <Command>
                       <CommandInput placeholder="Buscar producto o SKU..." />
                       <CommandList>
-                        <CommandEmpty>No se encontraron productos.</CommandEmpty>
+                        <CommandEmpty>
+                          No se encontraron productos.
+                        </CommandEmpty>
                         <CommandGroup>
                           {productVariantOptions.map((variant) => (
                             <CommandItem
@@ -756,11 +862,13 @@ const StockMovementsPage = () => {
                                 )}
                               />
                               <div className="flex flex-col gap-1">
-                                <span className="font-semibold">{variant.productName}</span>
+                                <span className="font-semibold">
+                                  {variant.productName}
+                                </span>
                                 <span className="text-xs text-gray-500">
                                   SKU: {variant.sku} | Stock: {variant.stock} |
-                                  Precio: ${variant.price.toFixed(2)} |
-                                  Costo Prom: ${variant.averageCost.toFixed(2)}
+                                  Precio: ${variant.price.toFixed(2)} | Costo
+                                  Prom: ${variant.averageCost.toFixed(2)}
                                 </span>
                               </div>
                             </CommandItem>
@@ -775,15 +883,21 @@ const StockMovementsPage = () => {
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       <div>
                         <span className="text-gray-600">Stock Actual:</span>
-                        <p className="font-bold text-lg">{selectedVariant.stock}</p>
+                        <p className="font-bold text-lg">
+                          {selectedVariant.stock}
+                        </p>
                       </div>
                       <div>
                         <span className="text-gray-600">Precio Venta:</span>
-                        <p className="font-bold text-lg">${selectedVariant.price.toFixed(2)}</p>
+                        <p className="font-bold text-lg">
+                          ${selectedVariant.price.toFixed(2)}
+                        </p>
                       </div>
                       <div>
                         <span className="text-gray-600">Costo Promedio:</span>
-                        <p className="font-bold text-lg">${selectedVariant.averageCost.toFixed(2)}</p>
+                        <p className="font-bold text-lg">
+                          ${selectedVariant.averageCost.toFixed(2)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -793,7 +907,9 @@ const StockMovementsPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 {/* Movement Type */}
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold">Tipo de Movimiento</Label>
+                  <Label className="text-base font-semibold">
+                    Tipo de Movimiento
+                  </Label>
                   <Select
                     value={formData.movementType}
                     onValueChange={(value: string) =>
@@ -863,7 +979,9 @@ const StockMovementsPage = () => {
                     <DollarSign className="w-4 h-4" />
                     Costo Unitario
                     {formData.movementType === StockMovementType.Purchase && (
-                      <Badge variant="destructive" className="ml-2">Requerido</Badge>
+                      <Badge variant="destructive" className="ml-2">
+                        Requerido
+                      </Badge>
                     )}
                   </Label>
                   <Input
@@ -880,7 +998,9 @@ const StockMovementsPage = () => {
                     }
                     placeholder="$0.00"
                     className="h-12 text-lg"
-                    required={formData.movementType === StockMovementType.Purchase}
+                    required={
+                      formData.movementType === StockMovementType.Purchase
+                    }
                   />
                   <p className="text-xs text-gray-500">
                     💡 Se usa para calcular el costo promedio ponderado
@@ -909,7 +1029,9 @@ const StockMovementsPage = () => {
                     <Label className="text-base font-semibold flex items-center gap-2">
                       <Package className="w-4 h-4" />
                       Ubicación Origen
-                      <Badge variant="destructive" className="ml-2">Requerido</Badge>
+                      <Badge variant="destructive" className="ml-2">
+                        Requerido
+                      </Badge>
                     </Label>
                     <Select
                       value={formData.sourceLocationId || ""}
@@ -934,12 +1056,17 @@ const StockMovementsPage = () => {
                     <Label className="text-base font-semibold flex items-center gap-2">
                       <Package className="w-4 h-4" />
                       Ubicación Destino
-                      <Badge variant="destructive" className="ml-2">Requerido</Badge>
+                      <Badge variant="destructive" className="ml-2">
+                        Requerido
+                      </Badge>
                     </Label>
                     <Select
                       value={formData.destinationLocationId || ""}
                       onValueChange={(value) =>
-                        setFormData({ ...formData, destinationLocationId: value })
+                        setFormData({
+                          ...formData,
+                          destinationLocationId: value,
+                        })
                       }
                     >
                       <SelectTrigger className="h-12">

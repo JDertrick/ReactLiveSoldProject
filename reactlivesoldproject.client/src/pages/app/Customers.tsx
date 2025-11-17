@@ -36,6 +36,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const columnHelper = createColumnHelper<Customer>();
 
@@ -136,7 +137,7 @@ const CustomersPage = () => {
   const columns = [
     columnHelper.accessor((row) => `${row.firstName} ${row.lastName}`, {
       id: "customer",
-      header: "Customer",
+      header: "Cliente",
       cell: (info) => (
         <div>
           <div className="font-medium">{info.getValue()}</div>
@@ -147,17 +148,17 @@ const CustomersPage = () => {
       ),
     }),
     columnHelper.accessor("phone", {
-      header: "Contact",
+      header: "Contacto",
       cell: (info) => <div className="text-sm">{info.getValue()}</div>,
     }),
     columnHelper.accessor("wallet.balance", {
-      header: "Wallet",
+      header: "Billetera",
       cell: (info) => (
         <div className="font-medium">${(info.getValue() ?? 0).toFixed(2)}</div>
       ),
     }),
     columnHelper.accessor("isActive", {
-      header: "Status",
+      header: "Estado",
       cell: (info) => (
         <Badge variant={info.getValue() ? "default" : "destructive"}>
           {info.getValue() ? "Active" : "Inactive"}
@@ -166,7 +167,7 @@ const CustomersPage = () => {
     }),
     columnHelper.display({
       id: "actions",
-      header: "Actions",
+      header: "Acciones",
       cell: (info) => (
         <div className="flex gap-2 justify-end">
           <Button
@@ -174,14 +175,14 @@ const CustomersPage = () => {
             size="sm"
             onClick={() => handleOpenDetailModal(info.row.original)}
           >
-            View
+            Ver
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleOpenModal(info.row.original)}
           >
-            Edit
+            Editar
           </Button>
           <Button
             variant="outline"
@@ -191,7 +192,7 @@ const CustomersPage = () => {
             }
             className="text-green-600 hover:text-green-700"
           >
-            Wallet
+            Billetera
           </Button>
         </div>
       ),
@@ -213,71 +214,95 @@ const CustomersPage = () => {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto py-6 space-y-6">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">Customers</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
           <p className="mt-2 text-sm text-gray-700">
-            Manage your customer database, wallets, and purchase history.
+            Maneja tus clientes, billetera y transacciones.
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <Button onClick={() => handleOpenModal()}>Add Customer</Button>
+          <Button onClick={() => handleOpenModal()}>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            Agregar cliente
+          </Button>
         </div>
       </div>
 
       {/* Desktop Table View */}
-      <div className="mt-8 hidden md:block rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className={header.id === "actions" ? "text-right" : ""}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Lista de clientes</CardTitle>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className={header.id === "actions" ? "text-right" : ""}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No customers found. Add your first customer to get started.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No customers found. Add your first customer to get started.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Mobile Card View */}
       <div className="mt-8 md:hidden space-y-4">

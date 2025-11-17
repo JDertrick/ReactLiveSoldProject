@@ -178,14 +178,26 @@ const ProductsPage = () => {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventario</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight">Inventario</h1>
+          <p className="text-gray-500 mt-2 text-sm">
             Gestiona tu catálogo de productos, variantes y niveles de
             inventario.
           </p>
         </div>
         <Button onClick={() => handleOpenModal()} size="lg" className="gap-2">
-          <ScanBarcode className="w-4 h-4" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+            />
+          </svg>
           Agregar producto
         </Button>
       </div>
