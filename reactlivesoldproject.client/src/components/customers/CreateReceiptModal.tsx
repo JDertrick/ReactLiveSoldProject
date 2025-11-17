@@ -1,15 +1,24 @@
-import { useState, Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { Plus, X, Trash2, DollarSign } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreateReceiptDto, CreateReceiptItemDto } from '../../types/wallet.types';
-import { Customer } from '../../types/customer.types';
-import { useCreateReceipt } from '../../hooks/useWallet';
-import { toast } from 'sonner';
+import { useState, Fragment } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { Plus, X, Trash2, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  CreateReceiptDto,
+  CreateReceiptItemDto,
+} from "../../types/wallet.types";
+import { Customer } from "../../types/customer.types";
+import { useCreateReceipt } from "../../hooks/useWallet";
+import { toast } from "sonner";
 
 interface CreateReceiptModalProps {
   isOpen: boolean;
@@ -17,24 +26,36 @@ interface CreateReceiptModalProps {
   customer: Customer;
 }
 
-export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptModalProps) => {
-  const [receiptType, setReceiptType] = useState<'Deposit' | 'Withdrawal'>('Deposit');
-  const [notes, setNotes] = useState('');
-  const [items, setItems] = useState<CreateReceiptItemDto[]>([{ description: '', unitPrice: 0, quantity: 1 }]);
+export const CreateReceiptModal = ({
+  isOpen,
+  onClose,
+  customer,
+}: CreateReceiptModalProps) => {
+  const [receiptType, setReceiptType] = useState<"Deposit" | "Withdrawal">(
+    "Deposit"
+  );
+  const [notes, setNotes] = useState("");
+  const [items, setItems] = useState<CreateReceiptItemDto[]>([
+    { description: "", unitPrice: 0, quantity: 1 },
+  ]);
 
   const createReceiptMutation = useCreateReceipt();
 
   const handleAddItem = () => {
-    setItems([...items, { description: '', unitPrice: 0, quantity: 1 }]);
+    setItems([...items, { description: "", unitPrice: 0, quantity: 1 }]);
   };
 
   const handleRemoveItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (index: number, field: keyof CreateReceiptItemDto, value: string | number) => {
+  const handleItemChange = (
+    index: number,
+    field: keyof CreateReceiptItemDto,
+    value: string | number
+  ) => {
     const newItems = [...items];
-    if (field === 'quantity' || field === 'unitPrice') {
+    if (field === "quantity" || field === "unitPrice") {
       newItems[index][field] = Number(value);
     } else {
       newItems[index][field] = value as any;
@@ -49,14 +70,20 @@ export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptM
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (items.some(item => !item.description || item.unitPrice <= 0 || item.quantity <= 0)) {
-      toast.error('Please ensure all receipt items have a description, positive unit price, and positive quantity.');
+    if (
+      items.some(
+        (item) => !item.description || item.unitPrice <= 0 || item.quantity <= 0
+      )
+    ) {
+      toast.error(
+        "Please ensure all receipt items have a description, positive unit price, and positive quantity."
+      );
       return;
     }
 
     const totalAmount = calculateTotal();
     if (totalAmount <= 0) {
-      toast.error('The total amount of the receipt must be greater than zero.');
+      toast.error("The total amount of the receipt must be greater than zero.");
       return;
     }
 
@@ -69,16 +96,17 @@ export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptM
 
     try {
       await createReceiptMutation.mutateAsync(receiptData);
-      toast.success('Receipt created successfully!');
+      toast.success("Receipt created successfully!");
       onClose();
       // Reset form
-      setReceiptType('Deposit');
-      setNotes('');
-      setItems([{ description: '', unitPrice: 0, quantity: 1 }]);
+      setReceiptType("Deposit");
+      setNotes("");
+      setItems([{ description: "", unitPrice: 0, quantity: 1 }]);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to create receipt.';
+      const errorMessage =
+        error.response?.data?.message || "Failed to create receipt.";
       toast.error(errorMessage);
-      console.error('Error creating receipt:', error);
+      console.error("Error creating receipt:", error);
     }
   };
 
@@ -94,7 +122,7 @@ export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptM
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black/75 bg-opacity-25" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -109,8 +137,12 @@ export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptM
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex justify-between items-center">
-                  Create New Receipt for {customer.firstName} {customer.lastName}
+                <Dialog.Title
+                  as="h3"
+                  className="text-lg font-medium leading-6 text-gray-900 flex justify-between items-center"
+                >
+                  Create New Receipt for {customer.firstName}{" "}
+                  {customer.lastName}
                   <Button variant="ghost" size="icon" onClick={onClose}>
                     <X className="h-5 w-5" />
                   </Button>
@@ -119,7 +151,12 @@ export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptM
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <Label htmlFor="receiptType">Receipt Type</Label>
-                      <Select value={receiptType} onValueChange={(value: 'Deposit' | 'Withdrawal') => setReceiptType(value)}>
+                      <Select
+                        value={receiptType}
+                        onValueChange={(value: "Deposit" | "Withdrawal") =>
+                          setReceiptType(value)
+                        }
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
@@ -143,52 +180,90 @@ export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptM
                     <div className="space-y-3">
                       <h4 className="text-md font-medium flex items-center">
                         Receipt Items
-                        <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="ml-auto">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAddItem}
+                          className="ml-auto"
+                        >
                           <Plus className="h-4 w-4 mr-2" /> Add Item
                         </Button>
                       </h4>
                       {items.map((item, index) => (
-                        <div key={index} className="flex items-end gap-2 border p-3 rounded-md relative">
-                          <div className="flex-1 grid grid-cols-3 gap-2">
+                        <div
+                          key={index}
+                          className="flex items-end gap-2 border p-3 rounded-md relative"
+                        >
+                          <div className="flex-1 grid grid-cols-2 gap-2">
                             <div>
-                              <Label htmlFor={`description-${index}`}>Description</Label>
+                              <Label htmlFor={`description-${index}`}>
+                                Description
+                              </Label>
                               <Input
                                 id={`description-${index}`}
                                 value={item.description}
-                                onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                                onChange={(e) =>
+                                  handleItemChange(
+                                    index,
+                                    "description",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Item description"
                                 required
                               />
                             </div>
                             <div>
-                              <Label htmlFor={`unitPrice-${index}`}>Unit Price</Label>
+                              <Label htmlFor={`unitPrice-${index}`}>
+                                Unit Price
+                              </Label>
                               <Input
                                 id={`unitPrice-${index}`}
                                 type="number"
                                 step="0.01"
-                                min="0"
                                 value={item.unitPrice}
-                                onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
+                                onChange={(e) =>
+                                  handleItemChange(
+                                    index,
+                                    "unitPrice",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="0.00"
                                 required
                               />
                             </div>
-                            <div>
-                              <Label htmlFor={`quantity-${index}`}>Quantity</Label>
+                            {/* <div>
+                              <Label htmlFor={`quantity-${index}`}>
+                                Quantity
+                              </Label>
                               <Input
                                 id={`quantity-${index}`}
                                 type="number"
                                 step="1"
                                 min="1"
                                 value={item.quantity}
-                                onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                                onChange={(e) =>
+                                  handleItemChange(
+                                    index,
+                                    "quantity",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="1"
                                 required
                               />
-                            </div>
+                            </div> */}
                           </div>
                           {items.length > 1 && (
-                            <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveItem(index)} className="flex-shrink-0">
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => handleRemoveItem(index)}
+                              className="flex-shrink-0"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
@@ -206,10 +281,15 @@ export const CreateReceiptModal = ({ isOpen, onClose, customer }: CreateReceiptM
 
                     <div className="mt-4 flex justify-end gap-2">
                       <Button type="button" variant="outline" onClick={onClose}>
-                        Cancel
+                        Cancelar
                       </Button>
-                      <Button type="submit" disabled={createReceiptMutation.isPending}>
-                        {createReceiptMutation.isPending ? 'Creating...' : 'Create Receipt'}
+                      <Button
+                        type="submit"
+                        disabled={createReceiptMutation.isPending}
+                      >
+                        {createReceiptMutation.isPending
+                          ? "Creando..."
+                          : "Crear recibo"}
                       </Button>
                     </div>
                   </form>

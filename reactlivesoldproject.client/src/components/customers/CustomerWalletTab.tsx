@@ -11,8 +11,10 @@ interface CustomerWalletTabProps {
 }
 
 export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
-  const [isCreateReceiptModalOpen, setIsCreateReceiptModalOpen] = useState(false);
-  const [isReceiptDetailsModalOpen, setIsReceiptDetailsModalOpen] = useState(false);
+  const [isCreateReceiptModalOpen, setIsCreateReceiptModalOpen] =
+    useState(false);
+  const [isReceiptDetailsModalOpen, setIsReceiptDetailsModalOpen] =
+    useState(false);
   const [selectedReceipt] = useState<Receipt | null>(null);
 
   const { data: receipts, isLoading } = useGetReceipts(customer.id);
@@ -23,16 +25,17 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
   // Calculate some statistics based on receipts
   const totalCredits =
     receipts?.reduce(
-      (sum, r) => (r.isPosted && r.type === "Deposit" ? sum + r.totalAmount : sum),
+      (sum, r) =>
+        r.isPosted && r.type === "Deposit" ? sum + r.totalAmount : sum,
       0
     ) ?? 0;
 
   const totalDebits =
     receipts?.reduce(
-      (sum, r) => (r.isPosted && r.type === "Withdrawal" ? sum + r.totalAmount : sum),
+      (sum, r) =>
+        r.isPosted && r.type === "Withdrawal" ? sum + r.totalAmount : sum,
       0
     ) ?? 0;
-
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -72,19 +75,19 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/20">
             <div>
-              <p className="text-xs opacity-80 font-medium">Total Credits</p>
+              <p className="text-xs opacity-80 font-medium">Total Depositos</p>
               <p className="text-xl font-bold mt-1">
                 ${totalCredits.toFixed(2)}
               </p>
             </div>
             <div>
-              <p className="text-xs opacity-80 font-medium">Total Debits</p>
+              <p className="text-xs opacity-80 font-medium">Total Debitos</p>
               <p className="text-xl font-bold mt-1">
                 ${totalDebits.toFixed(2)}
               </p>
             </div>
             <div>
-              <p className="text-xs opacity-80 font-medium">Receipts</p>
+              <p className="text-xs opacity-80 font-medium">Recibos</p>
               <p className="text-xl font-bold mt-1">{receiptCount}</p>
             </div>
           </div>
@@ -110,7 +113,7 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Create Receipt
+          Crear transacción
         </button>
         <button
           className="inline-flex items-center justify-center rounded-xl border-2 border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
@@ -153,16 +156,12 @@ export const CustomerWalletTab = ({ customer }: CustomerWalletTabProps) => {
           </h3>
           {receiptCount > 0 && (
             <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700">
-              {receiptCount}{" "}
-              {receiptCount === 1 ? "receipt" : "receipts"}
+              {receiptCount} {receiptCount === 1 ? "receipt" : "receipts"}
             </span>
           )}
         </div>
 
-        <ReceiptList
-          receipts={receipts ?? []}
-          isLoading={isLoading}
-        />
+        <ReceiptList receipts={receipts ?? []} isLoading={isLoading} />
       </div>
 
       {/* Create Receipt Modal */}
