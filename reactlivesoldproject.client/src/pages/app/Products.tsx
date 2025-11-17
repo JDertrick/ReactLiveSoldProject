@@ -31,11 +31,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ScanBarcode } from "lucide-react";
+
 
 const ProductsPage = () => {
   const { data: products, isLoading } = useGetProducts(true); // Include unpublished

@@ -93,7 +93,7 @@ const StockMovementsPage = () => {
     toDate
   );
   const { data: products } = useGetProducts(true);
-  const { locations, isLoading: isLoadingLocations } = useLocations();
+  const { locations } = useLocations();
   const createMovement = useCreateStockMovement();
   const postMovement = usePostStockMovement();
   const unpostMovement = useUnpostStockMovement();

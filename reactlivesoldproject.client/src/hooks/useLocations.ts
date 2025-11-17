@@ -7,13 +7,13 @@ const fetchLocations = async (): Promise<Location[]> => {
   return response.data;
 };
 
-const createLocation = async (newLocation: Location): Promise<Location> => {
+const createLocation = async (newLocation: Partial<Location>): Promise<Location> => {
   const response = await api.post('/Location', newLocation);
   return response.data;
 };
 
-const updateLocation = async (updatedLocation: Location): Promise<Location> => {
-  const response = await api.put(`/Location/${updatedLocation.id}`, updatedLocation);
+const updateLocation = async ({ id, data }: { id: string, data: Partial<Location> }): Promise<Location> => {
+  const response = await api.put(`/Location/${id}`, data);
   return response.data;
 };
 
@@ -29,14 +29,14 @@ export const useLocations = () => {
     queryFn: fetchLocations,
   });
 
-  const createMutation = useMutation<Location, Error, Location>({
+  const createMutation = useMutation<Location, Error, Partial<Location>>({
     mutationFn: createLocation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
   });
 
-  const updateMutation = useMutation<Location, Error, Location>({
+  const updateMutation = useMutation<Location, Error, { id: string, data: Partial<Location> }>({
     mutationFn: updateLocation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });

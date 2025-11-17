@@ -7,13 +7,13 @@ const fetchCategories = async (): Promise<Category[]> => {
   return response.data;
 };
 
-const createCategory = async (newCategory: Category): Promise<Category> => {
+const createCategory = async (newCategory: Partial<Category>): Promise<Category> => {
   const response = await api.post('/Category', newCategory);
   return response.data;
 };
 
-const updateCategory = async (updatedCategory: Category): Promise<Category> => {
-  const response = await api.put(`/Category/${updatedCategory.id}`, updatedCategory);
+const updateCategory = async ({ id, data }: { id: string, data: Partial<Category> }): Promise<Category> => {
+  const response = await api.put(`/Category/${id}`, data);
   return response.data;
 };
 
@@ -29,14 +29,14 @@ export const useCategories = () => {
     queryFn: fetchCategories,
   });
 
-  const createMutation = useMutation<Category, Error, Category>({
+  const createMutation = useMutation<Category, Error, Partial<Category>>({
     mutationFn: createCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
 
-  const updateMutation = useMutation<Category, Error, Category>({
+  const updateMutation = useMutation<Category, Error, { id: string, data: Partial<Category> }>({
     mutationFn: updateCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
