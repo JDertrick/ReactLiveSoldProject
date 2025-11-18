@@ -11,12 +11,8 @@ interface ProductFormProps {
   ) => void;
 }
 
-const ProductForm = ({
-  formData,
-  onFormChange,
-}: ProductFormProps) => {
+const ProductForm = ({ formData, onFormChange }: ProductFormProps) => {
   const { categories, isLoading: isLoadingCategories } = useCategories();
-  console.log(formData);
 
   const renderCategoryOptions = (categories: any[], depth = 0) => {
     return categories.map((category) => (

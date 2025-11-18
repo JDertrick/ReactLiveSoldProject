@@ -219,7 +219,7 @@ const ProductsPage = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleOpenModal(variant)}
+                            onClick={() => handleOpenModal(variant.product)}
                           >
                             Editar
                           </Button>
@@ -227,7 +227,7 @@ const ProductsPage = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              setEditingProduct(variant);
+                              setEditingProduct(variant.product);
                               setIsVariantModalOpen(true);
                             }}
                           >

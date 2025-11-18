@@ -17,6 +17,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public bool IsPrimary { get; set; }
         public bool IsPublished { get; set; }
         public string? ProductType { get; set; }
+        public ProductDto? Product { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

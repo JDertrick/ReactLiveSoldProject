@@ -95,7 +95,6 @@ const ProductFormModal = ({
     });
   };
 
-
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-10">
       <DialogBackdrop
@@ -128,7 +127,8 @@ const ProductFormModal = ({
                   {editingProduct && (
                     <div className="border-t pt-4">
                       <p className="text-sm text-gray-600">
-                        Las variantes y tags se gestionan desde la lista de productos después de crear el producto.
+                        Las variantes y tags se gestionan desde la lista de
+                        productos después de crear el producto.
                       </p>
                     </div>
                   )}

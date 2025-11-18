@@ -119,6 +119,7 @@ export interface VariantProductDto {
   productType?: string; // JSON string
   isPrimary?: boolean;
   isPublished?: boolean;
+  product: Product;
 }
 
 // Form input type for variant (string values for number inputs)
