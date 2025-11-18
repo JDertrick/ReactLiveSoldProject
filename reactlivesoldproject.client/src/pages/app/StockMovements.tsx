@@ -63,6 +63,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import {
     Check,
     ChevronsUpDown,
@@ -80,6 +82,7 @@ import {
     XCircle as XCircleIcon,
     AlertTriangle,
     Clock,
+    X as XIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -117,12 +120,12 @@ const StatCard = ({ title, value, subtext, icon, colorClass, circleColorClass }:
 );
 
 const StockMovementsPage = () => {
-  const [fromDate, setFromDate] = useState<string>("");
-  const [toDate, setToDate] = useState<string>("");
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const { data: movements, isLoading } = useGetMovementsByOrganization(
-    fromDate,
-    toDate
+    fromDate?.toISOString(),
+    toDate?.toISOString()
   );
   const { data: productsPagedResult } = useGetProducts(1, 9999, "all", ""); // Fetch all products for stock movements
   const { locations } = useLocations();
@@ -327,19 +330,85 @@ const StockMovementsPage = () => {
         <CardContent className="pt-6">
            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
                 <div className="flex items-center gap-2">
-                     <div className="relative">
-                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="fromDate" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="pl-10" />
-                    </div>
-                     <span>→</span>
-                    <div className="relative">
-                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="toDate" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="pl-10"/>
-                    </div>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <div className="relative w-[180px]">
+                            <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            className={cn(
+                                "w-full justify-start text-left font-normal pl-10",
+                                !fromDate && "text-muted-foreground"
+                            )}
+                            value={fromDate ? format(fromDate, "dd/MM/yyyy") : ""}
+                            placeholder="Desde"
+                            readOnly
+                            />
+                            {fromDate && (
+                                <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setFromDate(undefined);
+                                }}
+                                >
+                                <XIcon className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={fromDate}
+                            onSelect={setFromDate}
+                            initialFocus
+                        />
+                        </PopoverContent>
+                    </Popover>
+                    <span>→</span>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <div className="relative w-[180px]">
+                            <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            className={cn(
+                                "w-full justify-start text-left font-normal pl-10",
+                                !toDate && "text-muted-foreground"
+                            )}
+                            value={toDate ? format(toDate, "dd/MM/yyyy") : ""}
+                            placeholder="Hasta"
+                            readOnly
+                            />
+                            {toDate && (
+                                <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setToDate(undefined);
+                                }}
+                                >
+                                <XIcon className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={toDate}
+                            onSelect={setToDate}
+                            initialFocus
+                        />
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                      <Input placeholder="Buscar SKU, usuario..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full sm:w-64"/>
-                     <Button variant="outline" size="icon">
+                     <Button variant="outline" size="icon" onClick={() => { setFromDate(undefined); setToDate(undefined); setSearchTerm(""); }}>
                         <Filter className="h-4 w-4"/>
                      </Button>
                 </div>
