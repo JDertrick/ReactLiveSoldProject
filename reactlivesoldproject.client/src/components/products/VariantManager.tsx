@@ -1,15 +1,22 @@
 import { useState } from "react";
-import { ProductVariantDto } from "../../types/product.types";
+import { ProductVariant } from "../../types/product.types";
 import { CustomAlertDialog } from "../common/AlertDialog";
+import { ImageUpload } from "@/components/ui/image-upload";
+import {
+  useAddVariant,
+  useUpdateVariant,
+  useDeleteVariant,
+  useUploadVariantImage,
+} from "../../hooks/useProducts";
 
 interface VariantManagerProps {
-  variants: ProductVariantDto[];
-  onVariantsChange: (variants: ProductVariantDto[]) => void;
+  productId: string;
+  initialVariants: ProductVariant[];
 }
 
 const VariantManager = ({
-  variants,
-  onVariantsChange,
+  productId,
+  initialVariants,
 }: VariantManagerProps) => {
   const [variantInput, setVariantInput] = useState({
     sku: "",
@@ -17,11 +24,18 @@ const VariantManager = ({
     color: "",
     stock: "",
     price: "",
+    isPrimary: false,
+    imageUrl: "",
   });
 
-  const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(
-    null
-  );
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
+
+  // Mutations
+  const addVariant = useAddVariant();
+  const updateVariant = useUpdateVariant();
+  const deleteVariant = useDeleteVariant();
+  const uploadImage = useUploadVariantImage();
 
   // Dialog states
   const [alertDialog, setAlertDialog] = useState<{
@@ -34,113 +48,181 @@ const VariantManager = ({
     description: "",
   });
 
-  const handleAddVariant = () => {
+  const handleAddOrUpdateVariant = async () => {
     const stock = parseInt(variantInput.stock) || 0;
     const price = parseFloat(variantInput.price) || 0;
 
-    if (variantInput.sku && stock >= 0) {
-      if (editingVariantIndex !== null) {
-        // Estamos editando una variante existente - preservar el id
-        const existingVariant = variants[editingVariantIndex];
-        const updatedVariant: ProductVariantDto = {
-          id: existingVariant.id, // Preservar el id si existe
-          sku: variantInput.sku,
-          size: variantInput.size || undefined,
-          color: variantInput.color || undefined,
-          stock,
-          stockQuantity: stock,
-          price,
-        };
+    if (!variantInput.sku) {
+      setAlertDialog({
+        open: true,
+        title: "Error",
+        description: "El SKU es requerido",
+      });
+      return;
+    }
 
-        const newVariants = [...variants];
-        newVariants[editingVariantIndex] = updatedVariant;
-        onVariantsChange(newVariants);
-        setEditingVariantIndex(null);
-      } else {
-        const existsVariant = variants.find(
-          (variant) => variant.sku === variantInput.sku
-        );
-        if (existsVariant !== undefined) {
-          setAlertDialog({
-            description: "El SKU ingresado ya existe",
-            open: true,
-            title: "SKU existente",
-          });
-        } else {
-          // Agregar nueva variante (sin id)
-          const newVariant: ProductVariantDto = {
-            sku: variantInput.sku,
-            size: variantInput.size || undefined,
-            color: variantInput.color || undefined,
-            stock,
-            stockQuantity: stock,
-            price,
-          };
-          onVariantsChange([...variants, newVariant]);
-          setVariantInput({
-            sku: "",
-            size: "",
-            color: "",
-            stock: "",
-            price: "",
+    try {
+      // Preparar attributes JSON
+      const attributes: Record<string, string> = {};
+      if (variantInput.size) attributes.size = variantInput.size;
+      if (variantInput.color) attributes.color = variantInput.color;
+
+      const variantData = {
+        sku: variantInput.sku,
+        price,
+        stockQuantity: stock,
+        attributes: Object.keys(attributes).length > 0 ? JSON.stringify(attributes) : undefined,
+        isPrimary: variantInput.isPrimary,
+      };
+
+      if (editingVariantId) {
+        // Actualizar variante existente
+        const result = await updateVariant.mutateAsync({
+          variantId: editingVariantId,
+          variant: variantData,
+        });
+
+        // Si hay una imagen seleccionada, subirla
+        if (selectedImage) {
+          await uploadImage.mutateAsync({
+            variantId: editingVariantId,
+            image: selectedImage,
           });
         }
+
+        setAlertDialog({
+          open: true,
+          title: "Éxito",
+          description: "Variante actualizada correctamente",
+        });
+      } else {
+        // Crear nueva variante
+        const result = await addVariant.mutateAsync({
+          productId,
+          variant: variantData,
+        });
+
+        // Si hay una imagen seleccionada y se creó la variante, subirla
+        if (selectedImage && result.id) {
+          await uploadImage.mutateAsync({
+            variantId: result.id,
+            image: selectedImage,
+          });
+        }
+
+        setAlertDialog({
+          open: true,
+          title: "Éxito",
+          description: "Variante creada correctamente",
+        });
+      }
+
+      // Limpiar formulario
+      setVariantInput({
+        sku: "",
+        size: "",
+        color: "",
+        stock: "",
+        price: "",
+        isPrimary: false,
+        imageUrl: "",
+      });
+      setSelectedImage(null);
+      setEditingVariantId(null);
+    } catch (error: any) {
+      setAlertDialog({
+        open: true,
+        title: "Error",
+        description: error?.response?.data?.message || "Error al guardar la variante",
+      });
+    }
+  };
+
+  const handleEditVariant = (variant: ProductVariant) => {
+    // Parsear attributes para obtener size y color
+    let size = "";
+    let color = "";
+    if (variant.attributes) {
+      try {
+        const attrs = JSON.parse(variant.attributes);
+        size = attrs.size || "";
+        color = attrs.color || "";
+      } catch (e) {
+        console.error("Error parsing attributes:", e);
       }
     }
+
+    setVariantInput({
+      sku: variant.sku || "",
+      size,
+      color,
+      stock: variant.stockQuantity.toString(),
+      price: variant.price.toString(),
+      isPrimary: variant.isPrimary || false,
+      imageUrl: variant.imageUrl || "",
+    });
+    setSelectedImage(null); // Limpiar imagen seleccionada
+    setEditingVariantId(variant.id);
   };
 
-  const handleEditVariant = (index: number) => {
-    const variant = variants[index];
-    if (variant) {
-      setVariantInput({
-        sku: variant.sku,
-        size: variant.size || "",
-        color: variant.color || "",
-        stock: variant.stock.toString(),
-        price: variant.price.toString(),
+  const handleCancelEdit = () => {
+    setVariantInput({
+      sku: "",
+      size: "",
+      color: "",
+      stock: "",
+      price: "",
+      isPrimary: false,
+      imageUrl: "",
+    });
+    setSelectedImage(null);
+    setEditingVariantId(null);
+  };
+
+  const handleDeleteVariant = async (variantId: string) => {
+    if (!confirm("¿Está seguro de eliminar esta variante?")) {
+      return;
+    }
+
+    try {
+      await deleteVariant.mutateAsync(variantId);
+      setAlertDialog({
+        open: true,
+        title: "Éxito",
+        description: "Variante eliminada correctamente",
       });
-      setEditingVariantIndex(index);
+    } catch (error: any) {
+      setAlertDialog({
+        open: true,
+        title: "Error",
+        description: error?.response?.data?.message || "Error al eliminar la variante",
+      });
     }
   };
 
-  const handleCancelEditVariant = () => {
-    setVariantInput({ sku: "", size: "", color: "", stock: "", price: "" });
-    setEditingVariantIndex(null);
-  };
-
-  const handleRemoveVariant = (index: number) => {
-    const newVariants = [...variants];
-    newVariants.splice(index, 1);
-    onVariantsChange(newVariants);
-
-    // Si estábamos editando esta variante, cancelar la edición
-    if (editingVariantIndex === index) {
-      handleCancelEditVariant();
-    } else if (editingVariantIndex !== null && editingVariantIndex > index) {
-      // Ajustar el índice si eliminamos una variante antes de la que estamos editando
-      setEditingVariantIndex(editingVariantIndex - 1);
-    }
+  const handleImageSelect = (file: File) => {
+    setSelectedImage(file);
   };
 
   return (
     <div>
       <h4 className="text-sm font-medium text-gray-700 mb-3">
-        Product Variants
+        Variantes del Producto
       </h4>
 
       {/* Variant Input */}
       <div className="bg-gray-50 p-4 rounded-lg mb-4">
-        {editingVariantIndex !== null && (
+        {editingVariantId && (
           <div className="mb-3 flex items-center justify-between bg-blue-50 border border-blue-200 rounded px-3 py-2">
             <span className="text-sm text-blue-700 font-medium">
-              Editing variant #{editingVariantIndex + 1}
+              Editando variante
             </span>
             <button
               type="button"
-              onClick={handleCancelEditVariant}
+              onClick={handleCancelEdit}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
-              Cancel
+              Cancelar
             </button>
           </div>
         )}
@@ -198,7 +280,7 @@ const VariantManager = ({
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Precio (opcional, usa precio base si está vacío)
+              Precio
             </label>
             <input
               type="number"
@@ -215,51 +297,146 @@ const VariantManager = ({
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
             />
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Stock Inicial
+            </label>
+            <input
+              type="number"
+              placeholder="0"
+              min="0"
+              value={variantInput.stock}
+              onChange={(e) =>
+                setVariantInput({
+                  ...variantInput,
+                  stock: e.target.value,
+                })
+              }
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+            />
+          </div>
         </div>
+
+        {/* Imagen de la variante */}
+        <div className="mb-3">
+          <ImageUpload
+            label="Imagen de la Variante"
+            currentImageUrl={variantInput.imageUrl}
+            onImageSelect={handleImageSelect}
+            maxSizeMB={5}
+          />
+          {selectedImage && (
+            <p className="text-xs text-green-600 mt-1">
+              Nueva imagen seleccionada: {selectedImage.name}
+            </p>
+          )}
+          {!selectedImage && variantInput.imageUrl && (
+            <p className="text-xs text-gray-600 mt-1">
+              Imagen actual cargada
+            </p>
+          )}
+        </div>
+
+        {/* Checkbox para variante principal */}
+        <div className="flex items-center mb-3">
+          <input
+            id="isPrimary"
+            name="isPrimary"
+            type="checkbox"
+            checked={variantInput.isPrimary}
+            onChange={(e) =>
+              setVariantInput({
+                ...variantInput,
+                isPrimary: e.target.checked,
+              })
+            }
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label
+            htmlFor="isPrimary"
+            className="ml-2 block text-sm text-gray-900"
+          >
+            Variante Principal (su imagen se mostrará como imagen del producto)
+          </label>
+        </div>
+
         <button
           type="button"
-          onClick={handleAddVariant}
-          className="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          onClick={handleAddOrUpdateVariant}
+          disabled={addVariant.isPending || updateVariant.isPending || uploadImage.isPending}
+          className="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {editingVariantIndex !== null ? "Update Variant" : "Add Variant"}
+          {addVariant.isPending || updateVariant.isPending || uploadImage.isPending
+            ? "Guardando..."
+            : editingVariantId
+            ? "Actualizar Variante"
+            : "Agregar Variante"}
         </button>
       </div>
 
       {/* Variants List */}
       <div className="space-y-2 max-h-96 overflow-y-auto">
-        {variants && variants.length > 0 ? (
-          variants.map((variant, index) => (
+        {initialVariants && initialVariants.length > 0 ? (
+          initialVariants.map((variant) => (
             <div
-              key={index}
-              className={`flex items-center justify-between p-3 bg-white border rounded-lg ${
-                editingVariantIndex === index
+              key={variant.id}
+              className={`flex items-start gap-3 p-3 bg-white border rounded-lg ${
+                editingVariantId === variant.id
                   ? "border-blue-400 bg-blue-50"
+                  : variant.isPrimary
+                  ? "border-indigo-400 bg-indigo-50"
                   : "border-gray-200"
               }`}
             >
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {variant.sku}
-                </p>
+              {/* Imagen de la variante */}
+              {variant.imageUrl && (
+                <img
+                  src={variant.imageUrl}
+                  alt={variant.sku}
+                  className="h-16 w-16 rounded-md object-cover flex-shrink-0"
+                />
+              )}
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-900">
+                    {variant.sku}
+                  </p>
+                  {variant.isPrimary && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-600 text-white">
+                      Principal
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500">
-                  {variant.size && `Talla: ${variant.size}`}
-                  {variant.size && variant.color && " • "}
-                  {variant.color && `Color: ${variant.color}`}
+                  {(() => {
+                    try {
+                      if (!variant.attributes) return null;
+                      const attrs = JSON.parse(variant.attributes);
+                      const parts = [];
+                      if (attrs.size) parts.push(`Talla: ${attrs.size}`);
+                      if (attrs.color) parts.push(`Color: ${attrs.color}`);
+                      return parts.join(" • ");
+                    } catch {
+                      return null;
+                    }
+                  })()}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   <span className="font-semibold">
-                    Cantidad: {variant.stock}
+                    Stock: {variant.stockQuantity}
                   </span>
                   {variant.price > 0 &&
-                    ` • Precio: $${(variant.price || 0).toFixed(2)}`}
+                    ` • Precio: $${variant.price.toFixed(2)}`}
+                  {` • Costo Prom: $${variant.averageCost.toFixed(2)}`}
                 </p>
               </div>
-              <div className="flex items-center gap-2 ml-2">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleEditVariant(index)}
+                  onClick={() => handleEditVariant(variant)}
                   className="text-indigo-600 hover:text-indigo-800"
-                  title="Edit variant"
+                  title="Editar variante"
                 >
                   <svg
                     className="h-5 w-5"
@@ -277,9 +454,10 @@ const VariantManager = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleRemoveVariant(index)}
-                  className="text-red-600 hover:text-red-800"
-                  title="Delete variant"
+                  onClick={() => handleDeleteVariant(variant.id)}
+                  disabled={deleteVariant.isPending}
+                  className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                  title="Eliminar variante"
                 >
                   <svg
                     className="h-5 w-5"
@@ -300,7 +478,7 @@ const VariantManager = ({
           ))
         ) : (
           <p className="text-sm text-gray-500 text-center py-4">
-            No variants added yet
+            No hay variantes agregadas aún
           </p>
         )}
       </div>

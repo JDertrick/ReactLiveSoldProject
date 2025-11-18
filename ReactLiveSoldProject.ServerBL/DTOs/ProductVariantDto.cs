@@ -10,6 +10,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public decimal AverageCost { get; set; }
         public string? Attributes { get; set; }
         public string? ImageUrl { get; set; }
+        public bool IsPrimary { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

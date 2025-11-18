@@ -104,3 +104,70 @@ export const useUploadProductImage = () => {
     },
   });
 };
+
+// Upload Variant Image
+export const useUploadVariantImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ variantId, image }: { variantId: string; image: File }) => {
+      const formData = new FormData();
+      formData.append('image', image);
+
+      const response = await apiClient.post(`/product/variants/${variantId}/image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};
+
+// Add Variant to Product
+export const useAddVariant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ productId, variant }: { productId: string; variant: CreateProductVariantDto }) => {
+      const response = await apiClient.post(`/product/${productId}/variants`, variant);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};
+
+// Update Variant
+export const useUpdateVariant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ variantId, variant }: { variantId: string; variant: CreateProductVariantDto }) => {
+      const response = await apiClient.put(`/product/variants/${variantId}`, variant);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};
+
+// Delete Variant
+export const useDeleteVariant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (variantId: string) => {
+      const response = await apiClient.delete(`/product/variants/${variantId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};

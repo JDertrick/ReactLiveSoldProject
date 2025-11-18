@@ -20,5 +20,10 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
 
         [MaxLength(500)]
         public string? ImageUrl { get; set; }
+
+        /// <summary>
+        /// Indica si esta es la variante principal del producto
+        /// </summary>
+        public bool IsPrimary { get; set; } = false;
     }
 }

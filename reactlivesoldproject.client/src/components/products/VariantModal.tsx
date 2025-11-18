@@ -4,26 +4,22 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import { ProductVariantDto } from "../../types/product.types";
+import { Product } from "../../types/product.types";
 import VariantManager from "./VariantManager";
 import React from "react";
 import { AlertDialogState } from "@/types/alertdialogstate.type";
 
 interface VariantModalProps {
   isOpen: boolean;
-  productName?: string;
-  variants: ProductVariantDto[];
+  product: Product | null;
   onClose: () => void;
-  onSaveVariants: (variants: ProductVariantDto[]) => void;
   customAlertDialog?: React.Dispatch<React.SetStateAction<AlertDialogState>>;
 }
 
 const VariantModal = ({
   isOpen,
-  productName = "Product",
-  variants,
+  product,
   onClose,
-  onSaveVariants,
 }: VariantModalProps) => {
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-20">
@@ -43,13 +39,15 @@ const VariantModal = ({
                 as="h3"
                 className="text-lg leading-6 font-medium text-gray-900 mb-4"
               >
-                Manage Variants - {productName}
+                Gestionar Variantes - {product?.name || "Producto"}
               </DialogTitle>
 
-              <VariantManager
-                variants={variants}
-                onVariantsChange={onSaveVariants}
-              />
+              {product && (
+                <VariantManager
+                  productId={product.id}
+                  initialVariants={product.variants || []}
+                />
+              )}
             </div>
 
             <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">

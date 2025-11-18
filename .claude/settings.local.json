@@ -28,7 +28,8 @@
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef migrations add AddCostTrackingAndPostingSystem --project ReactLiveSoldProject.ServerBL --startup-project ReactLiveSoldProject.Server)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef database update --project ReactLiveSoldProject.ServerBL --startup-project ReactLiveSoldProject.Server)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef migrations add AddWalletTransactionPostingSystem --project ../ReactLiveSoldProject.ServerBL --startup-project ReactLiveSoldProject.Server)",
-      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef migrations add AddWalletTransactionPostingSystem --project ReactLiveSoldProject.ServerBL --startup-project ReactLiveSoldProject.Server)"
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef migrations add AddWalletTransactionPostingSystem --project ReactLiveSoldProject.ServerBL --startup-project ReactLiveSoldProject.Server)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" ef migrations add AddIsPrimaryToProductVariant --project ReactLiveSoldProject.ServerBL --startup-project ReactLiveSoldProject.Server)"
     ],
     "deny": [],
     "ask": []

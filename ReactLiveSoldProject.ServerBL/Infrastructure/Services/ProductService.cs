@@ -78,35 +78,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (!Enum.TryParse<ProductType>(dto.ProductType, out var productType))
                     throw new InvalidOperationException($"Tipo de producto inválido: {dto.ProductType}");
 
-                // Verificar que los tags existan
-                if (dto.TagIds.Any())
-                {
-                    var existingTagIds = await _dbContext.Tags
-                        .Where(t => t.OrganizationId == organizationId && dto.TagIds.Contains(t.Id))
-                        .Select(t => t.Id)
-                        .ToListAsync();
-
-                    var invalidTagIds = dto.TagIds.Except(existingTagIds).ToList();
-                    if (invalidTagIds.Any())
-                        throw new InvalidOperationException($"Tags no encontrados: {string.Join(", ", invalidTagIds)}");
-                }
-
-                // Validar que haya al menos una variante
-                if (!dto.Variants.Any())
-                    throw new InvalidOperationException("El producto debe tener al menos una variante");
-
-                var variants = await _dbContext.Products.Where(p => p.OrganizationId == organizationId)
-                    .SelectMany(pv => pv.Variants)
-                    .ProjectTo<ProductVariantDto>(_mapper.ConfigurationProvider).ToListAsync();
-
-                // pasa los skus a un array[string]
-                var skusArray = variants.Select(v => v.Sku).ToHashSet();
-
-                bool variantRepeat = dto.Variants.Any(v => skusArray.Contains(v.Sku));
-
-                if (variantRepeat)
-                    throw new InvalidOperationException("El producto contiene SKUs que ya existen en el inventario.");
-
                 // Crear el producto
                 var productId = Guid.NewGuid();
 
@@ -117,34 +88,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 product.CategoryId = dto.CategoryId;
 
                 _dbContext.Products.Add(product);
-
-                // Crear las variantes usando AutoMapper
-                foreach (var variantDto in dto.Variants)
-                {
-                    var variant = _mapper.Map<ProductVariant>(variantDto);
-                    variant.Id = Guid.NewGuid();
-                    variant.OrganizationId = organizationId;
-                    variant.ProductId = productId;
-                    variant.CreatedAt = DateTime.UtcNow;
-                    variant.UpdatedAt = DateTime.UtcNow;
-
-                    // Parsear attributes para Size y Color
-                    ParseVariantAttributes(variant);
-
-                    _dbContext.ProductVariants.Add(variant);
-                }
-
-                // Asociar tags
-                foreach (var tagId in dto.TagIds)
-                {
-                    var productTag = new ProductTag
-                    {
-                        ProductId = productId,
-                        TagId = tagId
-                    };
-
-                    _dbContext.ProductTags.Add(productTag);
-                }
 
                 await _dbContext.SaveChangesAsync();
 
@@ -181,110 +124,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (!Enum.TryParse<ProductType>(dto.ProductType, out var productType))
                     throw new InvalidOperationException($"Tipo de producto inválido: {dto.ProductType}");
 
-                // Verificar que los tags existan
-                if (dto.TagIds.Any())
-                {
-                    var existingTagIds = await _dbContext.Tags
-                        .Where(t => t.OrganizationId == organizationId && dto.TagIds.Contains(t.Id))
-                        .Select(t => t.Id)
-                        .ToListAsync();
-
-                    var invalidTagIds = dto.TagIds.Except(existingTagIds).ToList();
-                    if (invalidTagIds.Any())
-                        throw new InvalidOperationException($"Tags no encontrados: {string.Join(", ", invalidTagIds)}");
-                }
-
                 // Actualizar campos
                 _mapper.Map(dto, product);
                 product.UpdatedAt = DateTime.UtcNow;
-
-                // Actualizar tags (eliminar existentes y agregar nuevos)
-                var existingProductTags = await _dbContext.ProductTags
-                    .Where(pt => pt.ProductId == productId)
-                    .ToListAsync();
-
-                _dbContext.ProductTags.RemoveRange(existingProductTags);
-
-                foreach (var tagId in dto.TagIds)
-                {
-                    var productTag = new ProductTag
-                    {
-                        ProductId = productId,
-                        TagId = tagId
-                    };
-
-                    _dbContext.ProductTags.Add(productTag);
-                }
-
-                // Valida si existe algun SKU
-                var dtoVariants = dto.Variants;
-                var variants = await _dbContext.Products.Where(p => p.OrganizationId == organizationId)
-                    .SelectMany(pv => pv.Variants)
-                    .ProjectTo<ProductVariantDto>(_mapper.ConfigurationProvider).ToListAsync();
-
-                // pasa los skus a un array[string]
-                var skusArray = variants.Select(v => v.Sku).ToHashSet();
-
-                bool variantRepeat = dtoVariants
-                    .Where(v => v.Id == Guid.Empty)
-                    .Any(v => skusArray.Contains(v.Sku));
-
-                if (variantRepeat)
-                    throw new InvalidOperationException("El producto contiene SKUs que ya existen en el inventario.");
-
-                // Actualizar variantes si se proporcionaron
-                if (dto.Variants != null)
-                {
-                    var dbVariants = product.Variants;
-
-                    var dtoVariantIds = dtoVariants
-                        .Where(v => v.Id != Guid.Empty)
-                        .Select(v => v.Id)
-                        .ToHashSet();
-
-                    var variantsToDelete = dbVariants
-                        .Where(v => !dtoVariantIds.Contains(v.Id));
-
-                    if (variantsToDelete.Any())
-                    {
-                        foreach (var variantToDelete in variantsToDelete)
-                        {
-                            var hasOrderItem = await _dbContext.ProductVariants
-                                .Where(pv => pv.Id == variantToDelete.Id)
-                                .AnyAsync(pv => pv.SalesOrderItems.Any());
-
-                            if (hasOrderItem)
-                            {
-                                throw new InvalidOperationException("No se puede eliminar el producto porque tiene items en órdenes de venta.");
-                            }
-                        }
-                        _dbContext.RemoveRange(variantsToDelete);
-                    }
-
-                    foreach (var variantDto in dtoVariants)
-                    {
-                        if (variantDto.Id == Guid.Empty)
-                        {
-                            var newVariant = _mapper.Map<ProductVariant>(variantDto);
-                            newVariant.OrganizationId = organizationId;
-                            newVariant.UpdatedAt = DateTime.UtcNow;
-                            ParseVariantAttributes(newVariant);
-
-                            product.Variants.Add(newVariant);
-                        }
-                        else
-                        {
-                            var existingVariant = dbVariants.FirstOrDefault(dbv => dbv.Id == variantDto.Id);
-
-                            if (existingVariant != null)
-                            {
-                                _mapper.Map(variantDto, existingVariant);
-                                existingVariant.UpdatedAt = DateTime.UtcNow;
-                                ParseVariantAttributes(existingVariant);
-                            }
-                        }
-                    }
-                }
 
                 await _dbContext.SaveChangesAsync();
 
@@ -295,11 +137,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     await _dbContext.Entry(tagLink).Reference(pt => pt.Tag).LoadAsync();
                 }
 
-                // Recargar variantes si se actualizaron
-                if (dto.Variants != null)
-                {
-                    await _dbContext.Entry(product).Collection(p => p.Variants).LoadAsync();
-                }
+                await _dbContext.Entry(product).Collection(p => p.Variants).LoadAsync();
 
                 return _mapper.Map<ProductDto>(product);
             }
@@ -381,6 +219,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         public async Task<ProductVariantDto> AddVariantAsync(Guid productId, Guid organizationId, CreateProductVariantDto dto)
         {
             var product = await _dbContext.Products
+                .Include(p => p.Variants)
                 .FirstOrDefaultAsync(p => p.Id == productId && p.OrganizationId == organizationId);
 
             if (product == null)
@@ -396,6 +235,16 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new InvalidOperationException("Ya existe una variante con este SKU en la organización");
             }
 
+            // Si esta variante se marca como principal, quitar el flag de las demás
+            if (dto.IsPrimary)
+            {
+                var currentPrimary = product.Variants.FirstOrDefault(v => v.IsPrimary);
+                if (currentPrimary != null)
+                {
+                    currentPrimary.IsPrimary = false;
+                }
+            }
+
             var variant = new ProductVariant
             {
                 Id = Guid.NewGuid(),
@@ -406,11 +255,22 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 StockQuantity = dto.StockQuantity,
                 Attributes = dto.Attributes,
                 ImageUrl = dto.ImageUrl,
+                IsPrimary = dto.IsPrimary,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
+            // Parsear attributes para Size y Color
+            ParseVariantAttributes(variant);
+
             _dbContext.ProductVariants.Add(variant);
+
+            // Si es la variante principal, actualizar la imagen del producto
+            if (variant.IsPrimary && !string.IsNullOrEmpty(variant.ImageUrl))
+            {
+                product.ImageUrl = variant.ImageUrl;
+            }
+
             await _dbContext.SaveChangesAsync();
 
             return new ProductVariantDto
@@ -420,8 +280,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Sku = variant.Sku,
                 Price = variant.Price,
                 StockQuantity = variant.StockQuantity,
+                AverageCost = variant.AverageCost,
                 Attributes = variant.Attributes,
                 ImageUrl = variant.ImageUrl,
+                IsPrimary = variant.IsPrimary,
                 CreatedAt = variant.CreatedAt,
                 UpdatedAt = variant.UpdatedAt
             };
@@ -430,6 +292,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         public async Task<ProductVariantDto> UpdateVariantAsync(Guid variantId, Guid organizationId, CreateProductVariantDto dto)
         {
             var variant = await _dbContext.ProductVariants
+                .Include(pv => pv.Product)
+                    .ThenInclude(p => p.Variants)
                 .FirstOrDefaultAsync(pv => pv.Id == variantId && pv.OrganizationId == organizationId);
 
             if (variant == null)
@@ -445,12 +309,39 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new InvalidOperationException("Ya existe otra variante con este SKU en la organización");
             }
 
+            // Si esta variante se marca como principal, quitar el flag de las demás
+            if (dto.IsPrimary && !variant.IsPrimary)
+            {
+                var currentPrimary = variant.Product.Variants.FirstOrDefault(v => v.IsPrimary && v.Id != variantId);
+                if (currentPrimary != null)
+                {
+                    currentPrimary.IsPrimary = false;
+                }
+            }
+
             variant.Sku = dto.Sku;
             variant.Price = dto.Price;
             variant.StockQuantity = dto.StockQuantity;
             variant.Attributes = dto.Attributes;
             variant.ImageUrl = dto.ImageUrl;
+            variant.IsPrimary = dto.IsPrimary;
             variant.UpdatedAt = DateTime.UtcNow;
+
+            // Parsear attributes para Size y Color
+            ParseVariantAttributes(variant);
+
+            // Si es la variante principal, actualizar la imagen del producto
+            if (variant.IsPrimary && !string.IsNullOrEmpty(variant.ImageUrl))
+            {
+                variant.Product.ImageUrl = variant.ImageUrl;
+            }
+            // Si dejó de ser la variante principal, limpiar la imagen del producto si era la misma
+            else if (!variant.IsPrimary && variant.Product.ImageUrl == variant.ImageUrl)
+            {
+                // Buscar si hay otra variante principal
+                var newPrimary = variant.Product.Variants.FirstOrDefault(v => v.IsPrimary && v.Id != variantId);
+                variant.Product.ImageUrl = newPrimary?.ImageUrl;
+            }
 
             await _dbContext.SaveChangesAsync();
 
@@ -461,8 +352,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Sku = variant.Sku,
                 Price = variant.Price,
                 StockQuantity = variant.StockQuantity,
+                AverageCost = variant.AverageCost,
                 Attributes = variant.Attributes,
                 ImageUrl = variant.ImageUrl,
+                IsPrimary = variant.IsPrimary,
                 CreatedAt = variant.CreatedAt,
                 UpdatedAt = variant.UpdatedAt
             };
@@ -472,17 +365,11 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var variant = await _dbContext.ProductVariants
                 .Include(pv => pv.Product)
+                    .ThenInclude(p => p.Variants)
                 .FirstOrDefaultAsync(pv => pv.Id == variantId && pv.OrganizationId == organizationId);
 
             if (variant == null)
                 throw new KeyNotFoundException("Variante no encontrada");
-
-            // Verificar que no sea la última variante del producto
-            var variantCount = await _dbContext.ProductVariants
-                .CountAsync(pv => pv.ProductId == variant.ProductId);
-
-            if (variantCount <= 1)
-                throw new InvalidOperationException("No se puede eliminar la última variante del producto");
 
             // Verificar si tiene items en órdenes
             var hasOrderItems = await _dbContext.SalesOrderItems
@@ -492,6 +379,21 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 throw new InvalidOperationException(
                     "No se puede eliminar la variante porque tiene items en órdenes de venta.");
+            }
+
+            // Si era la variante principal, asignar otra como principal o limpiar la imagen del producto
+            if (variant.IsPrimary)
+            {
+                var otherVariant = variant.Product.Variants.FirstOrDefault(v => v.Id != variantId);
+                if (otherVariant != null)
+                {
+                    otherVariant.IsPrimary = true;
+                    variant.Product.ImageUrl = otherVariant.ImageUrl;
+                }
+                else
+                {
+                    variant.Product.ImageUrl = null;
+                }
             }
 
             _dbContext.ProductVariants.Remove(variant);

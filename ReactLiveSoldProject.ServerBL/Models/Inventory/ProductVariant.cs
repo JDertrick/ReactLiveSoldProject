@@ -42,6 +42,13 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         public string? Color { get; set; }
 
         /// <summary>
+        /// Indica si esta es la variante principal del producto.
+        /// La imagen de la variante principal se mostrará como imagen del producto.
+        /// Solo puede haber una variante principal por producto.
+        /// </summary>
+        public bool IsPrimary { get; set; } = false;
+
+        /// <summary>
         /// Costo promedio ponderado del producto (Weighted Average Cost)
         /// Se actualiza automáticamente con cada movimiento de entrada que tiene costo
         /// </summary>

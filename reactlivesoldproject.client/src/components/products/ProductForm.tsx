@@ -1,27 +1,19 @@
 import React from "react";
 import { CreateProductDto, UpdateProductDto } from "../../types/product.types";
-import { TagDto } from "../../types/product.types";
 import { useCategories } from "../../hooks/useCategories";
-import { ImageUpload } from "@/components/ui/image-upload";
 
 interface ProductFormProps {
   formData: CreateProductDto | UpdateProductDto;
-  tags: TagDto[] | undefined;
   onFormChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => void;
-  onTagToggle: (tagId: string) => void;
-  onImageSelect?: (file: File) => void;
 }
 
 const ProductForm = ({
   formData,
-  tags,
   onFormChange,
-  onTagToggle,
-  onImageSelect,
 }: ProductFormProps) => {
   const { categories, isLoading: isLoadingCategories } = useCategories();
   console.log(formData);
@@ -96,15 +88,6 @@ const ProductForm = ({
         />
       </div>
 
-      <div>
-        <ImageUpload
-          label="Imagen del Producto"
-          currentImageUrl={formData.imageUrl}
-          onImageSelect={(file) => onImageSelect?.(file)}
-          maxSizeMB={5}
-        />
-      </div>
-
       {/* Category Dropdown */}
       <div>
         <label
@@ -142,31 +125,6 @@ const ProductForm = ({
           Publicado (visible para los clientes)
         </label>
       </div>
-
-      {/* Tags */}
-      {tags && tags.length > 0 && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Etiquetas
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <button
-                key={tag.id}
-                type="button"
-                onClick={() => onTagToggle(tag.id)}
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  (formData.tagIds || []).includes(tag.id)
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                {tag.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

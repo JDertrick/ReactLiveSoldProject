@@ -52,7 +52,6 @@ const ProductsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [variants, setVariants] = useState<ProductVariantDto[]>([]);
 
   // Helper: Convertir ProductVariant (backend) a ProductVariantDto (formulario)
   const convertToVariantDto = (variant: ProductVariant): ProductVariantDto => ({
@@ -107,27 +106,17 @@ const ProductsPage = () => {
 
   const handleOpenModal = (product?: Product) => {
     setEditingProduct(product || null);
-    const convertedVariants = product?.variants?.map(convertToVariantDto) || [];
-    setVariants(convertedVariants);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
-    setVariants([]);
-  };
-
-  const handleOpenVariantModal = () => {
-    setIsVariantModalOpen(true);
   };
 
   const handleCloseVariantModal = () => {
     setIsVariantModalOpen(false);
-  };
-
-  const handleVariantsChange = (newVariants: ProductVariantDto[]) => {
-    setVariants(newVariants);
+    setEditingProduct(null);
   };
 
   const handleSubmit = async (
@@ -136,23 +125,12 @@ const ProductsPage = () => {
   ) => {
     try {
       if (isEditing && editingProduct) {
-        // Actualizar producto con variantes
-        const updateData: UpdateProductDto = {
-          ...(data as UpdateProductDto),
-          variants: variants.map(convertToUpdateVariantDto),
-        };
-
         await updateProduct.mutateAsync({
           id: editingProduct.id,
-          data: updateData,
+          data: data as UpdateProductDto,
         });
       } else {
-        // Crear producto nuevo con variantes
-        const createData: CreateProductDto = {
-          ...(data as CreateProductDto),
-          variants: variants.map(convertToCreateVariantDto),
-        };
-        await createProduct.mutateAsync(createData);
+        await createProduct.mutateAsync(data as CreateProductDto);
       }
       handleCloseModal();
     } catch (error: any) {
@@ -265,10 +243,21 @@ const ProductsPage = () => {
                               product.variants.map((variant) => (
                                 <div
                                   key={variant.id}
-                                  className="text-sm border-l-2 border-blue-400 pl-2 py-1"
+                                  className={`text-sm border-l-2 ${
+                                    variant.isPrimary
+                                      ? "border-indigo-600 bg-indigo-50"
+                                      : "border-blue-400"
+                                  } pl-2 py-1`}
                                 >
-                                  <div className="font-medium text-gray-900">
-                                    {variant.sku}
+                                  <div className="flex items-center gap-2">
+                                    <div className="font-medium text-gray-900">
+                                      {variant.sku}
+                                    </div>
+                                    {variant.isPrimary && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-indigo-600 text-white">
+                                        Principal
+                                      </span>
+                                    )}
                                   </div>
                                   <div className="flex gap-3 mt-1 text-xs">
                                     <span className="text-gray-600">
@@ -365,13 +354,25 @@ const ProductsPage = () => {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenModal(product)}
-                          >
-                            Editar
-                          </Button>
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenModal(product)}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingProduct(product);
+                                setIsVariantModalOpen(true);
+                              }}
+                            >
+                              Variantes
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -516,7 +517,7 @@ const ProductsPage = () => {
                     )}
 
                     {/* Actions */}
-                    <div className="border-t pt-3">
+                    <div className="border-t pt-3 space-y-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -524,6 +525,17 @@ const ProductsPage = () => {
                         onClick={() => handleOpenModal(product)}
                       >
                         Editar Producto
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setIsVariantModalOpen(true);
+                        }}
+                      >
+                        Gestionar Variantes
                       </Button>
                     </div>
                   </div>
@@ -542,12 +554,9 @@ const ProductsPage = () => {
       <ProductFormModal
         isOpen={isModalOpen}
         editingProduct={editingProduct}
-        tags={tags}
-        variants={variants}
         isLoading={createProduct.isPending || updateProduct.isPending}
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
-        onOpenVariantModal={handleOpenVariantModal}
       />
 
       {/* Dialog */}
@@ -561,10 +570,8 @@ const ProductsPage = () => {
       {/* Variant Management Modal */}
       <VariantModal
         isOpen={isVariantModalOpen}
-        productName={editingProduct?.name || "Nuevo Producto"}
-        variants={variants}
+        product={editingProduct}
         onClose={handleCloseVariantModal}
-        onSaveVariants={handleVariantsChange}
         customAlertDialog={setAlertDialog}
       />
     </div>

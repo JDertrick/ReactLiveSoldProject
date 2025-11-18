@@ -19,15 +19,5 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public decimal BasePrice { get; set; } = 0.00m;
 
         public Guid? CategoryId { get; set; }
-
-        /// <summary>
-        /// Lista de IDs de tags a asociar con el producto
-        /// </summary>
-        public List<Guid> TagIds { get; set; } = new();
-
-        /// <summary>
-        /// Lista de variantes del producto
-        /// </summary>
-        public List<CreateProductVariantDto> Variants { get; set; } = new();
     }
 }
