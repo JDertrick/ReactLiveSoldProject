@@ -41,9 +41,7 @@ const LocationListPage = () => {
   } = useLocations();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<Location | null>(
-    null
-  );
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -115,14 +113,32 @@ const LocationListPage = () => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Bodegas</h1>
-        <Button onClick={() => handleOpenModal()}>Agregar bodega</Button>
+    <div className="space-py-6">
+      <div className="flex justify-between items-center pb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Bodegas</h1>
+          <p className="text-muted-foreground mt-1">Gestiona tus bodegas</p>
+        </div>
+        <Button onClick={() => handleOpenModal()} size="lg" className="gap-2">
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          Agregar bodega
+        </Button>
       </div>
 
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader>
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>Lista de almacenes</CardTitle>
@@ -167,7 +183,9 @@ const LocationListPage = () => {
                                 ¿Estás completamente seguro?
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Esta acción no se puede deshacer. Esto eliminará permanentemente la ubicación y eliminará sus datos de nuestros servidores.
+                                Esta acción no se puede deshacer. Esto eliminará
+                                permanentemente la ubicación y eliminará sus
+                                datos de nuestros servidores.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

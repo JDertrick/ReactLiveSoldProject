@@ -113,7 +113,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Where(pv => pv.OrganizationId == organizationId)
                 .ProjectTo<VariantProductDto>(_mapper.ConfigurationProvider);
 
-            if (!string.IsNullOrEmpty(status))
+            if (!string.IsNullOrEmpty(status) && string.Compare(status, "all", StringComparison.OrdinalIgnoreCase) != 0)
             {
                 var isPublished = status.Equals("published", StringComparison.OrdinalIgnoreCase);
                 query = query.Where(pv => pv.Product.IsPublished == isPublished);
@@ -154,13 +154,6 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             }
 
             return query;
-        }
-
-        private VariantProductDto MapVariantToDto(ProductVariant variant)
-        {
-            var dto = _mapper.Map<VariantProductDto>(variant);
-            dto.Stock = variant.StockQuantity;
-            return dto;
         }
 
         private VariantProductDto MapProductToDto(Product product)
