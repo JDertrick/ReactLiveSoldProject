@@ -3,6 +3,7 @@ import { ProductVariant } from "../../types/product.types";
 import { CustomAlertDialog } from "../common/AlertDialog";
 import { ImageUpload } from "@/components/ui/image-upload";
 import {
+  useGetProduct,
   useAddVariant,
   useUpdateVariant,
   useDeleteVariant,
@@ -11,13 +12,14 @@ import {
 
 interface VariantManagerProps {
   productId: string;
-  initialVariants: ProductVariant[];
 }
 
 const VariantManager = ({
   productId,
-  initialVariants,
 }: VariantManagerProps) => {
+  // Obtener datos frescos del producto
+  const { data: product, isLoading: isLoadingProduct } = useGetProduct(productId);
+  const variants = product?.variants || [];
   const [variantInput, setVariantInput] = useState({
     sku: "",
     size: "",
@@ -30,6 +32,7 @@ const VariantManager = ({
 
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
+  const [imageUploadKey, setImageUploadKey] = useState<number>(0);
 
   // Mutations
   const addVariant = useAddVariant();
@@ -71,44 +74,47 @@ const VariantManager = ({
         sku: variantInput.sku,
         price,
         stockQuantity: stock,
-        attributes: Object.keys(attributes).length > 0 ? JSON.stringify(attributes) : undefined,
+        attributes:
+          Object.keys(attributes).length > 0
+            ? JSON.stringify(attributes)
+            : undefined,
         isPrimary: variantInput.isPrimary,
       };
 
-              if (editingVariantId) {
-                // Actualizar variante existente
-                await updateVariant.mutateAsync({
-                  variantId: editingVariantId,
-                  variant: variantData,
-                });
-      
-                // Si hay una imagen seleccionada, subirla
-                if (selectedImage) {
-                  await uploadImage.mutateAsync({
-                    variantId: editingVariantId,
-                    image: selectedImage,
-                  });
-                }
-      
-                setAlertDialog({
-                  open: true,
-                  title: "Éxito",
-                  description: "Variante actualizada correctamente",
-                });
-              } else {
-                // Crear nueva variante
-                const result = await addVariant.mutateAsync({
-                  productId,
-                  variant: variantData,
-                });
-      
-                // Si hay una imagen seleccionada y se creó la variante, subirla
-                if (selectedImage && result.id) {
-                  await uploadImage.mutateAsync({
-                    variantId: result.id,
-                    image: selectedImage,
-                  });
-                }
+      if (editingVariantId) {
+        // Actualizar variante existente
+        await updateVariant.mutateAsync({
+          variantId: editingVariantId,
+          variant: variantData,
+        });
+
+        // Si hay una imagen seleccionada, subirla
+        if (selectedImage) {
+          await uploadImage.mutateAsync({
+            variantId: editingVariantId,
+            image: selectedImage,
+          });
+        }
+
+        setAlertDialog({
+          open: true,
+          title: "Éxito",
+          description: "Variante actualizada correctamente",
+        });
+      } else {
+        // Crear nueva variante
+        const result = await addVariant.mutateAsync({
+          productId,
+          variant: variantData,
+        });
+
+        // Si hay una imagen seleccionada y se creó la variante, subirla
+        if (selectedImage && result.id) {
+          await uploadImage.mutateAsync({
+            variantId: result.id,
+            image: selectedImage,
+          });
+        }
         setAlertDialog({
           open: true,
           title: "Éxito",
@@ -128,11 +134,13 @@ const VariantManager = ({
       });
       setSelectedImage(null);
       setEditingVariantId(null);
+      setImageUploadKey((prev) => prev + 1); // Forzar remontaje del ImageUpload
     } catch (error: any) {
       setAlertDialog({
         open: true,
         title: "Error",
-        description: error?.response?.data?.message || "Error al guardar la variante",
+        description:
+          error?.response?.data?.message || "Error al guardar la variante",
       });
     }
   };
@@ -162,6 +170,7 @@ const VariantManager = ({
     });
     setSelectedImage(null); // Limpiar imagen seleccionada
     setEditingVariantId(variant.id);
+    setImageUploadKey((prev) => prev + 1); // Forzar remontaje del ImageUpload
   };
 
   const handleCancelEdit = () => {
@@ -176,6 +185,7 @@ const VariantManager = ({
     });
     setSelectedImage(null);
     setEditingVariantId(null);
+    setImageUploadKey((prev) => prev + 1); // Forzar remontaje del ImageUpload
   };
 
   const handleDeleteVariant = async (variantId: string) => {
@@ -194,7 +204,8 @@ const VariantManager = ({
       setAlertDialog({
         open: true,
         title: "Error",
-        description: error?.response?.data?.message || "Error al eliminar la variante",
+        description:
+          error?.response?.data?.message || "Error al eliminar la variante",
       });
     }
   };
@@ -319,6 +330,7 @@ const VariantManager = ({
         {/* Imagen de la variante */}
         <div className="mb-3">
           <ImageUpload
+            key={imageUploadKey}
             label="Imagen de la Variante"
             currentImageUrl={variantInput.imageUrl}
             onImageSelect={handleImageSelect}
@@ -330,9 +342,7 @@ const VariantManager = ({
             </p>
           )}
           {!selectedImage && variantInput.imageUrl && (
-            <p className="text-xs text-gray-600 mt-1">
-              Imagen actual cargada
-            </p>
+            <p className="text-xs text-gray-600 mt-1">Imagen actual cargada</p>
           )}
         </div>
 
@@ -362,10 +372,16 @@ const VariantManager = ({
         <button
           type="button"
           onClick={handleAddOrUpdateVariant}
-          disabled={addVariant.isPending || updateVariant.isPending || uploadImage.isPending}
+          disabled={
+            addVariant.isPending ||
+            updateVariant.isPending ||
+            uploadImage.isPending
+          }
           className="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {addVariant.isPending || updateVariant.isPending || uploadImage.isPending
+          {addVariant.isPending ||
+          updateVariant.isPending ||
+          uploadImage.isPending
             ? "Guardando..."
             : editingVariantId
             ? "Actualizar Variante"
@@ -375,8 +391,12 @@ const VariantManager = ({
 
       {/* Variants List */}
       <div className="space-y-2 max-h-96 overflow-y-auto">
-        {initialVariants && initialVariants.length > 0 ? (
-          initialVariants.map((variant) => (
+        {isLoadingProduct ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          </div>
+        ) : variants && variants.length > 0 ? (
+          variants.map((variant) => (
             <div
               key={variant.id}
               className={`flex items-start gap-3 p-3 bg-white border rounded-lg ${

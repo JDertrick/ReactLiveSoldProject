@@ -367,33 +367,13 @@ namespace ReactLiveSoldProject.Server.Controllers
                     return BadRequest(new { message = "El archivo no es una imagen válida o excede el tamaño máximo permitido (5 MB)" });
 
                 // Guardar la nueva imagen
-                // var imageUrl = await _fileService.SaveProductImageAsync(image, organizationId.Value, variantId);
+                var imageUrl = await _fileService.SaveProductImageAsync(image, organizationId.Value, variantId);
 
-                // // Actualizar la variante con la nueva URL de imagen
-                // // Necesitamos obtener la variante actual primero
-                // var productsResult = await _productService.GetProductsAsync(organizationId.Value, 1, 9999, null, null);
-                // var variant = productsResult.Items
-                //     .SelectMany(p => p.Variants)
-                //     .FirstOrDefault(v => v.Id == variantId);
-
-                // if (variant == null)
-                //     return NotFound(new { message = "Variante no encontrada" });
-
-                // var updateDto = new CreateProductVariantDto
-                // {
-                //     Sku = variant.Sku,
-                //     Price = variant.Price,
-                //     StockQuantity = variant.StockQuantity,
-                //     Attributes = variant.Attributes,
-                //     ImageUrl = imageUrl,
-                //     IsPrimary = variant.IsPrimary
-                // };
-
-                // var updatedVariant = await _productService.UpdateVariantAsync(variantId, organizationId.Value, updateDto);
+                // Actualizar la variante con la nueva URL de imagen
+                var updatedVariant = await _productService.UpdateVariantImageAsync(variantId, organizationId.Value, imageUrl);
 
                 _logger.LogInformation("Image uploaded successfully for variant {VariantId}", variantId);
-                return Ok();
-                // return Ok(updatedVariant);
+                return Ok(updatedVariant);
             }
             catch (KeyNotFoundException ex)
             {

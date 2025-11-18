@@ -33,7 +33,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 const ProductsPage = () => {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -177,66 +177,91 @@ const ProductsPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : variantProducts && variantProducts.length > 0 ? (
-                  variantProducts.map((variant) => (
-                    <TableRow key={variant.id}>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={
-                              getImageUrl(variant.imageUrl) ||
-                              "/placeholder.svg"
-                            }
-                            alt={variant.productName}
-                            className="h-10 w-10 rounded-md object-cover"
-                          />
-                          <div>
-                            <div className="font-medium">
-                              {variant.productName}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {variant.productDescription}
+                  variantProducts.map((variant) => {
+                    const hasNoVariants =
+                      variant.id === "00000000-0000-0000-0000-000000000000";
+                    return (
+                      <TableRow key={`${variant.productId}-${variant.id}`}>
+                        <TableCell>
+                          <Checkbox />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={
+                                getImageUrl(variant.imageUrl) ||
+                                "/placeholder.svg"
+                              }
+                              alt={variant.productName}
+                              className="h-10 w-10 rounded-md object-cover"
+                            />
+                            <div>
+                              <div className="font-medium">
+                                {variant.productName}
+                                {hasNoVariants && (
+                                  <span className="ml-2 text-xs text-orange-600">
+                                    (Sin variantes)
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {variant.productDescription}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{variant.sku}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            variant.isPublished ? "default" : "secondary"
-                          }
-                        >
-                          {variant.isPublished ? "Publicado" : "Borrador"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{variant.stock}</TableCell>
-                      <TableCell>${(variant.price || 0).toFixed(2)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenModal(variant.product)}
+                        </TableCell>
+                        <TableCell>
+                          {hasNoVariants ? (
+                            <span className="text-gray-400 text-sm">-</span>
+                          ) : (
+                            variant.sku
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              variant.isPublished ? "default" : "secondary"
+                            }
                           >
-                            Editar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingProduct(variant.product);
-                              setIsVariantModalOpen(true);
-                            }}
-                          >
-                            Variantes
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                            {variant.isPublished ? "Publicado" : "Borrador"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {hasNoVariants ? (
+                            <span className="text-gray-400 text-sm">-</span>
+                          ) : (
+                            variant.stock
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          ${(variant.price || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenModal(variant.product)}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              variant={hasNoVariants ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => {
+                                setEditingProduct(variant.product);
+                                setIsVariantModalOpen(true);
+                              }}
+                            >
+                              {hasNoVariants
+                                ? "Agregar variantes"
+                                : "Variantes"}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell

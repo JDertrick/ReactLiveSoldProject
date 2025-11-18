@@ -78,45 +78,127 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             try
             {
-                var query = _dbContext.ProductVariants
-                    .Include(pv => pv.Product)
-                    .Where(pv => pv.OrganizationId == organizationId)
-                    .ProjectTo<VariantProductDto>(_mapper.ConfigurationProvider);
+                // Obtener variantes
+                var variantsQuery = BuildVariantsQuery(organizationId, status, searchTerm);
+                var variantDtos = await variantsQuery.OrderByDescending(pv => pv.CreatedAt).ToListAsync();
 
-                if (!string.IsNullOrEmpty(status))
-                {
-                    if (status.Equals("published", StringComparison.OrdinalIgnoreCase))
-                    {
-                        query = query.Where(p => p.IsPublished);
-                    }
-                    else if (status.Equals("draft", StringComparison.OrdinalIgnoreCase))
-                    {
-                        query = query.Where(p => !p.IsPublished);
-                    }
-                }
+                // Obtener productos sin variantes
+                var productsQuery = BuildProductsWithoutVariantsQuery(organizationId, status, searchTerm);
+                var productsWithoutVariants = await productsQuery.OrderByDescending(p => p.CreatedAt).ToListAsync();
 
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    var normalizedSearchTerm = searchTerm.ToLower().Trim();
-                    query = query.Where(p =>
-                        p.ProductName.ToLower().Contains(normalizedSearchTerm) ||
-                        (p.ProductDescription != null && p.ProductDescription.ToLower().Contains(normalizedSearchTerm)) ||
-                        (p.Sku != null && p.Sku.ToLower().Contains(normalizedSearchTerm))
-                    );
-                }
+                // // Convertir a DTOs y combinar
+                // var variantDtos = variants.Select(MapVariantToDto).ToList();
+                var productDtos = productsWithoutVariants.Select(MapProductToDto).ToList();
+                var combinedResults = variantDtos.Concat(productDtos).OrderByDescending(r => r.CreatedAt).ToList();
 
-                var totalItems = await query.CountAsync();
-                var productDtos = await query
-                    .OrderByDescending(p => p.ProductName)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
+                // Paginar
+                var totalItems = combinedResults.Count;
+                var pagedResults = combinedResults.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-                return new PagedResult<VariantProductDto>(productDtos, totalItems, page, pageSize);
+                // Cargar Product completo para items paginados
+                await LoadFullProductDetails(pagedResults);
+
+                return new PagedResult<VariantProductDto>(pagedResults, totalItems, page, pageSize);
             }
             catch (Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        private IQueryable<VariantProductDto> BuildVariantsQuery(Guid organizationId, string? status, string? searchTerm)
+        {
+            var query = _dbContext.ProductVariants
+                .Include(pv => pv.Product)
+                .Where(pv => pv.OrganizationId == organizationId)
+                .ProjectTo<VariantProductDto>(_mapper.ConfigurationProvider);
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                var isPublished = status.Equals("published", StringComparison.OrdinalIgnoreCase);
+                query = query.Where(pv => pv.Product.IsPublished == isPublished);
+            }
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var term = searchTerm.ToLower().Trim();
+                query = query.Where(pv =>
+                    pv.Product.Name.ToLower().Contains(term) ||
+                    (pv.Product.Description != null && pv.Product.Description.ToLower().Contains(term)) ||
+                    (pv.Sku != null && pv.Sku.ToLower().Contains(term))
+                );
+            }
+
+            return query;
+        }
+
+        private IQueryable<Product> BuildProductsWithoutVariantsQuery(Guid organizationId, string? status, string? searchTerm)
+        {
+            var query = _dbContext.Products
+                .Include(p => p.Variants)
+                .Where(p => p.OrganizationId == organizationId && !p.Variants.Any());
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                var isPublished = status.Equals("published", StringComparison.OrdinalIgnoreCase);
+                query = query.Where(p => p.IsPublished == isPublished);
+            }
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var term = searchTerm.ToLower().Trim();
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(term) ||
+                    (p.Description != null && p.Description.ToLower().Contains(term))
+                );
+            }
+
+            return query;
+        }
+
+        private VariantProductDto MapVariantToDto(ProductVariant variant)
+        {
+            var dto = _mapper.Map<VariantProductDto>(variant);
+            dto.Stock = variant.StockQuantity;
+            return dto;
+        }
+
+        private VariantProductDto MapProductToDto(Product product)
+        {
+            return new VariantProductDto
+            {
+                Id = Guid.Empty,
+                ProductId = product.Id,
+                ProductName = product.Name,
+                ProductDescription = product.Description,
+                Sku = "",
+                Price = product.BasePrice,
+                StockQuantity = 0,
+                Stock = 0,
+                AverageCost = 0,
+                ImageUrl = product.ImageUrl,
+                IsPublished = product.IsPublished,
+                ProductType = product.ProductType.ToString(),
+                CreatedAt = product.CreatedAt,
+                UpdatedAt = product.UpdatedAt
+            };
+        }
+
+        private async Task LoadFullProductDetails(List<VariantProductDto> results)
+        {
+            var productIds = results.Select(r => r.ProductId).Distinct().ToList();
+            var products = await _dbContext.Products
+                .Include(p => p.Variants)
+                .Include(p => p.TagLinks).ThenInclude(pt => pt.Tag)
+                .Include(p => p.Category)
+                .Where(p => productIds.Contains(p.Id))
+                .ToListAsync();
+
+            foreach (var dto in results)
+            {
+                var product = products.FirstOrDefault(p => p.Id == dto.ProductId);
+                if (product != null)
+                    dto.Product = _mapper.Map<ProductDto>(product);
             }
         }
 
@@ -441,6 +523,30 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 CreatedAt = variant.CreatedAt,
                 UpdatedAt = variant.UpdatedAt
             };
+        }
+
+        public async Task<ProductVariantDto> UpdateVariantImageAsync(Guid variantId, Guid organizationId, string imageUrl)
+        {
+            var variant = await _dbContext.ProductVariants
+                .Include(pv => pv.Product)
+                    .ThenInclude(p => p.Variants)
+                .FirstOrDefaultAsync(pv => pv.Id == variantId && pv.OrganizationId == organizationId);
+
+            if (variant == null)
+                throw new KeyNotFoundException("Variante no encontrada");
+
+            variant.ImageUrl = imageUrl;
+            variant.UpdatedAt = DateTime.UtcNow;
+
+            // Si es la variante principal, actualizar la imagen del producto
+            if (variant.IsPrimary)
+            {
+                variant.Product.ImageUrl = imageUrl;
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            return _mapper.Map<ProductVariantDto>(variant);
         }
 
         public async Task DeleteVariantAsync(Guid variantId, Guid organizationId)

@@ -62,6 +62,11 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         Task<ProductVariantDto> UpdateVariantAsync(Guid variantId, Guid organizationId, CreateProductVariantDto dto);
 
         /// <summary>
+        /// Actualiza solo la imagen de una variante
+        /// </summary>
+        Task<ProductVariantDto> UpdateVariantImageAsync(Guid variantId, Guid organizationId, string imageUrl);
+
+        /// <summary>
         /// Elimina una variante (solo si no tiene items en órdenes)
         /// </summary>
         Task DeleteVariantAsync(Guid variantId, Guid organizationId);

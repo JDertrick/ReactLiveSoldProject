@@ -23,6 +23,19 @@ export const useGetProducts = (page: number, pageSize: number, status: string, s
   });
 };
 
+// Get Single Product by ID
+export const useGetProduct = (productId: string | null) => {
+  return useQuery({
+    queryKey: ['product', productId],
+    queryFn: async (): Promise<Product> => {
+      if (!productId) throw new Error('Product ID is required');
+      const response = await apiClient.get(`/product/${productId}`);
+      return response.data;
+    },
+    enabled: !!productId,
+  });
+};
+
 // Search Products
 export const useSearchProducts = (searchTerm: string) => {
   return useQuery({
@@ -131,8 +144,11 @@ export const useUploadVariantImage = () => {
       });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      if (data?.productId) {
+        queryClient.invalidateQueries({ queryKey: ['product', data.productId] });
+      }
     },
   });
 };
@@ -146,8 +162,9 @@ export const useAddVariant = () => {
       const response = await apiClient.post(`/product/${productId}/variants`, variant);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product', variables.productId] });
     },
   });
 };
@@ -161,8 +178,11 @@ export const useUpdateVariant = () => {
       const response = await apiClient.put(`/product/variants/${variantId}`, variant);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      if (data?.productId) {
+        queryClient.invalidateQueries({ queryKey: ['product', data.productId] });
+      }
     },
   });
 };
@@ -178,6 +198,7 @@ export const useDeleteVariant = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
     },
   });
 };

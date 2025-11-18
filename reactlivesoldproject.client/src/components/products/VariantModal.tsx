@@ -45,7 +45,6 @@ const VariantModal = ({
               {product && (
                 <VariantManager
                   productId={product.id}
-                  initialVariants={product.variants || []}
                 />
               )}
             </div>

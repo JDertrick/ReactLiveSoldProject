@@ -106,6 +106,7 @@ export interface ProductVariantDto {
 
 export interface VariantProductDto {
   id?: string; // Optional - only present for existing variants
+  productId: string;
   sku: string;
   size?: string;
   productName?: string;
