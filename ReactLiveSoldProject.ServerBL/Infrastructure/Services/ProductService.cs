@@ -27,8 +27,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             try
             {
                 var query = _dbContext.ProductVariants
-                   .Where(pv => pv.OrganizationId == organizationId)
-                   .ProjectTo<VariantProductDto>(_mapper.ConfigurationProvider);
+                    .Include(pv => pv.Product)
+                    .Where(pv => pv.OrganizationId == organizationId)
+                    .ProjectTo<VariantProductDto>(_mapper.ConfigurationProvider);
 
                 if (!string.IsNullOrEmpty(status))
                 {

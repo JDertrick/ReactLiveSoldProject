@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../services/api';
-import { PagedResult, Product, Tag, CreateProductDto, UpdateProductDto, CreateProductVariantDto } from '../types';
+import { PagedResult, Product, Tag, CreateProductDto, UpdateProductDto, CreateProductVariantDto, VariantProductDto, ProductVariantDto } from '../types';
 
 // Get All Products (Paginated)
 export const useGetProducts = (page: number, pageSize: number, status: string, searchTerm: string) => {
   return useQuery({
     queryKey: ['products', page, pageSize, status, searchTerm],
-    queryFn: async (): Promise<PagedResult<Product>> => {
+    queryFn: async (): Promise<PagedResult<VariantProductDto>> => {
       const params = new URLSearchParams({
         page: page.toString(),
         pageSize: pageSize.toString(),
@@ -27,7 +27,7 @@ export const useGetProducts = (page: number, pageSize: number, status: string, s
 export const useSearchProducts = (searchTerm: string) => {
   return useQuery({
     queryKey: ['products', 'search', searchTerm],
-    queryFn: async (): Promise<Product[]> => {
+    queryFn: async (): Promise<ProductVariantDto[]> => {
       const response = await apiClient.get(`/product/search?q=${searchTerm}`);
       return response.data;
     },

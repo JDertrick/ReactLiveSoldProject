@@ -104,6 +104,23 @@ export interface ProductVariantDto {
   isPrimary?: boolean;
 }
 
+export interface VariantProductDto {
+  id?: string; // Optional - only present for existing variants
+  sku: string;
+  size?: string;
+  productName?: string;
+  productDescription?: string;
+  color?: string;
+  price: number;
+  stock: number;
+  stockQuantity: number; // Alias for stock
+  imageUrl?: string;
+  attributes?: string;
+  productType?: string; // JSON string
+  isPrimary?: boolean;
+  isPublished?: boolean;
+}
+
 // Form input type for variant (string values for number inputs)
 export interface VariantFormInput {
   sku: string;

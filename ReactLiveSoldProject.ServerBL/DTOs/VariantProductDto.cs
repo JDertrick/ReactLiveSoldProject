@@ -1,3 +1,5 @@
+using ReactLiveSoldProject.ServerBL.Base;
+
 namespace ReactLiveSoldProject.ServerBL.DTOs
 {
     public class VariantProductDto
@@ -14,6 +16,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string? ImageUrl { get; set; }
         public bool IsPrimary { get; set; }
         public bool IsPublished { get; set; }
+        public string? ProductType { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
