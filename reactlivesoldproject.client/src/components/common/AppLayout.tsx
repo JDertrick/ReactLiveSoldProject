@@ -12,24 +12,79 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, User, Building2 } from "lucide-react";
+import {
+  Settings,
+  LogOut,
+  User,
+  Building2,
+  LayoutDashboard,
+  Users,
+  Box,
+  ArrowRightLeft,
+  BookCopy,
+  Warehouse,
+  ClipboardList,
+  ShoppingCart,
+  Wallet,
+  Bell,
+  ChevronRight,
+  Menu,
+  X,
+  Plus,
+  FileText,
+  Search,
+} from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
+import { Input } from "../ui/input";
+
+const LiveSoldLogo = () => (
+  <div className="flex items-center gap-2">
+    <div className="bg-primary p-1.5 rounded-lg">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-primary-foreground"
+      >
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+      </svg>
+    </div>
+    <span className="font-bold text-xl text-foreground">LiveSold</span>
+  </div>
+);
 
 const AppLayout = () => {
   const { user, logout, isSuperAdmin, organizationId } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  // Sidebar open by default on desktop, closed on mobile
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(
+    window.innerWidth >= 768
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Load organization settings (only for non-super-admin users)
   const { data: organization } = useOrganizations(
     !isSuperAdmin && organizationId ? organizationId : undefined
   );
 
-  // Apply custom colors when organization settings change
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     if (organization?.customizationSettings) {
       try {
@@ -45,8 +100,16 @@ const AppLayout = () => {
 
   const applyCustomColors = (colors: CustomizationSettings) => {
     const root = document.documentElement;
-    if (colors.primaryColor)
+    // This function will now also control the main shadcn primary color
+    if (colors.primaryColor) {
       root.style.setProperty("--primary-color", colors.primaryColor);
+      // To keep consistency, we can convert it to oklch or just use it directly
+      // For simplicity, we'll assume the color is good enough.
+      // A more robust solution would convert HEX/RGB to OKLCH.
+      root.style.setProperty("--primary", `oklch(from ${colors.primaryColor} l c h)`);
+    }
+
+    // We leave the rest of the customization as is, but we will favor tailwind classes over it.
     if (colors.sidebarBg)
       root.style.setProperty("--sidebar-bg", colors.sidebarBg);
     if (colors.sidebarText)
@@ -63,568 +126,258 @@ const AppLayout = () => {
   };
 
   const isActive = (path: string) => {
-    return (
-      location.pathname === path || location.pathname.startsWith(path + "/")
-    );
+    if (path === "/app" && location.pathname !== "/app") {
+      return false;
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  const getBreadcrumbs = () => {
+    const paths = location.pathname.split("/").filter((x) => x);
+    let currentPath = "";
+    const breadcrumbs = paths.map((path, index) => {
+      currentPath += `/${path}`;
+      const isLast = index === paths.length - 1;
+      const name = path.charAt(0).toUpperCase() + path.slice(1).replace("-", " ");
+      return { name, path: currentPath, isLast };
+    });
+    return [{ name: "App", path: "/app", isLast: false }, ...breadcrumbs];
   };
 
   const superAdminNavigation = [
-    {
-      name: "Dashboard",
-      path: "/superadmin",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Organizaciones",
-      path: "/superadmin/organizations",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-          />
-        </svg>
-      ),
-    },
+     {
+      group: "SUPER ADMIN",
+      items: [
+        { name: "Dashboard", path: "/superadmin", icon: <LayoutDashboard size={20} /> },
+        { name: "Organizaciones", path: "/superadmin/organizations", icon: <Building2 size={20} /> },
+      ],
+    }
   ];
 
   const appNavigation = [
     {
-      name: "Dashboard",
-      path: "/app",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-          />
-        </svg>
-      ),
+      group: "PRINCIPAL",
+      items: [
+        { name: "Dashboard", path: "/app", icon: <LayoutDashboard size={20} /> },
+      ],
     },
     {
-      name: "Clientes",
-      path: "/app/customers",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-          />
-        </svg>
-      ),
+      group: "OPERACIONES",
+      items: [
+        { name: "Inventario", path: "/app/products", icon: <Box size={20} /> },
+        { name: "Movimientos", path: "/app/stock-movements", icon: <ArrowRightLeft size={20} /> },
+        { name: "Clientes", path: "/app/customers", icon: <Users size={20} /> },
+      ],
     },
     {
-      name: "Inventario",
-      path: "/app/products",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-          />
-        </svg>
-      ),
+        group: "FINANZAS",
+        items: [
+            { name: "Facturación", path: "/app/live-sales", icon: <ShoppingCart size={20}/> },
+            { name: "Billetera", path: "/app/wallet", icon: <Wallet size={20}/> },
+            { name: "Recibos", path: "/app/receipts", icon: <ClipboardList size={20}/> },
+        ]
     },
     {
-      name: "Categorias",
-      path: "/app/categories",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Bodegas",
-      path: "/app/locations",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Movimientos de inventario",
-      path: "/app/stock-movements",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Recibos",
-      path: "/app/receipts",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Facturacion",
-      path: "/app/live-sales",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Billetera",
-      path: "/app/wallet",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-          />
-        </svg>
-      ),
-    },
+        group: "CONFIGURACIÓN",
+        items: [
+            { name: "Categorias", path: "/app/categories", icon: <BookCopy size={20}/> },
+            { name: "Bodegas", path: "/app/locations", icon: <Warehouse size={20}/> },
+        ]
+    }
   ];
 
   const navigation = isSuperAdmin ? superAdminNavigation : appNavigation;
+  const breadcrumbs = getBreadcrumbs();
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-card">
+      <div className="flex items-center justify-between h-20 px-6 border-b">
+        <LiveSoldLogo />
+      </div>
+
+      <nav className="flex-1 px-4 py-6 space-y-4 overflow-y-auto">
+        {navigation.map((navGroup) => (
+          <div key={navGroup.group}>
+            <h3 className="px-3 mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              {navGroup.group}
+            </h3>
+            <div className="space-y-1">
+              {navGroup.items.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => {
+                      if (window.innerWidth < 768) {
+                        setSidebarOpen(false);
+                      }
+                    }}
+                    className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                      active
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`}
+                  >
+                    <span className="flex-shrink-0">{item.icon}</span>
+                    <span className="ml-3">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+       {/* User Section */}
+      <div className="p-4 border-t">
+          <Link to="/app/profile">
+            <div className="flex items-center w-full p-2 rounded-lg hover:bg-muted/50">
+                <Avatar className="h-9 w-9">
+                    <AvatarImage
+                        src={user?.avatarUrl}
+                        alt={user?.firstName || user?.email}
+                    />
+                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                        {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
+                    </AvatarFallback>
+                </Avatar>
+                <div className="ml-3 flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                        {user?.firstName || user?.email}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                        Owner
+                    </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground ml-2" />
+            </div>
+        </Link>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Mobile Overlay - only show when sidebar is open on mobile */}
+    <div className="min-h-screen bg-background">
+      {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-30 z-30 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 transition-all duration-300
-          ${sidebarOpen ? "w-64" : "w-64 -translate-x-full"}
-          md:translate-x-0 md:${sidebarOpen ? "w-64" : "w-20"}`}
-        style={{
-          backgroundColor: "var(--sidebar-bg, #111827)",
-          color: "var(--sidebar-text, #D1D5DB)",
-        }}
+        className={`fixed inset-y-0 left-0 z-40 transition-transform duration-300 transform
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 w-64 border-r bg-card`}
       >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div
-            className="flex items-center justify-between h-16 px-4"
-            style={{ backgroundColor: "var(--sidebar-active-bg, #1F2937)" }}
-          >
-            {sidebarOpen ? (
-              <h1
-                className="text-lg font-bold"
-                style={{ color: "var(--sidebar-active-text, #FFFFFF)" }}
-              >
-                LiveSold
-              </h1>
-            ) : (
-              <span
-                className="text-lg font-bold hidden md:block"
-                style={{ color: "var(--sidebar-active-text, #FFFFFF)" }}
-              >
-                LS
-              </span>
-            )}
-            {/* Desktop toggle button */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity hidden md:block"
-              style={{ color: "var(--sidebar-text, #D1D5DB)" }}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d={
-                    sidebarOpen
-                      ? "M11 19l-7-7 7-7m8 14l-7-7 7-7"
-                      : "M13 5l7 7-7 7M5 5l7 7-7 7"
-                  }
-                />
-              </svg>
-            </button>
-            {/* Mobile close button */}
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity md:hidden"
-              style={{ color: "var(--sidebar-text, #D1D5DB)" }}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-            {navigation.map((item) => {
-              const active = isActive(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => {
-                    // Close sidebar on mobile when clicking a link
-                    if (window.innerWidth < 768) {
-                      setSidebarOpen(false);
-                    }
-                  }}
-                  className="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all"
-                  style={
-                    active
-                      ? {
-                          backgroundColor: "var(--sidebar-active-bg, #1F2937)",
-                          color: "var(--sidebar-active-text, #FFFFFF)",
-                        }
-                      : {
-                          color: "var(--sidebar-text, #D1D5DB)",
-                        }
-                  }
-                  onMouseEnter={(e) => {
-                    if (!active) {
-                      e.currentTarget.style.backgroundColor =
-                        "var(--sidebar-active-bg, #1F2937)";
-                      e.currentTarget.style.opacity = "0.7";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.opacity = "1";
-                    }
-                  }}
-                  title={!sidebarOpen ? item.name : undefined}
-                >
-                  <span className="flex-shrink-0">{item.icon}</span>
-                  {sidebarOpen && <span className="ml-3">{item.name}</span>}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* User Section */}
-          <div
-            className="border-t border-opacity-20"
-            style={{ borderColor: "var(--sidebar-text, #D1D5DB)" }}
-          >
-            <div className="px-3 py-4">
-              {sidebarOpen ? (
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center"
-                        style={{
-                          backgroundColor: "var(--primary-color, #4F46E5)",
-                        }}
-                      >
-                        <span className="text-xs font-medium text-white">
-                          {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="ml-3 flex-1 min-w-0">
-                      <p
-                        className="text-sm font-medium truncate"
-                        style={{ color: "var(--sidebar-active-text, #FFFFFF)" }}
-                      >
-                        {user?.firstName || user?.email}
-                      </p>
-                      <p
-                        className="text-xs truncate opacity-70"
-                        style={{ color: "var(--sidebar-text, #D1D5DB)" }}
-                      >
-                        {user?.role}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all hover:opacity-80"
-                    style={{
-                      color: "var(--sidebar-text, #D1D5DB)",
-                      backgroundColor: "transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor =
-                        "var(--sidebar-active-bg, #1F2937)";
-                      e.currentTarget.style.opacity = "0.7";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.opacity = "1";
-                    }}
-                  >
-                    <svg
-                      className="w-5 h-5 mr-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    Cerrar Sesión
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex justify-center px-3 py-2 text-sm font-medium rounded-md transition-all"
-                  style={{ color: "var(--sidebar-text, #D1D5DB)" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      "var(--sidebar-active-bg, #1F2937)";
-                    e.currentTarget.style.opacity = "0.7";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.opacity = "1";
-                  }}
-                  title="Cerrar Sesión"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <SidebarContent />
       </div>
 
       {/* Main Content */}
-      <div
-        className={`transition-all duration-300 ${
-          sidebarOpen ? "md:pl-64" : "md:pl-20"
-        }`}
-      >
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
-          <div className="flex items-center justify-between">
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 -ml-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-
-            <h2 className="text-xl font-bold text-gray-900 md:block hidden">
-              {navigation.find((item) => isActive(item.path))?.name ||
-                "Plataforma LiveSold"}
-            </h2>
-            <h2 className="text-lg font-bold text-gray-900 md:hidden">
-              {navigation.find((item) => isActive(item.path))?.name ||
-                "LiveSold"}
-            </h2>
-
-            {/* User Menu with Avatar */}
+      <div className="md:pl-64 transition-all duration-300">
+        <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-lg border-b">
+          <div className="flex items-center justify-between h-20 px-6">
+             {/* Left side: Breadcrumbs and Mobile Menu */}
             <div className="flex items-center gap-4">
+              <button
+                className="md:hidden p-2 -ml-2 rounded-md text-muted-foreground"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+               <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+                    {breadcrumbs.map((crumb, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                           {!crumb.isLast ? (
+                                <Link to={crumb.path} className="hover:text-foreground">
+                                    {crumb.name}
+                                </Link>
+                            ) : (
+                                <span className="font-semibold text-foreground">{crumb.name}</span>
+                            )}
+                            {!crumb.isLast && <ChevronRight className="h-4 w-4" />}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Center: Title for Mobile */}
+             <h1 className="text-lg font-bold text-foreground md:hidden">
+              {breadcrumbs[breadcrumbs.length - 1]?.name || "LiveSold"}
+            </h1>
+
+
+            {/* Right side: Search, Actions, User Menu */}
+            <div className="flex items-center gap-4">
+                <div className="relative hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Buscar..." className="w-full md:w-[200px] lg:w-[300px] pl-10" />
+                </div>
+
+                <Button variant="outline">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Reporte
+                </Button>
+                <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Registrar Ajuste
+                </Button>
+
+                <button className="p-2 rounded-full hover:bg-muted">
+                    <Bell className="h-5 w-5 text-muted-foreground" />
+                </button>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-3 h-12"
-                  >
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage
-                        src={user?.avatarUrl}
-                        alt={user?.firstName || user?.email}
-                      />
-                      <AvatarFallback className="bg-indigo-600 text-white font-semibold">
-                        {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden md:block">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.firstName || user?.email}
-                      </p>
-                      <p className="text-xs text-gray-500">{user?.role}</p>
-                    </div>
-                  </Button>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                         <Avatar className="h-10 w-10">
+                            <AvatarImage
+                                src={user?.avatarUrl}
+                                alt={user?.firstName || user?.email}
+                            />
+                            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                                {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
+                            </AvatarFallback>
+                        </Avatar>
+                    </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
                         {user?.firstName} {user?.lastName}
-                      </span>
-                      <span className="text-xs text-gray-500">
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
                         {user?.email}
-                      </span>
+                      </p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Mi Perfil</span>
+                  <DropdownMenuItem asChild>
+                    <Link to="/app/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Mi Perfil</span>
+                    </Link>
                   </DropdownMenuItem>
                   {!isSuperAdmin && (
                     <DropdownMenuItem
-                      className="cursor-pointer"
                       onSelect={() => setSettingsOpen(true)}
                     >
                       <Building2 className="mr-2 h-4 w-4" />
-                      <span>Configuración de Organización</span>
+                      <span>Config. de Organización</span>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Configuración</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    className="cursor-pointer text-red-600 focus:text-red-600"
                     onSelect={handleLogout}
+                    className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Cerrar Sesión</span>
@@ -632,28 +385,20 @@ const AppLayout = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Settings Button - Hidden on mobile, available in dropdown */}
-              {!isSuperAdmin && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setSettingsOpen(true)}
-                  title="Configuración de Organización"
-                  className="h-10 w-10 hidden lg:flex"
-                >
-                  <Settings className="h-5 w-5" />
-                </Button>
-              )}
             </div>
           </div>
-        </div>
+        </header>
 
         <main className="p-6">
-          <Outlet />
+            <div className="flex justify-between items-center mb-6 md:hidden">
+                <h1 className="text-2xl font-bold text-foreground">
+                    {breadcrumbs[breadcrumbs.length - 1]?.name || "LiveSold"}
+                </h1>
+            </div>
+            <Outlet />
         </main>
       </div>
 
-      {/* Settings Modal */}
       <OrganizationSettingsModal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
