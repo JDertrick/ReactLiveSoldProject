@@ -64,9 +64,7 @@ const AppLayout = () => {
   const { user, logout, isSuperAdmin, organizationId } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(
-    window.innerWidth >= 768
-  );
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { data: organization } = useOrganizations(
@@ -106,7 +104,10 @@ const AppLayout = () => {
       // To keep consistency, we can convert it to oklch or just use it directly
       // For simplicity, we'll assume the color is good enough.
       // A more robust solution would convert HEX/RGB to OKLCH.
-      root.style.setProperty("--primary", `oklch(from ${colors.primaryColor} l c h)`);
+      root.style.setProperty(
+        "--primary",
+        `oklch(from ${colors.primaryColor} l c h)`
+      );
     }
 
     // We leave the rest of the customization as is, but we will favor tailwind classes over it.
@@ -138,52 +139,85 @@ const AppLayout = () => {
     const breadcrumbs = paths.map((path, index) => {
       currentPath += `/${path}`;
       const isLast = index === paths.length - 1;
-      const name = path.charAt(0).toUpperCase() + path.slice(1).replace("-", " ");
+      const name =
+        path.charAt(0).toUpperCase() + path.slice(1).replace("-", " ");
       return { name, path: currentPath, isLast };
     });
     return [{ name: "App", path: "/app", isLast: false }, ...breadcrumbs];
   };
 
   const superAdminNavigation = [
-     {
+    {
       group: "SUPER ADMIN",
       items: [
-        { name: "Dashboard", path: "/superadmin", icon: <LayoutDashboard size={20} /> },
-        { name: "Organizaciones", path: "/superadmin/organizations", icon: <Building2 size={20} /> },
+        {
+          name: "Dashboard",
+          path: "/superadmin",
+          icon: <LayoutDashboard size={20} />,
+        },
+        {
+          name: "Organizaciones",
+          path: "/superadmin/organizations",
+          icon: <Building2 size={20} />,
+        },
       ],
-    }
+    },
   ];
 
   const appNavigation = [
     {
       group: "PRINCIPAL",
       items: [
-        { name: "Dashboard", path: "/app", icon: <LayoutDashboard size={20} /> },
+        {
+          name: "Dashboard",
+          path: "/app",
+          icon: <LayoutDashboard size={20} />,
+        },
       ],
     },
     {
       group: "OPERACIONES",
       items: [
         { name: "Inventario", path: "/app/products", icon: <Box size={20} /> },
-        { name: "Movimientos", path: "/app/stock-movements", icon: <ArrowRightLeft size={20} /> },
+        {
+          name: "Movimientos",
+          path: "/app/stock-movements",
+          icon: <ArrowRightLeft size={20} />,
+        },
         { name: "Clientes", path: "/app/customers", icon: <Users size={20} /> },
       ],
     },
     {
-        group: "FINANZAS",
-        items: [
-            { name: "Facturación", path: "/app/live-sales", icon: <ShoppingCart size={20}/> },
-            { name: "Billetera", path: "/app/wallet", icon: <Wallet size={20}/> },
-            { name: "Recibos", path: "/app/receipts", icon: <ClipboardList size={20}/> },
-        ]
+      group: "FINANZAS",
+      items: [
+        {
+          name: "Facturación",
+          path: "/app/live-sales",
+          icon: <ShoppingCart size={20} />,
+        },
+        { name: "Billetera", path: "/app/wallet", icon: <Wallet size={20} /> },
+        {
+          name: "Recibos",
+          path: "/app/receipts",
+          icon: <ClipboardList size={20} />,
+        },
+      ],
     },
     {
-        group: "CONFIGURACIÓN",
-        items: [
-            { name: "Categorias", path: "/app/categories", icon: <BookCopy size={20}/> },
-            { name: "Bodegas", path: "/app/locations", icon: <Warehouse size={20}/> },
-        ]
-    }
+      group: "CONFIGURACIÓN",
+      items: [
+        {
+          name: "Categorias",
+          path: "/app/categories",
+          icon: <BookCopy size={20} />,
+        },
+        {
+          name: "Bodegas",
+          path: "/app/locations",
+          icon: <Warehouse size={20} />,
+        },
+      ],
+    },
   ];
 
   const navigation = isSuperAdmin ? superAdminNavigation : appNavigation;
@@ -229,29 +263,27 @@ const AppLayout = () => {
         ))}
       </nav>
 
-       {/* User Section */}
+      {/* User Section */}
       <div className="p-4 border-t">
-          <Link to="/app/profile">
-            <div className="flex items-center w-full p-2 rounded-lg hover:bg-muted/50">
-                <Avatar className="h-9 w-9">
-                    <AvatarImage
-                        src={user?.avatarUrl}
-                        alt={user?.firstName || user?.email}
-                    />
-                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                        {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
-                    </AvatarFallback>
-                </Avatar>
-                <div className="ml-3 flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                        {user?.firstName || user?.email}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                        Owner
-                    </p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground ml-2" />
+        <Link to="/app/profile">
+          <div className="flex items-center w-full p-2 rounded-lg hover:bg-muted/50">
+            <Avatar className="h-9 w-9">
+              <AvatarImage
+                src={user?.avatarUrl}
+                alt={user?.firstName || user?.email}
+              />
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="ml-3 flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">
+                {user?.firstName || user?.email}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">Owner</p>
             </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground ml-2" />
+          </div>
         </Link>
       </div>
     </div>
@@ -280,7 +312,7 @@ const AppLayout = () => {
       <div className="md:pl-64 transition-all duration-300">
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-lg border-b">
           <div className="flex items-center justify-between h-20 px-6">
-             {/* Left side: Breadcrumbs and Mobile Menu */}
+            {/* Left side: Breadcrumbs and Mobile Menu */}
             <div className="flex items-center gap-4">
               <button
                 className="md:hidden p-2 -ml-2 rounded-md text-muted-foreground"
@@ -288,61 +320,51 @@ const AppLayout = () => {
               >
                 <Menu className="w-6 h-6" />
               </button>
-               <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                    {breadcrumbs.map((crumb, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                           {!crumb.isLast ? (
-                                <Link to={crumb.path} className="hover:text-foreground">
-                                    {crumb.name}
-                                </Link>
-                            ) : (
-                                <span className="font-semibold text-foreground">{crumb.name}</span>
-                            )}
-                            {!crumb.isLast && <ChevronRight className="h-4 w-4" />}
-                        </div>
-                    ))}
-                </div>
+              <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+                {breadcrumbs.map((crumb, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    {!crumb.isLast ? (
+                      <Link to={crumb.path} className="hover:text-foreground">
+                        {crumb.name}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-foreground">
+                        {crumb.name}
+                      </span>
+                    )}
+                    {!crumb.isLast && <ChevronRight className="h-4 w-4" />}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Center: Title for Mobile */}
-             <h1 className="text-lg font-bold text-foreground md:hidden">
+            <h1 className="text-lg font-bold text-foreground md:hidden">
               {breadcrumbs[breadcrumbs.length - 1]?.name || "LiveSold"}
             </h1>
 
-
             {/* Right side: Search, Actions, User Menu */}
             <div className="flex items-center gap-4">
-                <div className="relative hidden sm:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Buscar..." className="w-full md:w-[200px] lg:w-[300px] pl-10" />
-                </div>
-
-                <Button variant="outline">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Reporte
-                </Button>
-                <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Registrar Ajuste
-                </Button>
-
-                <button className="p-2 rounded-full hover:bg-muted">
-                    <Bell className="h-5 w-5 text-muted-foreground" />
-                </button>
+              <button className="p-2 rounded-full hover:bg-muted">
+                <Bell className="h-5 w-5 text-muted-foreground" />
+              </button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                         <Avatar className="h-10 w-10">
-                            <AvatarImage
-                                src={user?.avatarUrl}
-                                alt={user?.firstName || user?.email}
-                            />
-                            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                                {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
-                            </AvatarFallback>
-                        </Avatar>
-                    </Button>
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage
+                        src={user?.avatarUrl}
+                        alt={user?.firstName || user?.email}
+                      />
+                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                        {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel>
@@ -358,14 +380,12 @@ const AppLayout = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/app/profile">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Mi Perfil</span>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Mi Perfil</span>
                     </Link>
                   </DropdownMenuItem>
                   {!isSuperAdmin && (
-                    <DropdownMenuItem
-                      onSelect={() => setSettingsOpen(true)}
-                    >
+                    <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
                       <Building2 className="mr-2 h-4 w-4" />
                       <span>Config. de Organización</span>
                     </DropdownMenuItem>
@@ -384,18 +404,17 @@ const AppLayout = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
             </div>
           </div>
         </header>
 
         <main className="p-6">
-            <div className="flex justify-between items-center mb-6 md:hidden">
-                <h1 className="text-2xl font-bold text-foreground">
-                    {breadcrumbs[breadcrumbs.length - 1]?.name || "LiveSold"}
-                </h1>
-            </div>
-            <Outlet />
+          <div className="flex justify-between items-center mb-6 md:hidden">
+            <h1 className="text-2xl font-bold text-foreground">
+              {breadcrumbs[breadcrumbs.length - 1]?.name || "LiveSold"}
+            </h1>
+          </div>
+          <Outlet />
         </main>
       </div>
 

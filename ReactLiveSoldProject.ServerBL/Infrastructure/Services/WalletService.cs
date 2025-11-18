@@ -479,12 +479,14 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             if (fromDate.HasValue)
             {
-                query = query.Where(r => r.CreatedAt >= fromDate.Value);
+                var utcFromDate = new DateTime(fromDate.Value.Year, fromDate.Value.Month, fromDate.Value.Day, 0, 0, 0, DateTimeKind.Utc);
+                query = query.Where(r => r.CreatedAt >= utcFromDate);
             }
 
             if (toDate.HasValue)
             {
-                query = query.Where(r => r.CreatedAt <= toDate.Value);
+                var utcToDate = new DateTime(toDate.Value.Year, toDate.Value.Month, toDate.Value.Day, 0, 0, 0, DateTimeKind.Utc).AddDays(1);
+                query = query.Where(r => r.CreatedAt < utcToDate);
             }
 
             var receipts = await query
