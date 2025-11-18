@@ -65,6 +65,11 @@ namespace ReactLiveSoldProject.ServerBL.Base
             CreateMap<ProductVariant, CreateProductVariantDto>();
             CreateMap<ProductVariant, UpdateProductVariantDto>();
             CreateMap<UpdateProductVariantDto, ProductVariant>();
+            CreateMap<VariantProductDto, ProductVariant>();
+            CreateMap<ProductVariant, VariantProductDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.ProductDescription, opt => opt.MapFrom(src => src.Product.Description))
+                .ForMember(dest => dest.IsPublished, opt => opt.MapFrom(src => src.Product.IsPublished));
 
             // Tag Mappings
             CreateMap<Tag, TagDto>();
