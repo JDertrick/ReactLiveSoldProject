@@ -82,3 +82,25 @@ export const useUpdateProductVariants = () => {
     },
   });
 };
+
+// Upload Product Image
+export const useUploadProductImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ productId, image }: { productId: string; image: File }): Promise<Product> => {
+      const formData = new FormData();
+      formData.append('image', image);
+
+      const response = await apiClient.post(`/product/${productId}/image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};

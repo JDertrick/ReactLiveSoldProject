@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 // Crear instancia de Axios
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5165';
-
+// En desarrollo, Vite proxy redirigirá /api a http://localhost:5165/api
+// En producción, se usará el mismo dominio
 export const apiClient = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },

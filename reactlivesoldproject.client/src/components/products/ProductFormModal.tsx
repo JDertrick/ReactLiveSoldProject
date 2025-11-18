@@ -13,6 +13,7 @@ import {
   TagDto,
 } from "../../types/product.types";
 import ProductForm from "./ProductForm";
+import { useUploadProductImage } from "../../hooks/useProducts";
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -38,6 +39,8 @@ const ProductFormModal = ({
   onSubmit,
   onOpenVariantModal,
 }: ProductFormModalProps) => {
+  const uploadProductImage = useUploadProductImage();
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [formData, setFormData] = useState<CreateProductDto | UpdateProductDto>(
     {
       name: "",
@@ -99,12 +102,39 @@ const ProductFormModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Si no estamos editando, establecer el productType
-    if (!editingProduct) {
-      formData.productType = "Variable";
-    }
+    try {
+      // Si no estamos editando, establecer el productType
+      if (!editingProduct) {
+        formData.productType = "Variable";
+      }
 
-    await onSubmit(formData, !!editingProduct);
+      // Guardar el producto primero
+      await onSubmit(formData, !!editingProduct);
+
+      // Si hay una imagen seleccionada y estamos editando un producto, subirla
+      if (selectedImage && editingProduct) {
+        const result = await uploadProductImage.mutateAsync({
+          productId: editingProduct.id,
+          image: selectedImage,
+        });
+
+        // Actualizar el formData con la nueva URL de imagen
+        setFormData(prev => ({
+          ...prev,
+          imageUrl: result.imageUrl || ""
+        }));
+      }
+
+      // Limpiar la imagen seleccionada
+      setSelectedImage(null);
+    } catch (error) {
+      console.error("Error al guardar producto:", error);
+      throw error;
+    }
+  };
+
+  const handleImageSelect = (file: File) => {
+    setSelectedImage(file);
   };
 
   const handleChange = (
@@ -168,6 +198,7 @@ const ProductFormModal = ({
                     tags={tags}
                     onFormChange={handleChange}
                     onTagToggle={handleTagToggle}
+                    onImageSelect={handleImageSelect}
                   />
 
                   {/* Variants Section */}

@@ -12,13 +12,16 @@ namespace ReactLiveSoldProject.Server.Controllers
     public class OrganizationController : ControllerBase
     {
         private readonly IOrganizationService _organizationService;
+        private readonly IFileService _fileService;
         private readonly ILogger<OrganizationController> _logger;
 
         public OrganizationController(
             IOrganizationService organizationService,
+            IFileService fileService,
             ILogger<OrganizationController> logger)
         {
             _organizationService = organizationService;
+            _fileService = fileService;
             _logger = logger;
         }
 
@@ -96,6 +99,72 @@ namespace ReactLiveSoldProject.Server.Controllers
             {
                 _logger.LogError(ex, "Error updating organization settings");
                 return StatusCode(500, new { message = "Error interno del servidor", detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Sube el logo de la organización
+        /// </summary>
+        [HttpPost("my-organization/logo")]
+        public async Task<ActionResult<OrganizationDto>> UploadOrganizationLogo(IFormFile logo)
+        {
+            try
+            {
+                var organizationId = User.FindFirst("OrganizationId")?.Value;
+
+                if (string.IsNullOrEmpty(organizationId) || !Guid.TryParse(organizationId, out var orgGuid))
+                {
+                    return BadRequest(new { message = "Usuario no asociado a una organización" });
+                }
+
+                if (logo == null || logo.Length == 0)
+                    return BadRequest(new { message = "No se ha proporcionado ninguna imagen" });
+
+                if (!_fileService.IsValidImage(logo))
+                    return BadRequest(new { message = "El archivo no es una imagen válida o excede el tamaño máximo permitido (5 MB)" });
+
+                // Obtener la organización actual
+                var existingOrg = await _organizationService.GetOrganizationByIdAsync(orgGuid);
+                if (existingOrg == null)
+                    return NotFound(new { message = "Organización no encontrada" });
+
+                // Eliminar el logo anterior si existe
+                if (!string.IsNullOrEmpty(existingOrg.LogoUrl))
+                {
+                    await _fileService.DeleteFileAsync(existingOrg.LogoUrl);
+                }
+
+                // Guardar el nuevo logo
+                var logoUrl = await _fileService.SaveOrganizationLogoAsync(logo, orgGuid);
+
+                // Actualizar la organización con la nueva URL del logo
+                var updateDto = new UpdateOrganizationSettingsDto
+                {
+                    Name = existingOrg.Name,
+                    LogoUrl = logoUrl,
+                    PrimaryContactEmail = existingOrg.PrimaryContactEmail,
+                    CustomizationSettings = existingOrg.CustomizationSettings
+                };
+
+                var updatedOrg = await _organizationService.UpdateOrganizationSettingsAsync(orgGuid, updateDto);
+
+                _logger.LogInformation("Logo uploaded successfully for organization {OrganizationId}", orgGuid);
+                return Ok(updatedOrg);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Organization not found: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation uploading logo: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading logo for organization");
+                return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
     }

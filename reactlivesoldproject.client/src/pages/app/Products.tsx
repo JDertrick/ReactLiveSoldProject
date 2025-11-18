@@ -34,6 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getImageUrl } from "../../utils/imageHelper";
 
 
 const ProductsPage = () => {
@@ -238,7 +239,7 @@ const ProductsPage = () => {
                           <div className="flex items-center gap-3">
                             {product.imageUrl && (
                               <img
-                                src={product.imageUrl}
+                                src={getImageUrl(product.imageUrl) || ''}
                                 alt={product.name}
                                 className="h-12 w-12 rounded-md object-cover"
                               />
@@ -407,7 +408,7 @@ const ProductsPage = () => {
                     <div className="flex gap-3">
                       {product.imageUrl && (
                         <img
-                          src={product.imageUrl}
+                          src={getImageUrl(product.imageUrl) || ''}
                           alt={product.name}
                           className="h-16 w-16 rounded-md object-cover flex-shrink-0"
                         />

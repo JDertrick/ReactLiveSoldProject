@@ -8,6 +8,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string? Description { get; set; }
         public string ProductType { get; set; } = string.Empty;
         public decimal BasePrice { get; set; } = 0.00m;
+        public string? ImageUrl { get; set; }
         public bool IsPublished { get; set; }
         public Guid? CategoryId { get; set; }
         public CategoryDto? Category { get; set; }

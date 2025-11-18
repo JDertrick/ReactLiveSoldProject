@@ -11,13 +11,16 @@ namespace ReactLiveSoldProject.Server.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IFileService _fileService;
         private readonly ILogger<ProductController> _logger;
 
         public ProductController(
             IProductService productService,
+            IFileService fileService,
             ILogger<ProductController> logger)
         {
             _productService = productService;
+            _fileService = fileService;
             _logger = logger;
         }
 
@@ -334,6 +337,72 @@ namespace ReactLiveSoldProject.Server.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting variant {VariantId}", variantId);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
+        /// Sube una imagen para un producto
+        /// </summary>
+        [HttpPost("{id}/image")]
+        public async Task<ActionResult<ProductDto>> UploadProductImage(Guid id, IFormFile image)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                if (image == null || image.Length == 0)
+                    return BadRequest(new { message = "No se ha proporcionado ninguna imagen" });
+
+                if (!_fileService.IsValidImage(image))
+                    return BadRequest(new { message = "El archivo no es una imagen válida o excede el tamaño máximo permitido (5 MB)" });
+
+                // Verificar que el producto existe y pertenece a la organización
+                var existingProduct = await _productService.GetProductByIdAsync(id, organizationId.Value);
+                if (existingProduct == null)
+                    return NotFound(new { message = "Producto no encontrado" });
+
+                // Eliminar la imagen anterior si existe
+                if (!string.IsNullOrEmpty(existingProduct.ImageUrl))
+                {
+                    await _fileService.DeleteFileAsync(existingProduct.ImageUrl);
+                }
+
+                // Guardar la nueva imagen
+                var imageUrl = await _fileService.SaveProductImageAsync(image, organizationId.Value, id);
+
+                // Actualizar el producto con la nueva URL de imagen
+                var updateDto = new UpdateProductDto
+                {
+                    Name = existingProduct.Name,
+                    Description = existingProduct.Description,
+                    ProductType = existingProduct.ProductType,
+                    BasePrice = existingProduct.BasePrice,
+                    ImageUrl = imageUrl,
+                    IsPublished = existingProduct.IsPublished,
+                    CategoryId = existingProduct.CategoryId
+                };
+
+                var updatedProduct = await _productService.UpdateProductAsync(id, organizationId.Value, updateDto);
+
+                _logger.LogInformation("Image uploaded successfully for product {ProductId}", id);
+                return Ok(updatedProduct);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Product not found: {Id}", id);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Invalid operation uploading image: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading image for product {Id}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }

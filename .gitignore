@@ -51,3 +51,9 @@ desktop.ini
 .DS_Store
 ._*
 .fake
+
+### Uploads ###
+# Ignora todas las imágenes subidas pero mantiene la estructura de carpetas
+**/wwwroot/Uploads/
+!**/wwwroot/Uploads/.gitkeep
+!**/wwwroot/Uploads/README.md

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/authStore";
-import { useOrganizations } from "../../hooks/useOrganizations";
+import { useOrganizations, useUploadOrganizationLogo } from "../../hooks/useOrganizations";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Palette, Mail, Image } from "lucide-react";
+import { Building2, Palette, Mail } from "lucide-react";
 import { CustomizationSettings } from "../../types/organization.types";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface OrganizationSettingsModalProps {
   open: boolean;
@@ -38,7 +39,9 @@ export const OrganizationSettingsModal = ({
   const { organizationId } = useAuthStore();
   const { data: organization, isLoading } = useOrganizations(organizationId || "");
   const { updateOrganization } = useOrganizations();
+  const uploadLogo = useUploadOrganizationLogo();
 
+  const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     logoUrl: "",
@@ -73,10 +76,24 @@ export const OrganizationSettingsModal = ({
 
     setIsSaving(true);
     try {
+      let updatedLogoUrl = formData.logoUrl;
+
+      // Si hay un logo seleccionado, subirlo primero
+      if (selectedLogo) {
+        const result = await uploadLogo.mutateAsync(selectedLogo);
+        updatedLogoUrl = result.logoUrl || "";
+
+        // Actualizar el formData con la nueva URL
+        setFormData(prev => ({
+          ...prev,
+          logoUrl: updatedLogoUrl
+        }));
+      }
+
       // Prepare data - convert empty strings to undefined for optional fields
       const dataToSend = {
         name: formData.name,
-        logoUrl: formData.logoUrl || undefined,
+        logoUrl: updatedLogoUrl || undefined,
         primaryContactEmail: formData.primaryContactEmail,
         customizationSettings: JSON.stringify(customization),
       };
@@ -86,6 +103,9 @@ export const OrganizationSettingsModal = ({
       // Apply colors immediately
       applyCustomColors(customization);
 
+      // Limpiar la imagen seleccionada
+      setSelectedLogo(null);
+
       onClose();
     } catch (error) {
       console.error("Error updating organization:", error);
@@ -93,6 +113,10 @@ export const OrganizationSettingsModal = ({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleLogoSelect = (file: File) => {
+    setSelectedLogo(file);
   };
 
   const applyCustomColors = (colors: CustomizationSettings) => {
@@ -166,15 +190,11 @@ export const OrganizationSettingsModal = ({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-base font-semibold flex items-center gap-2">
-                <Image className="w-4 h-4" />
-                URL del Logo
-              </Label>
-              <Input
-                value={formData.logoUrl}
-                onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                placeholder="https://ejemplo.com/logo.png"
-                className="h-12"
+              <ImageUpload
+                label="Logo de la Organización"
+                currentImageUrl={formData.logoUrl}
+                onImageSelect={handleLogoSelect}
+                maxSizeMB={5}
               />
             </div>
 

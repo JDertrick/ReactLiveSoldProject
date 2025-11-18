@@ -82,6 +82,28 @@ export const useDeleteOrganization = () => {
   });
 };
 
+// Upload Organization Logo
+export const useUploadOrganizationLogo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (logo: File): Promise<Organization> => {
+      const formData = new FormData();
+      formData.append('logo', logo);
+
+      const response = await apiClient.post(`/organization/my-organization/logo`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organization'] });
+    },
+  });
+};
+
 // Hook wrapper that provides both query and mutation
 export const useOrganizations = (organizationId?: string) => {
   const queryClient = useQueryClient();

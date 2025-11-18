@@ -104,6 +104,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IStockMovementService, StockMovementService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 // Helpers
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();
@@ -168,6 +169,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
+// Servir archivos estáticos desde la carpeta wwwroot/Uploads
+var uploadsPath = Path.Combine(builder.Environment.WebRootPath, "Uploads");
+
+// Crear la carpeta Uploads si no existe
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+    RequestPath = "/Uploads"
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

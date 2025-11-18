@@ -13,5 +13,19 @@ export default defineConfig({
     server: {
         port: 5173,
         host: true,
+        proxy: {
+            // Proxy para imágenes - redirige /Uploads al backend
+            '/Uploads': {
+                target: 'http://localhost:5165',
+                changeOrigin: true,
+                secure: false,
+            },
+            // Proxy para API - redirige /api al backend
+            '/api': {
+                target: 'http://localhost:5165',
+                changeOrigin: true,
+                secure: false,
+            }
+        }
     }
 })
