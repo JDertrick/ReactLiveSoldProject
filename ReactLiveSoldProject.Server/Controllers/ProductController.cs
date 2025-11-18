@@ -30,7 +30,7 @@ namespace ReactLiveSoldProject.Server.Controllers
         /// Obtiene todos los productos de la organización de forma paginada
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<PagedResult<ProductDto>>> GetProducts(
+        public async Task<ActionResult<PagedResult<VariantProductDto>>> GetProducts(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? status = null,
@@ -42,7 +42,7 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var products = await _productService.GetProductsAsync(organizationId.Value, page, pageSize, status, searchTerm);
+                var products = await _productService.GetVarantProductsAsync(organizationId.Value, page, pageSize, status, searchTerm);
                 return Ok(products);
             }
             catch (Exception ex)

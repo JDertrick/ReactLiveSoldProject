@@ -9,7 +9,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// <summary>
         /// Obtiene los productos de una organización de forma paginada
         /// </summary>
-        Task<PagedResult<VariantProductDto>> GetProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm);
+        Task<PagedResult<ProductDto>> GetProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm);
+
+        /// <summary>
+        /// Obtiene los producto por variantes de una organización de forma paginada
+        /// </summary>
+        Task<PagedResult<VariantProductDto>> GetVarantProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm);
 
         /// <summary>
         /// Obtiene un producto por ID

@@ -22,7 +22,59 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedResult<VariantProductDto>> GetProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm)
+        public async Task<PagedResult<ProductDto>> GetProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm)
+        {
+            var query = _dbContext.Products
+                .Include(p => p.Variants)
+                .Include(p => p.TagLinks)
+                    .ThenInclude(pt => pt.Tag)
+                .Include(p => p.Category)
+                .Where(p => p.OrganizationId == organizationId)
+                .ProjectTo<ProductDto>(_mapper.ConfigurationProvider);
+
+            if (!string.IsNullOrEmpty(status))
+                if (status.Equals("published", StringComparison.OrdinalIgnoreCase))
+                    query = query.Where(p => p.IsPublished);
+                else if (status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                    query = query.Where(p => !p.IsPublished);
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var normalizedSearchTerm = searchTerm.ToLower().Trim();
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(normalizedSearchTerm) ||
+                    (p.Description != null && p.Description.ToLower().Contains(normalizedSearchTerm)) ||
+                    p.Variants.Any(v => v.Sku != null && v.Sku.ToLower().Contains(normalizedSearchTerm))
+                );
+            }
+
+            var totalItems = await query.CountAsync();
+            var productDtos = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            foreach (var dto in productDtos)
+            {
+                if (dto.Variants.Any())
+                {
+                    var primaryVariant = dto.Variants.FirstOrDefault(v => v.IsPrimary);
+
+                    dto.Sku = primaryVariant?.Sku ?? dto.Variants.FirstOrDefault()?.Sku ?? "";
+                    dto.Stock = dto.Variants.Sum(v => v.StockQuantity);
+                }
+                else
+                {
+                    dto.Sku = "";
+                    dto.Stock = 0;
+                }
+            }
+
+            return new PagedResult<ProductDto>(productDtos, totalItems, page, pageSize);
+        }
+
+        public async Task<PagedResult<VariantProductDto>> GetVarantProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm)
         {
             try
             {
