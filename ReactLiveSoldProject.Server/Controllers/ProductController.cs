@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 
+using ReactLiveSoldProject.ServerBL.DTOs.Common;
+
 namespace ReactLiveSoldProject.Server.Controllers
 {
     [ApiController]
@@ -25,10 +27,14 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Obtiene todos los productos de la organización
+        /// Obtiene todos los productos de la organización de forma paginada
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<List<ProductDto>>> GetProducts([FromQuery] bool includeUnpublished = false)
+        public async Task<ActionResult<PagedResult<ProductDto>>> GetProducts(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? status = null,
+            [FromQuery] string? searchTerm = null)
         {
             try
             {
@@ -36,7 +42,7 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var products = await _productService.GetProductsByOrganizationAsync(organizationId.Value, includeUnpublished);
+                var products = await _productService.GetProductsAsync(organizationId.Value, page, pageSize, status, searchTerm);
                 return Ok(products);
             }
             catch (Exception ex)
@@ -45,6 +51,7 @@ namespace ReactLiveSoldProject.Server.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
+
 
         /// <summary>
         /// Obtiene un producto por ID
@@ -364,8 +371,8 @@ namespace ReactLiveSoldProject.Server.Controllers
 
                 // Actualizar la variante con la nueva URL de imagen
                 // Necesitamos obtener la variante actual primero
-                var currentVariants = await _productService.GetProductsByOrganizationAsync(organizationId.Value, true);
-                var variant = currentVariants
+                var productsResult = await _productService.GetProductsAsync(organizationId.Value, 1, 9999, null, null);
+                var variant = productsResult.Items
                     .SelectMany(p => p.Variants)
                     .FirstOrDefault(v => v.Id == variantId);
 

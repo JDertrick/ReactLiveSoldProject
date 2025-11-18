@@ -41,7 +41,18 @@ export interface Product {
   variants: ProductVariant[];
   createdAt: string;
   updatedAt: string;
+  sku: string;
+  stock: number;
 }
+
+export interface PagedResult<T> {
+  items: T[];
+  totalItems: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 
 export interface CreateProductVariantDto {
   sku?: string;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useGetProducts, useCreateProduct, useGetTags } from '../../hooks/useProducts';
 import { useGetCustomers } from '../../hooks/useCustomers';
 import {
@@ -10,7 +10,7 @@ import {
   useCancelSalesOrder,
   useGetSalesOrders
 } from '../../hooks/useSalesOrders';
-import { Product, ProductVariant, ProductVariantDto, CreateProductDto, UpdateProductDto } from '../../types/product.types';
+import { Product, ProductVariant, CreateProductDto, UpdateProductDto } from '../../types/product.types';
 import { Customer } from '../../types/customer.types';
 import { SalesOrder } from '../../types/salesorder.types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
@@ -26,7 +26,7 @@ import { CustomAlertDialog } from '../../components/common/AlertDialog';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
 const LiveSalesPage = () => {
-  const { data: products } = useGetProducts(false); // Only published products
+  const { data: productsPagedResult } = useGetProducts(1, 9999, "published", ""); // Only published products
   const { data: customers } = useGetCustomers();
   const { data: tags } = useGetTags();
   const { data: draftOrders, refetch: refetchDraftOrders } = useGetSalesOrders('Draft');
@@ -37,6 +37,8 @@ const LiveSalesPage = () => {
   const finalizeOrder = useFinalizeOrder();
   const cancelOrder = useCancelSalesOrder();
   const createProduct = useCreateProduct();
+
+  const products = useMemo(() => productsPagedResult?.items ?? [], [productsPagedResult]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -49,7 +51,7 @@ const LiveSalesPage = () => {
   // Product creation modal states
   const [showProductModal, setShowProductModal] = useState(false);
   const [showVariantManagerModal, setShowVariantManagerModal] = useState(false);
-  const [productVariants, setProductVariants] = useState<ProductVariantDto[]>([]);
+
 
   // Dialog states
   const [alertDialog, setAlertDialog] = useState<{ open: boolean; title: string; description: string }>({
@@ -74,7 +76,8 @@ const LiveSalesPage = () => {
   const filteredProducts = searchTerm
     ? products?.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        p.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) // Include SKU in search
       )
     : products;
 
@@ -325,7 +328,6 @@ const LiveSalesPage = () => {
     try {
       await createProduct.mutateAsync(data as CreateProductDto);
       setShowProductModal(false);
-      setProductVariants([]);
     } catch (error) {
       console.error('Error creating product:', error);
       setAlertDialog({
@@ -795,24 +797,18 @@ const LiveSalesPage = () => {
         editingProduct={null}
         tags={tags}
         isLoading={createProduct.isPending}
-        variants={productVariants}
         onClose={() => {
           setShowProductModal(false);
-          setProductVariants([]);
         }}
         onSubmit={handleCreateProduct}
-        onOpenVariantModal={() => setShowVariantManagerModal(true)}
       />
 
       {/* Variant Manager Modal */}
       <VariantModal
         isOpen={showVariantManagerModal}
-        variants={productVariants}
+        product={selectedProduct} // Pass selectedProduct to VariantModal
         onClose={() => setShowVariantManagerModal(false)}
-        onSaveVariants={(variants) => {
-          setProductVariants(variants);
-          setShowVariantManagerModal(false);
-        }}
+        customAlertDialog={setAlertDialog} // Pass setAlertDialog
       />
 
       {/* Alert Dialog */}

@@ -75,41 +75,40 @@ const VariantManager = ({
         isPrimary: variantInput.isPrimary,
       };
 
-      if (editingVariantId) {
-        // Actualizar variante existente
-        const result = await updateVariant.mutateAsync({
-          variantId: editingVariantId,
-          variant: variantData,
-        });
-
-        // Si hay una imagen seleccionada, subirla
-        if (selectedImage) {
-          await uploadImage.mutateAsync({
-            variantId: editingVariantId,
-            image: selectedImage,
-          });
-        }
-
-        setAlertDialog({
-          open: true,
-          title: "Éxito",
-          description: "Variante actualizada correctamente",
-        });
-      } else {
-        // Crear nueva variante
-        const result = await addVariant.mutateAsync({
-          productId,
-          variant: variantData,
-        });
-
-        // Si hay una imagen seleccionada y se creó la variante, subirla
-        if (selectedImage && result.id) {
-          await uploadImage.mutateAsync({
-            variantId: result.id,
-            image: selectedImage,
-          });
-        }
-
+              if (editingVariantId) {
+                // Actualizar variante existente
+                await updateVariant.mutateAsync({
+                  variantId: editingVariantId,
+                  variant: variantData,
+                });
+      
+                // Si hay una imagen seleccionada, subirla
+                if (selectedImage) {
+                  await uploadImage.mutateAsync({
+                    variantId: editingVariantId,
+                    image: selectedImage,
+                  });
+                }
+      
+                setAlertDialog({
+                  open: true,
+                  title: "Éxito",
+                  description: "Variante actualizada correctamente",
+                });
+              } else {
+                // Crear nueva variante
+                const result = await addVariant.mutateAsync({
+                  productId,
+                  variant: variantData,
+                });
+      
+                // Si hay una imagen seleccionada y se creó la variante, subirla
+                if (selectedImage && result.id) {
+                  await uploadImage.mutateAsync({
+                    variantId: result.id,
+                    image: selectedImage,
+                  });
+                }
         setAlertDialog({
           open: true,
           title: "Éxito",

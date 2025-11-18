@@ -9,6 +9,7 @@ import {
   CreateProductDto,
   UpdateProductDto,
   Product,
+  Tag,
 } from "../../types/product.types";
 import ProductForm from "./ProductForm";
 
@@ -21,6 +22,7 @@ interface ProductFormModalProps {
     data: CreateProductDto | UpdateProductDto,
     isEditing: boolean
   ) => Promise<void>;
+  tags?: Tag[];
 }
 
 const ProductFormModal = ({

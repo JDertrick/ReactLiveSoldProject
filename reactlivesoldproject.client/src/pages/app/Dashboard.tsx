@@ -5,14 +5,13 @@ import { Link } from 'react-router-dom';
 
 const AppDashboard = () => {
   const { data: customers, isLoading: customersLoading } = useGetCustomers();
-  const { data: products, isLoading: productsLoading } = useGetProducts(false);
+  const { data: productsPagedResult, isLoading: productsLoading } = useGetProducts(1, 1, "all", ""); // Fetch first page for overview
   const { data: salesOrders, isLoading: ordersLoading } = useGetSalesOrders();
 
   const isLoading = customersLoading || productsLoading || ordersLoading;
 
   const activeCustomers = customers?.filter((c) => c.isActive).length || 0;
-  const totalProducts = products?.length || 0;
-  const publishedProducts = products?.filter((p) => p.isPublished).length || 0;
+  const totalProducts = productsPagedResult?.totalItems || 0;
 
   // Calculate total wallet balance across all customers
   const totalWalletBalance = customers?.reduce((sum, customer) => {
@@ -139,9 +138,6 @@ const AppDashboard = () => {
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
                       {totalProducts}
-                    </div>
-                    <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                      {publishedProducts} published
                     </div>
                   </dd>
                 </dl>

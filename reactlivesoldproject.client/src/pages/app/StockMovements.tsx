@@ -92,12 +92,14 @@ const StockMovementsPage = () => {
     fromDate,
     toDate
   );
-  const { data: products } = useGetProducts(true);
+  const { data: productsPagedResult } = useGetProducts(1, 9999, "all", ""); // Fetch all products for stock movements
   const { locations } = useLocations();
   const createMovement = useCreateStockMovement();
   const postMovement = usePostStockMovement();
   const unpostMovement = useUnpostStockMovement();
   const rejectMovement = useRejectStockMovement();
+
+  const products = useMemo(() => productsPagedResult?.items ?? [], [productsPagedResult]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedMovement, setSelectedMovement] =

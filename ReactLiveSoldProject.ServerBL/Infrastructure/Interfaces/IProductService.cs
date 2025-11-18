@@ -1,13 +1,16 @@
 using ReactLiveSoldProject.ServerBL.DTOs;
 
+using ReactLiveSoldProject.ServerBL.DTOs.Common;
+
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
 {
     public interface IProductService
     {
         /// <summary>
-        /// Obtiene todos los productos de una organización
+        /// Obtiene los productos de una organización de forma paginada
         /// </summary>
-        Task<List<ProductDto>> GetProductsByOrganizationAsync(Guid organizationId, bool includeUnpublished = false);
+        Task<PagedResult<ProductDto>> GetProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm);
+
 
         /// <summary>
         /// Obtiene un producto por ID

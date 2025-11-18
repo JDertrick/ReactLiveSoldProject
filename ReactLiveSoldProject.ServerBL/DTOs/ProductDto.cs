@@ -6,6 +6,8 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public Guid OrganizationId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public string Sku { get; set; }
+        public int Stock { get; set; }
         public string ProductType { get; set; } = string.Empty;
         public decimal BasePrice { get; set; } = 0.00m;
         public string? ImageUrl { get; set; }

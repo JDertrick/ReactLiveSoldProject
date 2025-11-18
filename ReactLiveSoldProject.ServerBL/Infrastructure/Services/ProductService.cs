@@ -7,6 +7,8 @@ using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using AutoMapper.QueryableExtensions;
 using System.Xml;
 
+using ReactLiveSoldProject.ServerBL.DTOs.Common;
+
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class ProductService : IProductService
@@ -20,23 +22,61 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<List<ProductDto>> GetProductsByOrganizationAsync(Guid organizationId, bool includeUnpublished = false)
+        public async Task<PagedResult<ProductDto>> GetProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm)
         {
-            var products = await _dbContext.Products
+            var query = _dbContext.Products
                 .Include(p => p.Variants)
                 .Include(p => p.TagLinks)
                     .ThenInclude(pt => pt.Tag)
                 .Include(p => p.Category)
-                .Where(p => p.OrganizationId == organizationId)
-                .OrderBy(p => p.Name)
-                .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
+                .Where(p => p.OrganizationId == organizationId);
+
+            // Filtering by status
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status.Equals("published", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => p.IsPublished);
+                }
+                else if (status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => !p.IsPublished);
+                }
+            }
+
+            // Filtering by search term
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var normalizedSearchTerm = searchTerm.ToLower().Trim();
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(normalizedSearchTerm) ||
+                    (p.Description != null && p.Description.ToLower().Contains(normalizedSearchTerm)) ||
+                    p.Variants.Any(v => v.Sku != null && v.Sku.ToLower().Contains(normalizedSearchTerm))
+                );
+            }
+
+            var totalItems = await query.CountAsync();
+
+            var products = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            // if (!includeUnpublished)
-            //     query = query.Where(p => p.IsPublished);
+            var productDtos = _mapper.Map<List<ProductDto>>(products);
 
-            return products;
+            foreach (var dto in productDtos)
+            {
+                var product = products.First(p => p.Id == dto.Id);
+                var primaryVariant = product.Variants.FirstOrDefault(v => v.IsPrimary);
+                
+                dto.Sku = primaryVariant?.Sku ?? product.Variants.FirstOrDefault()?.Sku ?? "";
+                dto.Stock = product.Variants.Sum(v => v.StockQuantity);
+            }
+
+            return new PagedResult<ProductDto>(productDtos, totalItems, page, pageSize);
         }
+
 
         public async Task<ProductDto?> GetProductByIdAsync(Guid productId, Guid organizationId)
         {

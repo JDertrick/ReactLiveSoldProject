@@ -1,13 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../services/api';
-import { Product, Tag, CreateProductDto, UpdateProductDto, CreateProductVariantDto } from '../types';
+import { PagedResult, Product, Tag, CreateProductDto, UpdateProductDto, CreateProductVariantDto } from '../types';
 
-// Get All Products
-export const useGetProducts = (includeUnpublished: boolean = false) => {
+// Get All Products (Paginated)
+export const useGetProducts = (page: number, pageSize: number, status: string, searchTerm: string) => {
   return useQuery({
-    queryKey: ['products', includeUnpublished],
-    queryFn: async (): Promise<Product[]> => {
-      const response = await apiClient.get(`/product?includeUnpublished=${includeUnpublished}`);
+    queryKey: ['products', page, pageSize, status, searchTerm],
+    queryFn: async (): Promise<PagedResult<Product>> => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+      });
+      if (status) {
+        params.append('status', status);
+      }
+      if (searchTerm) {
+        params.append('searchTerm', searchTerm);
+      }
+      const response = await apiClient.get(`/product?${params.toString()}`);
       return response.data;
     },
   });
