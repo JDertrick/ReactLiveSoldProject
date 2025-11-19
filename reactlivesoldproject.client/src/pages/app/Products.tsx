@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebounce } from "@/hooks/useDebounce";
+import { toast } from "sonner";
 
 const ProductsPage = () => {
   const [page, setPage] = useState(1);
@@ -90,6 +91,7 @@ const ProductsPage = () => {
       } else {
         await createProduct.mutateAsync(data as CreateProductDto);
       }
+      toast.success("Producto creado correctamente.");
       handleCloseModal();
     } catch (error: any) {
       console.error("Error saving product:", error);
@@ -105,11 +107,11 @@ const ProductsPage = () => {
   const endItem = Math.min(page * pageSize, totalItems);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Inventario</h1>
-          <p className="text-gray-500 mt-2 text-sm">
+          <h1 className="text-3xl font-bold tracking-tight">Inventario</h1>
+          <p className="text-muted-foreground mt-1">
             Gestiona tu catálogo de productos, variantes y niveles de
             inventario.
           </p>

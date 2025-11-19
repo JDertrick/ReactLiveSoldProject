@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
+import { NotificationDropdown } from "../notifications/NotificationDropdown";
 import { Input } from "../ui/input";
 
 const LiveSoldLogo = () => (
@@ -345,9 +346,7 @@ const AppLayout = () => {
 
             {/* Right side: Search, Actions, User Menu */}
             <div className="flex items-center gap-4">
-              <button className="p-2 rounded-full hover:bg-muted">
-                <Bell className="h-5 w-5 text-muted-foreground" />
-              </button>
+              <NotificationDropdown />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

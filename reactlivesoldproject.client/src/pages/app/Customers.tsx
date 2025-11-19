@@ -214,11 +214,11 @@ const CustomersPage = () => {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-          <p className="mt-2 text-sm text-gray-700">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center pb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+          <p className="text-muted-foreground mt-1">
             Maneja tus clientes, billetera y transacciones.
           </p>
         </div>
@@ -295,7 +295,8 @@ const CustomersPage = () => {
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No se encontraron clientes. Agrega tu primer cliente para comenzar.
+                    No se encontraron clientes. Agrega tu primer cliente para
+                    comenzar.
                   </TableCell>
                 </TableRow>
               )}
@@ -375,7 +376,8 @@ const CustomersPage = () => {
         ) : (
           <div className="bg-white border rounded-lg p-8 text-center">
             <p className="text-muted-foreground">
-              No se encontraron clientes. Agrega tu primer cliente para comenzar.
+              No se encontraron clientes. Agrega tu primer cliente para
+              comenzar.
             </p>
           </div>
         )}

@@ -3,6 +3,8 @@ using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
+using ReactLiveSoldProject.ServerBL.Models.Notifications;
+using ReactLiveSoldProject.ServerBL.Models.Sales;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -137,6 +139,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.IsRejected, opt => opt.Ignore())
                 .ForMember(dest => dest.RejectedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.RejectedByUserId, opt => opt.Ignore());
+
+            CreateMap<Notification, NotificationDto>()
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString().ToLower()));
 
         }
     }

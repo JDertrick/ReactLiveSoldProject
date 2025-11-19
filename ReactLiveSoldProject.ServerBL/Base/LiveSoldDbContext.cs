@@ -4,6 +4,7 @@ using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
+using ReactLiveSoldProject.ServerBL.Models.Notifications;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -22,24 +23,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
-        public DbSet<Receipt> Receipts { get; set; }
-        public DbSet<ReceiptItem> ReceiptItems { get; set; }
 
-        // BLOQUE 3: INVENTARIO
-        public DbSet<Location> Locations { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Tag> Tags { get; set; }
-        public DbSet<Product> Products { get; set; }
-        public DbSet<ProductTag> ProductTags { get; set; }
-        public DbSet<ProductVariant> ProductVariants { get; set; }
-        public DbSet<StockMovement> StockMovements { get; set; }
-
-        // BLOQUE 4: VENTAS
-        public DbSet<SalesOrder> SalesOrders { get; set; }
-        public DbSet<SalesOrderItem> SalesOrderItems { get; set; }
-
-        // BLOQUE 5: AUDITORÍA
-        public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
