@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogBackdrop,
@@ -29,10 +29,14 @@ import {
 } from "../../components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 const CategoryListPage = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const {
-    categories,
+    categories: allCategories,
     isLoading,
     error,
     deleteCategory,
@@ -40,16 +44,22 @@ const CategoryListPage = () => {
     updateCategory,
   } = useCategories();
 
+  const categories = useMemo(() => {
+    if (!searchTerm || !allCategories) return allCategories;
+
+    return allCategories.filter(
+      (c) =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allCategories, searchTerm]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState<{
-    name: string;
-    description: string;
-    parentId: string | undefined;
-  }>({
+  const [formData, setFormData] = useState({
     name: "",
     description: "",
-    parentId: undefined,
   });
 
   const handleOpenModal = (category?: Category) => {
@@ -58,14 +68,12 @@ const CategoryListPage = () => {
       setFormData({
         name: category.name,
         description: category.description || "",
-        parentId: category.parentId || undefined,
       });
     } else {
       setEditingCategory(null);
       setFormData({
         name: "",
         description: "",
-        parentId: undefined,
       });
     }
     setIsModalOpen(true);
@@ -119,77 +127,59 @@ const CategoryListPage = () => {
   if (isLoading) return <div>Cargando categorías...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const renderCategories = (cats: Category[], depth = 0) => {
-    return cats.map((category) => (
-      <TableRow key={category.id}>
-        <TableCell className="font-medium">
-          {"--".repeat(depth)} {category.name}
-        </TableCell>
-        <TableCell>{category.description}</TableCell>
-        <TableCell>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleOpenModal(category)}
-            >
-              Editar
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  Eliminar
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción no se puede deshacer. Esto eliminará permanentemente
-                    la categoría y eliminará sus datos de nuestros servidores.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => handleDelete(category.id)}>
-                    Continuar
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </TableCell>
-      </TableRow>
-    ));
-  };
-
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Categorias</h1>
-        <Button onClick={() => handleOpenModal()}>
+    <div className="space-py-6">
+      <div className="flex justify-between items-center pb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Categorías</h1>
+          <p className="text-muted-foreground mt-1">Gestiona tus categorías de productos</p>
+        </div>
+        <Button onClick={() => handleOpenModal()} size="lg" className="gap-2">
           <svg
             className="w-5 h-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            strokeWidth={2}
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
-          Agregar categoria
+          Agregar categoría
         </Button>
       </div>
 
+      <div className="pb-5">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4 w-full">
+                <div className="relative flex-grow">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
+                  <Input
+                    placeholder="Buscar por categoría..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </div>
+
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Lista de categorias</CardTitle>
+              <CardTitle>Lista de categorías</CardTitle>
             </div>
           </div>
         </CardHeader>
@@ -204,7 +194,52 @@ const CategoryListPage = () => {
             </TableHeader>
             <TableBody>
               {categories && categories.length > 0 ? (
-                renderCategories(categories)
+                categories.map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell className="font-medium">
+                      {category.name}
+                    </TableCell>
+                    <TableCell>{category.description}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenModal(category)}
+                        >
+                          Editar
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              Eliminar
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                ¿Estás completamente seguro?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta acción no se puede deshacer. Esto eliminará
+                                permanentemente la categoría y eliminará sus
+                                datos de nuestros servidores.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(category.id)}
+                              >
+                                Continuar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center">

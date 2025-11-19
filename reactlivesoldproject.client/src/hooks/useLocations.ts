@@ -26,7 +26,7 @@ export const useLocations = () => {
 
   const { data: locations, isLoading, error } = useQuery<Location[], Error>({
     queryKey: ['locations'],
-    queryFn: fetchLocations,
+    queryFn: fetchLocations
   });
 
   const createMutation = useMutation<Location, Error, Partial<Location>>({

@@ -26,7 +26,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 var locationsDto = await _dbContext.Locations
                     .Where(l => l.OrganizationId == organizationId)
-                    .OrderByDescending(l => l.Name)
+                    .OrderBy(l => l.Name)
                     .ProjectTo<LocationDto>(_mapper.ConfigurationProvider)
                     .ToListAsync();
 

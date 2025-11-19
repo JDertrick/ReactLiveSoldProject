@@ -33,12 +33,9 @@ namespace ReactLiveSoldProject.Server.Controllers
             {
                 var organizationId = GetOrganizationId();
                 if (organizationId == null)
-                {
                     return Unauthorized();
-                }
 
                 var locations = await _locationService.GetLocationsAsync(organizationId.Value);
-
                 return Ok(locations);
             }
             catch (Exception ex)

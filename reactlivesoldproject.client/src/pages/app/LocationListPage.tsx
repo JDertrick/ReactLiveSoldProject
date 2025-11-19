@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogBackdrop,
@@ -33,8 +33,10 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
 const LocationListPage = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const {
-    locations,
+    locations: allLocations,
     isLoading,
     error,
     deleteLocation,
@@ -42,8 +44,18 @@ const LocationListPage = () => {
     updateLocation,
   } = useLocations();
 
+  const locations = useMemo(() => {
+    if (!searchTerm || !allLocations) return allLocations;
+
+    return allLocations.filter(
+      (l) =>
+        l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        l.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allLocations, searchTerm]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [formData, setFormData] = useState({
     name: "",
