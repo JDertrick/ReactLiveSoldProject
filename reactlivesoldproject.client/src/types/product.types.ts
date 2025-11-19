@@ -77,7 +77,7 @@ export interface CreateProductDto {
   description?: string;
   productType: string;
   isPublished: boolean;
-  basePrice: number;
+  basePrice?: number;
   categoryId?: string;
 }
 
@@ -85,7 +85,7 @@ export interface UpdateProductDto {
   name: string;
   description?: string;
   productType: string;
-  basePrice: number;
+  basePrice?: number;
   isPublished: boolean;
   categoryId?: string;
 }

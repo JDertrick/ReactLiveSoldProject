@@ -259,7 +259,7 @@ const StockMovementComponentFormDialog = ({
                         })
                       }
                       placeholder="0"
-                      className="h-12 pl-9"
+                      className="pl-9"
                       required
                     />
                   </div>
