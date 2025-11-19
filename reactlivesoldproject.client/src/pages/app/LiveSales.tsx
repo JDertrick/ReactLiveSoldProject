@@ -5,6 +5,7 @@ import {
   useGetTags,
 } from "../../hooks/useProducts";
 import { useGetCustomers } from "../../hooks/useCustomers";
+import { useCategories } from "../../hooks/useCategories";
 import {
   useCreateSalesOrder,
   useAddItemToOrder,
@@ -22,14 +23,7 @@ import {
 } from "../../types/product.types";
 import { Customer } from "../../types/customer.types";
 import { SalesOrder } from "../../types/salesorder.types";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import {
@@ -42,15 +36,17 @@ import {
 } from "../../components/ui/dialog";
 import { Badge } from "../../components/ui/badge";
 import {
-  PlusCircle,
   ShoppingCart,
   Edit2,
   Trash2,
-  Check,
   X,
-  Package,
-  ClipboardList,
   Users,
+  Search,
+  Plus,
+  Minus,
+  MoreVertical,
+  Save,
+  QrCode,
 } from "lucide-react";
 import ProductFormModal from "../../components/products/ProductFormModal";
 import VariantModal from "../../components/products/VariantModal";
@@ -59,14 +55,10 @@ import { CustomAlertDialog } from "../../components/common/AlertDialog";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 
 const LiveSalesPage = () => {
-  const { data: productsPagedResult } = useGetProducts(
-    1,
-    9999,
-    "published",
-    ""
-  ); // Only published products
+  const { data: productsData } = useGetProducts(1, 9999, "published", ""); // Fetch all published products
   const { data: customers } = useGetCustomers();
   const { data: tags } = useGetTags();
+  const { categories } = useCategories();
   const { data: draftOrders, refetch: refetchDraftOrders } =
     useGetSalesOrders("Draft");
   const createSalesOrder = useCreateSalesOrder();
@@ -77,11 +69,10 @@ const LiveSalesPage = () => {
   const cancelOrder = useCancelSalesOrder();
   const createProduct = useCreateProduct();
 
-  const variantproducts = useMemo(
-    () => productsPagedResult?.items ?? [],
-    [productsPagedResult]
-  );
-
+  const [activeCategory, setActiveCategory] = useState({
+    id: "all",
+    name: "Todo",
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
@@ -96,13 +87,7 @@ const LiveSalesPage = () => {
     quantity: number;
     price: number;
   } | null>(null);
-  const [orderSuccess, setOrderSuccess] = useState(false);
 
-  // Product creation modal states
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [showVariantManagerModal, setShowVariantManagerModal] = useState(false);
-
-  // Dialog states
   const [alertDialog, setAlertDialog] = useState<{
     open: boolean;
     title: string;
@@ -126,16 +111,34 @@ const LiveSalesPage = () => {
     onConfirm: () => {},
   });
 
-  const filteredVariantsProducts = searchTerm
-    ? variantproducts?.filter(
+  // Product creation modal states
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showVariantManagerModal, setShowVariantManagerModal] = useState(false);
+
+  const products = useMemo(() => productsData?.items ?? [], [productsData]);
+
+  const filteredVariantsProducts = useMemo(() => {
+    let filteredProducts = products;
+
+    if (activeCategory.id !== "all") {
+      filteredProducts = filteredProducts.filter(
+        (p) => p.product.categoryId === activeCategory.id
+      );
+    }
+
+    if (searchTerm) {
+      filteredProducts = filteredProducts.filter(
         (p) =>
           p.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           p.productDescription
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) // Include SKU in search
-      )
-    : variantproducts;
+          p.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return filteredProducts;
+  }, [products, activeCategory, searchTerm]);
 
   // Refetch draft orders when mutations complete
   useEffect(() => {
@@ -240,6 +243,20 @@ const LiveSalesPage = () => {
     }
   };
 
+  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
+    if (!currentDraftOrder) return;
+
+    const itemToUpdate = currentDraftOrder.items.find(
+      (item) => item.id === itemId
+    );
+    if (!itemToUpdate) return;
+
+    if (newQuantity <= 0) {
+      handleRemoveItem(itemId);
+    } else {
+      handleUpdateItem(itemId, newQuantity, itemToUpdate.unitPrice);
+    }
+  };
   // Update item in order
   const handleUpdateItem = async (
     itemId: string,
@@ -340,9 +357,6 @@ const LiveSalesPage = () => {
         try {
           await finalizeOrder.mutateAsync(currentDraftOrder.id);
 
-          setOrderSuccess(true);
-          setTimeout(() => setOrderSuccess(false), 3000);
-
           // Reset state
           setCurrentDraftOrder(null);
           setSelectedCustomer(null);
@@ -402,6 +416,7 @@ const LiveSalesPage = () => {
       setCurrentDraftOrder(null);
       setSelectedCustomer(null);
     }
+    // Logic to select a customer for the new order
   };
 
   const openVariantDialog = (product: Product) => {
@@ -431,154 +446,290 @@ const LiveSalesPage = () => {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Success Banner */}
-      {orderSuccess && (
-        <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <Check className="h-5 w-5 text-green-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-green-700">
-                Orden completada exitosamente. El wallet ha sido debitado y el
-                inventario actualizado.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div className="bg-gray-50/50">
       {/* Draft Orders Bar */}
-      {draftOrders && draftOrders.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <ClipboardList className="h-5 w-5 mr-2 text-indigo-600" />
-                <CardTitle className="text-base">
-                  Órdenes en Progreso ({draftOrders.length})
-                </CardTitle>
+      <div className="bg-white border-b border-gray-200 px-4 py-2">
+        <div className="flex items-center gap-2">
+          {draftOrders?.map((order) => (
+            <button
+              key={order.id}
+              onClick={() => handleSelectDraftOrder(order)}
+              className={`flex items-center gap-2 p-2 rounded-md transition-colors ${
+                currentDraftOrder?.id === order.id
+                  ? "bg-indigo-100 text-indigo-700"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              <div className="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold text-gray-600">
+                {order.customerName?.substring(0, 2).toUpperCase()}
               </div>
-              <Button size="sm" variant="outline" onClick={handleNewOrder}>
-                <PlusCircle className="h-4 w-4 mr-1" />
-                Nueva Orden
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {draftOrders.map((order) => (
-                <button
-                  key={order.id}
-                  onClick={() => handleSelectDraftOrder(order)}
-                  className={`flex-shrink-0 p-3 rounded-lg border-2 transition-all ${
-                    currentDraftOrder?.id === order.id
-                      ? "border-indigo-600 bg-indigo-50"
-                      : "border-gray-200 hover:border-gray-300 bg-white"
-                  }`}
-                >
-                  <div className="text-left min-w-[200px]">
-                    <p className="text-sm font-medium text-gray-900">
-                      {order.customerName}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {order.items.length} items
-                    </p>
-                    <p className="text-sm font-bold text-indigo-600 mt-1">
-                      ${(order.totalAmount ?? 0).toFixed(2)}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="h-[calc(100vh-16rem)] flex gap-4">
-        {/* Left Column - Product Search */}
-        <Card className="w-1/3 flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Productos</span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowProductModal(true)}
-              >
-                <PlusCircle className="h-4 w-4 mr-1" />
-                Nuevo
-              </Button>
-            </CardTitle>
-            <CardDescription>
-              <Input
-                type="text"
-                placeholder="Buscar productos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="mt-2"
-              />
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-3 p-4">
-            {filteredVariantsProducts && filteredVariantsProducts.length > 0 ? (
-              filteredVariantsProducts.map((variantProduct) => (
-                <div
-                  key={variantProduct.productId}
-                  onClick={() => openVariantDialog(variantProduct.product)}
-                  className="bg-gray-50 rounded-lg p-3 cursor-pointer hover:bg-gray-100 border border-gray-200 transition-colors"
-                >
-                  <div className="flex gap-3">
-                    {variantProduct.imageUrl && (
-                      <img
-                        src={variantProduct.imageUrl}
-                        alt={variantProduct.productName}
-                        className="w-16 h-16 rounded object-cover flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">
-                        {variantProduct.productName}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        ${(variantProduct.price ?? 0).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {variantProduct.stockQuantity || 0} unidades disponibles
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">
-                  No se encontraron productos
+              <div>
+                <p className="text-sm font-semibold">{order.customerName}</p>
+                <p className="text-xs text-gray-500">
+                  Ord #{order.id.substring(0, 4)}... • $
+                  {order.totalAmount.toFixed(2)}
                 </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              {currentDraftOrder?.id === order.id && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCancelOrder(); // This should be a close/remove tab action instead
+                  }}
+                  className="ml-2 text-gray-500 hover:text-gray-800"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </button>
+          ))}
+          <button
+            onClick={handleNewOrder}
+            className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-md hover:bg-gray-200"
+          >
+            <Plus size={20} className="text-gray-600" />
+          </button>
+        </div>
+      </div>
 
-        {/* Middle Column - Current Order */}
-        <Card className="w-1/3 flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              Orden Actual
-            </CardTitle>
-            <CardDescription>
-              <div className="mt-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cliente
-                </label>
+      <div className="flex h-[calc(100vh-120px)] p-4 gap-4">
+        {/* Main Content (Left) */}
+        <div className="w-2/3 flex flex-col gap-4">
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="flex gap-4">
+              <div className="relative flex-grow">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
+                <Input
+                  placeholder="Buscar productos..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Button variant="outline" size="icon">
+                <QrCode size={20} />
+              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={activeCategory.id === "all" ? "default" : "outline"}
+                  onClick={() => setActiveCategory({ id: "all", name: "Todo" })}
+                >
+                  Todo
+                </Button>
+                {categories?.map((category) => (
+                  <Button
+                    key={category.id}
+                    variant={
+                      activeCategory.id === category.id ? "default" : "outline"
+                    }
+                    onClick={() => setActiveCategory(category)}
+                  >
+                    {category.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredVariantsProducts?.map((variantProduct) => (
+              <Card
+                key={variantProduct.productId}
+                className="overflow-hidden flex flex-col h-[320px]"
+              >
+                <div className="relative aspect-square w-full bg-gray-100 flex items-center justify-center">
+                  {variantProduct.imageUrl ? (
+                    <img
+                      src={variantProduct.imageUrl}
+                      alt={variantProduct.productName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-gray-400 text-lg p-2 text-center break-words">
+                      {variantProduct.productName}
+                    </span>
+                  )}
+                  <Badge className="absolute top-2 right-2">
+                    {variantProduct.stockQuantity}
+                  </Badge>
+                  {variantProduct.stockQuantity < 5 && (
+                    <Badge
+                      className={`absolute top-2 left-2 ${
+                        variantProduct.stockQuantity === 0
+                          ? "bg-orange-100 text-orange-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {variantProduct.stockQuantity === 0 ? "Agotado" : "Bajo"}
+                    </Badge>
+                  )}
+                </div>
+                <CardContent className="p-3 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-semibold text-sm truncate">
+                      {variantProduct.productName}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {variantProduct.sku}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="font-bold text-indigo-600">
+                      ${variantProduct.price?.toFixed(2)}
+                    </p>
+                    <Button
+                      size="icon"
+                      className="rounded-full w-8 h-8"
+                      onClick={() => openVariantDialog(variantProduct.product)}
+                      disabled={
+                        variantProduct.stockQuantity === 0 || !selectedCustomer
+                      }
+                    >
+                      <Plus size={16} />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Sidebar (Cart) */}
+        <div className="w-1/3 bg-white rounded-lg border border-gray-200 flex flex-col">
+          {selectedCustomer && currentDraftOrder ? (
+            <>
+              <div className="p-4 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold">CLIENTE</h3>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Trash2 size={16} className="text-gray-500" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical size={16} className="text-gray-500" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="bg-indigo-600 text-white p-4 rounded-lg mt-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-400 rounded-full flex items-center justify-center font-bold">
+                      {selectedCustomer?.firstName?.charAt(0)}
+                      {selectedCustomer?.lastName?.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-bold">
+                        {selectedCustomer.firstName} {selectedCustomer.lastName}
+                      </p>
+                      <p className="text-sm opacity-80">Cliente Frecuente</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="ml-auto">
+                      <Edit2 size={16} />
+                    </Button>
+                  </div>
+                  <div className="mt-4 flex justify-between items-end">
+                    <div>
+                      <p className="text-sm opacity-80">WALLET</p>
+                      <p className="font-bold text-2xl">
+                        ${selectedCustomer.wallet?.balance.toFixed(2)}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                      <ShoppingCart size={16} />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mt-2 text-sm">
+                  <Badge variant="outline">Borrador</Badge>
+                  <p className="text-gray-500">
+                    Orden #{currentDraftOrder.id.substring(0, 8)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {currentDraftOrder.items.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gray-100 rounded-md">
+                      {/* Placeholder for image */}
+                    </div>
+                    <div className="flex-grow">
+                      <p className="font-semibold text-sm">
+                        {item.productName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {item.itemDescription || "Default"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="w-7 h-7"
+                        onClick={() =>
+                          handleUpdateQuantity(item.id, item.quantity - 1)
+                        }
+                      >
+                        <Minus size={14} />
+                      </Button>
+                      <span className="font-bold w-4 text-center">
+                        {item.quantity}
+                      </span>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="w-7 h-7"
+                        onClick={() =>
+                          handleUpdateQuantity(item.id, item.quantity + 1)
+                        }
+                      >
+                        <Plus size={14} />
+                      </Button>
+                    </div>
+                    <p className="font-semibold text-sm w-16 text-right">
+                      ${item.subtotal.toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 border-t border-gray-200 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <p className="text-gray-500">
+                    Subtotal ({currentDraftOrder.items.length} items)
+                  </p>
+                  <p className="font-semibold">
+                    ${currentDraftOrder.totalAmount.toFixed(2)}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className="text-gray-500">Total a Pagar</p>
+                  <p className="font-bold text-2xl">
+                    ${currentDraftOrder.totalAmount.toFixed(2)}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button variant="outline" onClick={handleCancelOrder}>
+                    <Save size={16} className="mr-2" />
+                    Guardar
+                  </Button>
+                  <Button onClick={handleFinalizeOrder}>Cobrar &rarr;</Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+              <Users size={48} className="text-gray-300" />
+              <h3 className="mt-4 font-semibold">Seleccionar cliente</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Elija un cliente existente o cree uno nuevo para comenzar a
+                vender.
+              </p>
+              <div className="mt-4 w-full">
                 <CustomerCombobox
                   customers={customers}
                   selectedCustomer={selectedCustomer}
                   onSelectCustomer={(customer) => {
-                    // Check if this customer already has a draft order
                     const existingOrder = draftOrders?.find(
                       (o) => o.customerId === customer?.id
                     );
@@ -592,328 +743,15 @@ const LiveSalesPage = () => {
                       });
                     } else {
                       setSelectedCustomer(customer);
-                      if (!customer && currentDraftOrder) {
-                        // If deselecting customer and there's a current order, keep the order
-                        // User can manually cancel if needed
-                      } else if (customer && !currentDraftOrder) {
-                        // New customer selected, no current order - ready to add items
-                        setCurrentDraftOrder(null);
-                      }
+                      setCurrentDraftOrder(null);
                     }
                   }}
                   disabled={!!currentDraftOrder}
                 />
               </div>
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="flex-1 overflow-y-auto space-y-3 p-4">
-            {currentDraftOrder &&
-            currentDraftOrder.items &&
-            currentDraftOrder.items.length > 0 ? (
-              currentDraftOrder.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-lg p-3 border border-gray-200"
-                >
-                  {editingItem?.itemId === item.id ? (
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-900">
-                            {item.productName}
-                          </h4>
-                          <p className="text-xs text-gray-500">
-                            {item.variantSku}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-xs text-gray-600">
-                            Cantidad
-                          </label>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={editingItem.quantity}
-                            onChange={(e) =>
-                              setEditingItem({
-                                ...editingItem,
-                                quantity: parseInt(e.target.value) || 1,
-                              })
-                            }
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-600">
-                            Precio Unit.
-                          </label>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={editingItem.price}
-                            onChange={(e) =>
-                              setEditingItem({
-                                ...editingItem,
-                                price: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            handleUpdateItem(
-                              item.id,
-                              editingItem.quantity,
-                              editingItem.price
-                            )
-                          }
-                          className="flex-1"
-                        >
-                          <Check className="h-4 w-4 mr-1" />
-                          Guardar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setEditingItem(null)}
-                          className="flex-1"
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Cancelar
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-900">
-                            {item.productName}
-                          </h4>
-                          <p className="text-xs text-gray-500">
-                            {item.variantSku}
-                          </p>
-                          {item.unitPrice !== item.originalPrice && (
-                            <Badge variant="secondary" className="mt-1 text-xs">
-                              Precio modificado
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              setEditingItem({
-                                itemId: item.id,
-                                quantity: item.quantity,
-                                price: item.unitPrice,
-                              })
-                            }
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleRemoveItem(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <div>
-                          <span className="text-gray-600">Cantidad:</span>{" "}
-                          <span className="font-medium">{item.quantity}</span>
-                          <span className="text-gray-600 ml-3">x</span>{" "}
-                          <span className="font-medium">
-                            ${(item.unitPrice ?? 0).toFixed(2)}
-                          </span>
-                        </div>
-                        <span className="font-bold text-gray-900">
-                          ${(item.subtotal ?? 0).toFixed(2)}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">Sin items</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {selectedCustomer
-                    ? "Agregue productos para crear una orden"
-                    : "Seleccione un cliente para iniciar"}
-                </p>
-              </div>
-            )}
-          </CardContent>
-
-          {currentDraftOrder && (
-            <CardFooter className="flex-col space-y-3 border-t bg-gray-50 p-4">
-              <div className="w-full flex justify-between items-center">
-                <span className="text-base font-semibold text-gray-900">
-                  Total
-                </span>
-                <span className="text-xl font-bold text-gray-900">
-                  ${(currentDraftOrder.totalAmount ?? 0).toFixed(2)}
-                </span>
-              </div>
-              <div className="w-full grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleCancelOrder}
-                  disabled={!currentDraftOrder}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleFinalizeOrder}
-                  disabled={!currentDraftOrder || !selectedCustomer}
-                >
-                  Finalizar Orden
-                </Button>
-              </div>
-            </CardFooter>
+            </div>
           )}
-        </Card>
-
-        {/* Right Column - Customer & Summary */}
-        <Card className="w-1/3 flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Users className="h-5 w-5 mr-2" />
-              Resumen
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-            {selectedCustomer ? (
-              <>
-                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-4 text-white">
-                  <p className="text-sm opacity-90">Cliente Seleccionado</p>
-                  <p className="text-xl font-bold mt-1">
-                    {selectedCustomer.firstName} {selectedCustomer.lastName}
-                  </p>
-                  <p className="text-xs opacity-75 mt-1">
-                    {selectedCustomer.email}
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">
-                    Información de Wallet
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">
-                        Balance Actual:
-                      </span>
-                      <span className="text-sm font-bold text-green-600">
-                        $
-                        {(selectedCustomer.wallet?.balance ?? 0).toFixed(2) ||
-                          "0.00"}
-                      </span>
-                    </div>
-                    {currentDraftOrder && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">
-                            Total Orden:
-                          </span>
-                          <span className="text-sm font-bold text-gray-900">
-                            ${(currentDraftOrder.totalAmount ?? 0).toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="pt-2 border-t border-gray-200">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">
-                              Balance Después:
-                            </span>
-                            <span
-                              className={`text-sm font-bold ${
-                                (selectedCustomer.wallet?.balance || 0) -
-                                  currentDraftOrder.totalAmount >=
-                                0
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              }`}
-                            >
-                              $
-                              {(
-                                (selectedCustomer.wallet?.balance || 0) -
-                                currentDraftOrder.totalAmount
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                        {currentDraftOrder.totalAmount >
-                          (selectedCustomer.wallet?.balance || 0) && (
-                          <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
-                            <p className="text-xs text-red-700">
-                              Fondos insuficientes. Faltan: $
-                              {(
-                                currentDraftOrder.totalAmount -
-                                (selectedCustomer.wallet?.balance || 0)
-                              ).toFixed(2)}
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {currentDraftOrder &&
-                  currentDraftOrder.items &&
-                  currentDraftOrder.items.length > 0 && (
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <h4 className="text-sm font-medium text-gray-900 mb-3">
-                        Items de la Orden
-                      </h4>
-                      <ul className="space-y-2">
-                        {currentDraftOrder.items.map((item) => (
-                          <li
-                            key={item.id}
-                            className="text-sm flex justify-between"
-                          >
-                            <span className="text-gray-700">
-                              {item.quantity}x {item.productName}
-                            </span>
-                            <span className="font-medium text-gray-900">
-                              ${(item.subtotal ?? 0).toFixed(2)}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-gray-400" />
-                </div>
-                <p className="mt-2 text-sm text-gray-500">
-                  Sin cliente seleccionado
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Seleccione un cliente para iniciar
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
       {/* Variant Selection Dialog */}
@@ -992,6 +830,18 @@ const LiveSalesPage = () => {
                   <p className="text-sm text-gray-500">
                     No hay variantes disponibles
                   </p>
+                  <button
+                    onClick={() =>
+                      handleAddToOrder(selectedProduct, {
+                        id: selectedProduct.variants[0].id,
+                        price: selectedProduct.basePrice,
+                        stockQuantity: 1, // Assume 1 if no variants
+                        sku: "default",
+                      } as ProductVariant)
+                    }
+                  >
+                    Add default
+                  </button>
                 </div>
               )}
             </div>
