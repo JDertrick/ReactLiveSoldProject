@@ -29,6 +29,8 @@ import {
 } from "../../components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 const LocationListPage = () => {
   const {
@@ -41,6 +43,7 @@ const LocationListPage = () => {
   } = useLocations();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -135,6 +138,29 @@ const LocationListPage = () => {
           </svg>
           Agregar bodega
         </Button>
+      </div>
+
+      <div className="pb-5">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4 w-full">
+                <div className="relative flex-grow">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
+                  <Input
+                    placeholder="Buscar por bodega..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
       </div>
 
       <Card>

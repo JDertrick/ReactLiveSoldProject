@@ -20,6 +20,7 @@ import {
   ProductVariant,
   CreateProductDto,
   UpdateProductDto,
+  VariantProductDto,
 } from "../../types/product.types";
 import { Customer } from "../../types/customer.types";
 import { SalesOrder } from "../../types/salesorder.types";
@@ -184,9 +185,9 @@ const LiveSalesPage = () => {
   // Add variant to order
   const handleAddToOrder = async (
     product: Product,
-    variant: ProductVariant
+    variantProduct: VariantProductDto
   ) => {
-    if (!variant) {
+    if (!variantProduct) {
       setAlertDialog({
         open: true,
         title: "Variante requerida",
@@ -207,7 +208,9 @@ const LiveSalesPage = () => {
     }
 
     const price =
-      variant.price && variant.price > 0 ? variant.price : product.basePrice;
+      variantProduct.price && variantProduct.price > 0
+        ? variantProduct.price
+        : product.basePrice;
 
     try {
       if (currentDraftOrder) {
@@ -215,7 +218,7 @@ const LiveSalesPage = () => {
         const updatedOrder = await addItemToOrder.mutateAsync({
           orderId: currentDraftOrder.id,
           item: {
-            productVariantId: variant.id,
+            productVariantId: variantProduct.id ?? "",
             quantity: 1,
             customUnitPrice: price,
           },
@@ -224,7 +227,7 @@ const LiveSalesPage = () => {
       } else {
         // Create new draft order with first item
         await handleCreateDraftOrder(selectedCustomer.id, {
-          productVariantId: variant.id,
+          productVariantId: variantProduct.id ?? "",
           quantity: 1,
           price,
         });
@@ -537,7 +540,7 @@ const LiveSalesPage = () => {
             {filteredVariantsProducts?.map((variantProduct) => (
               <Card
                 key={variantProduct.id}
-                className="overflow-hidden flex flex-col"
+                className="overflow-hidden flex flex-col h-80"
               >
                 <div className="relative aspect-square w-full bg-gray-100 flex items-center justify-center">
                   {variantProduct.imageUrl ? (
@@ -579,10 +582,22 @@ const LiveSalesPage = () => {
                     <p className="font-bold text-indigo-600">
                       ${variantProduct.price?.toFixed(2)}
                     </p>
-                    <Button
+                    {/* <Button
                       size="icon"
                       className="rounded-full w-8 h-8"
                       onClick={() => openVariantDialog(variantProduct.product)}
+                      disabled={
+                        variantProduct.stockQuantity === 0 || !selectedCustomer
+                      }
+                    >
+                      <Plus size={16} />
+                    </Button> */}
+                    <Button
+                      size="icon"
+                      className="rounded-full w-8 h-8"
+                      onClick={() =>
+                        handleAddToOrder(variantProduct.product, variantProduct)
+                      }
                       disabled={
                         variantProduct.stockQuantity === 0 || !selectedCustomer
                       }
@@ -837,7 +852,7 @@ const LiveSalesPage = () => {
                         price: selectedProduct.basePrice,
                         stockQuantity: 1, // Assume 1 if no variants
                         sku: "default",
-                      } as ProductVariant)
+                      } as VariantProductDto)
                     }
                   >
                     Add default
