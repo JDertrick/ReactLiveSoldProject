@@ -536,8 +536,8 @@ const LiveSalesPage = () => {
           <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredVariantsProducts?.map((variantProduct) => (
               <Card
-                key={variantProduct.productId}
-                className="overflow-hidden flex flex-col h-[320px]"
+                key={variantProduct.id}
+                className="overflow-hidden flex flex-col"
               >
                 <div className="relative aspect-square w-full bg-gray-100 flex items-center justify-center">
                   {variantProduct.imageUrl ? (
