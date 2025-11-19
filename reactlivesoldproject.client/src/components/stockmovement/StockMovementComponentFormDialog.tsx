@@ -1,14 +1,19 @@
 import {
+  Box,
   Check,
   ChevronsUpDown,
+  ClipboardPlus,
   DollarSign,
   Hash,
+  Info,
+  MapPin,
   Package,
+  Search,
   TrendingDown,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +41,6 @@ import {
   CreateStockMovementDto,
   StockMovementType,
 } from "../../types/stockmovement.types";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -49,6 +53,7 @@ import { VariantProductDto } from "@/types";
 import { cn } from "@/lib/utils";
 import { useCreateStockMovement } from "@/hooks/useStockMovements";
 import { useLocations } from "@/hooks/useLocations";
+import { Textarea } from "../ui/textarea";
 
 interface StockMovementComponentFormDialogProps {
   isAddModalOpen: boolean;
@@ -69,7 +74,7 @@ const StockMovementComponentFormDialog = ({
   const [openCombobox, setOpenCombobox] = useState(false);
   const [formData, setFormData] = useState<CreateStockMovementDto>({
     productVariantId: "",
-    movementType: StockMovementType.Adjustment, // Default to Adjustment
+    movementType: StockMovementType.Adjustment,
     quantity: 0,
     notes: "",
     reference: "",
@@ -102,7 +107,6 @@ const StockMovementComponentFormDialog = ({
     e.preventDefault();
 
     try {
-      // Guardar el producto
       await onSubmit(formData);
     } catch (error) {
       console.error("Error al guardar producto:", error);
@@ -113,25 +117,33 @@ const StockMovementComponentFormDialog = ({
   return (
     <>
       <Dialog open={isAddModalOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-0">
           <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                <Package className="w-6 h-6" />
-                Registrar Movimiento de Inventario
-              </DialogTitle>
-              <DialogDescription className="text-base">
-                Los movimientos se crean como <strong>borrador</strong>. Deberá
-                postearlos para que afecten el inventario.
-              </DialogDescription>
+            <DialogHeader className="p-6 pb-4">
+              <div className="flex items-center gap-4">
+                <div className="bg-indigo-100 p-3 rounded-lg">
+                  <Box className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold">
+                    Registrar Movimiento
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-gray-500">
+                    Los movimientos se crean como{" "}
+                    <span className="font-semibold text-gray-700">
+                      borrador
+                    </span>{" "}
+                    hasta ser posteados.
+                  </DialogDescription>
+                </div>
+              </div>
             </DialogHeader>
 
-            <div className="space-y-6 py-6">
+            <div className="p-6 space-y-6">
               {/* Product Variant Search */}
               <div className="space-y-2">
-                <Label className="text-base font-semibold flex items-center gap-2">
-                  <Package className="w-4 h-4" />
-                  Producto / Variante
+                <Label className="text-xs font-semibold text-gray-500 tracking-wider">
+                  PRODUCTO / VARIANTE
                 </Label>
                 <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
                   <PopoverTrigger asChild>
@@ -139,26 +151,22 @@ const StockMovementComponentFormDialog = ({
                       variant="outline"
                       role="combobox"
                       aria-expanded={openCombobox}
-                      className="w-full justify-between h-auto min-h-[50px]"
+                      className="w-full justify-between h-12 text-gray-500"
                     >
-                      {selectedVariant ? (
-                        <div className="flex flex-col items-start gap-1 text-left">
-                          <span className="font-semibold">
-                            {selectedVariant.productName}
+                      <div className="flex items-center">
+                        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                        {selectedVariant ? (
+                          <span className="text-black">
+                            {selectedVariant.label}
                           </span>
-                          <span className="text-xs text-gray-500">
-                            SKU: {selectedVariant.sku} | Stock:{" "}
-                            {selectedVariant.stock} | Costo Prom: $
-                            {selectedVariant.averageCost.toFixed(2)}
-                          </span>
-                        </div>
-                      ) : (
-                        "Buscar producto..."
-                      )}
+                        ) : (
+                          "Buscar producto por nombre o SKU..."
+                        )}
+                      </div>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[600px] p-0">
+                  <PopoverContent className="w-130 p-0">
                     <Command>
                       <CommandInput placeholder="Buscar producto o SKU..." />
                       <CommandList>
@@ -177,7 +185,7 @@ const StockMovementComponentFormDialog = ({
                                 });
                                 setOpenCombobox(false);
                               }}
-                              className="py-3"
+                              className="py-2"
                             >
                               <Check
                                 className={cn(
@@ -187,14 +195,10 @@ const StockMovementComponentFormDialog = ({
                                     : "opacity-0"
                                 )}
                               />
-                              <div className="flex flex-col gap-1">
-                                <span className="font-semibold">
-                                  {variant.productName}
-                                </span>
+                              <div className="flex flex-col">
+                                <span>{variant.productName}</span>
                                 <span className="text-xs text-gray-500">
-                                  SKU: {variant.sku} | Stock: {variant.stock} |
-                                  Precio: ${variant.price.toFixed(2)} | Costo
-                                  Prom: ${variant.averageCost.toFixed(2)}
+                                  SKU: {variant.sku}
                                 </span>
                               </div>
                             </CommandItem>
@@ -204,37 +208,12 @@ const StockMovementComponentFormDialog = ({
                     </Command>
                   </PopoverContent>
                 </Popover>
-                {selectedVariant && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2">
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div>
-                        <span className="text-gray-600">Stock Actual:</span>
-                        <p className="font-bold text-lg">
-                          {selectedVariant.stock}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Precio Venta:</span>
-                        <p className="font-bold text-lg">
-                          ${selectedVariant.price.toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Costo Promedio:</span>
-                        <p className="font-bold text-lg">
-                          ${selectedVariant.averageCost.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Movement Type */}
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold">
-                    Tipo de Movimiento
+                  <Label className="text-xs font-semibold text-gray-500 tracking-wider">
+                    TIPO DE MOVIMIENTO
                   </Label>
                   <Select
                     value={formData.movementType}
@@ -247,95 +226,82 @@ const StockMovementComponentFormDialog = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={StockMovementType.Purchase}>
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-green-600" />
-                          Compra
-                        </div>
+                        Compra
                       </SelectItem>
                       <SelectItem value={StockMovementType.Loss}>
-                        <div className="flex items-center gap-2">
-                          <TrendingDown className="w-4 h-4 text-red-600" />
-                          Pérdida
-                        </div>
+                        Pérdida
                       </SelectItem>
                       <SelectItem value={StockMovementType.Return}>
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-blue-600" />
-                          Devolución
-                        </div>
+                        Devolución
                       </SelectItem>
                       {locations && locations.length >= 2 && (
                         <SelectItem value={StockMovementType.Transfer}>
-                          <div className="flex items-center gap-2">
-                            <Package className="w-4 h-4 text-purple-600" />
-                            Transferencia
-                          </div>
+                          Transferencia
                         </SelectItem>
                       )}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Quantity */}
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold flex items-center gap-2">
-                    <Hash className="w-4 h-4" />
-                    Cantidad
+                  <Label className="text-xs font-semibold text-gray-500 tracking-wider">
+                    CANTIDAD
                   </Label>
-                  <Input
-                    type="number"
-                    value={formData.quantity}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        quantity: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    placeholder="Ej: 10"
-                    className="h-12 text-lg"
-                    required
-                  />
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="number"
+                      value={formData.quantity}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          quantity: parseInt(e.target.value) || 0,
+                        })
+                      }
+                      placeholder="0"
+                      className="h-12 pl-9"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Unit Cost */}
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
-                    Costo Unitario
-                    {formData.movementType === StockMovementType.Purchase && (
-                      <Badge variant="destructive" className="ml-2">
-                        Requerido
-                      </Badge>
-                    )}
+                  <Label className="text-xs font-semibold text-gray-500 tracking-wider">
+                    COSTO UNITARIO
                   </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.unitCost || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        unitCost: e.target.value
-                          ? parseFloat(e.target.value)
-                          : undefined,
-                      })
-                    }
-                    placeholder="$0.00"
-                    className="h-12 text-lg"
-                    required={
-                      formData.movementType === StockMovementType.Purchase
-                    }
-                  />
-                  <p className="text-xs text-gray-500">
-                    💡 Se usa para calcular el costo promedio ponderado
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.unitCost || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          unitCost: e.target.value
+                            ? parseFloat(e.target.value)
+                            : undefined,
+                        })
+                      }
+                      placeholder="0.00"
+                      className="h-12 pl-9"
+                      required={
+                        formData.movementType === StockMovementType.Purchase
+                      }
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    Usado para cálculo de costo promedio
                   </p>
                 </div>
 
-                {/* Reference */}
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold">Referencia</Label>
+                  <Label className="text-xs font-semibold text-gray-500 tracking-wider">
+                    REFERENCIA
+                  </Label>
                   <Input
                     value={formData.reference || ""}
                     onChange={(e) =>
@@ -347,125 +313,58 @@ const StockMovementComponentFormDialog = ({
                 </div>
               </div>
 
-              {/* Location Selectors */}
-              {formData.movementType === StockMovementType.Transfer ? (
-                // Para transferencias: mostrar origen y destino
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-base font-semibold flex items-center gap-2">
-                      <Package className="w-4 h-4" />
-                      Ubicación Origen
-                      <Badge variant="destructive" className="ml-2">
-                        Requerido
-                      </Badge>
-                    </Label>
-                    <Select
-                      value={formData.sourceLocationId || ""}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, sourceLocationId: value })
-                      }
-                    >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Seleccionar origen..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {locations?.map((location) => (
-                          <SelectItem key={location.id} value={location.id}>
-                            {location.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-base font-semibold flex items-center gap-2">
-                      <Package className="w-4 h-4" />
-                      Ubicación Destino
-                      <Badge variant="destructive" className="ml-2">
-                        Requerido
-                      </Badge>
-                    </Label>
-                    <Select
-                      value={formData.destinationLocationId || ""}
-                      onValueChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          destinationLocationId: value,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Seleccionar destino..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {locations?.map((location) => (
-                          <SelectItem key={location.id} value={location.id}>
-                            {location.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              ) : (
-                // Para otros movimientos: solo ubicación de destino
-                <div className="space-y-2">
-                  <Label className="text-base font-semibold flex items-center gap-2">
-                    <Package className="w-4 h-4" />
-                    Ubicación
-                  </Label>
-                  <Select
-                    value={formData.destinationLocationId || ""}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, destinationLocationId: value })
-                    }
-                  >
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Seleccionar ubicación (opcional)..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {locations?.map((location) => (
-                        <SelectItem key={location.id} value={location.id}>
-                          {location.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500">
-                    💡 Especifica donde ocurre el movimiento
-                  </p>
-                </div>
-              )}
-
+              {/* Location Selector */}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-gray-500 tracking-wider">
+                  UBICACIÓN
+                </Label>
+                <Select
+                  value={formData.destinationLocationId || ""}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, destinationLocationId: value })
+                  }
+                >
+                  <SelectTrigger className="h-12">
+                    <div className="flex items-center text-gray-500">
+                      <MapPin className="mr-2 h-4 w-4" />
+                      <SelectValue placeholder="Seleccionar ubicación..." />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations?.map((location) => (
+                      <SelectItem key={location.id} value={location.id}>
+                        {location.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {/* Notes */}
               <div className="space-y-2">
-                <Label className="text-base font-semibold">Notas</Label>
+                <Label className="text-xs font-semibold text-gray-500 tracking-wider">
+                  NOTAS
+                </Label>
                 <Textarea
                   value={formData.notes || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
                   }
-                  placeholder="Descripción del movimiento (opcional)..."
+                  placeholder="Descripción del movimiento..."
                   className="min-h-[100px] resize-none"
                 />
               </div>
             </div>
 
-            <DialogFooter className="gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onClose()}
-                className="px-6"
-              >
+            <DialogFooter className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => onClose()}>
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={createMovement.isPending}
-                className="px-6"
+                className="bg-slate-900 text-white hover:bg-slate-800"
               >
+                <ClipboardPlus className="w-4 h-4 mr-2" />
                 {createMovement.isPending ? "Guardando..." : "Crear Movimiento"}
               </Button>
             </DialogFooter>

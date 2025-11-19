@@ -1,6 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useGetProducts, useCreateProduct, useGetTags } from '../../hooks/useProducts';
-import { useGetCustomers } from '../../hooks/useCustomers';
+import { useState, useEffect, useMemo } from "react";
+import {
+  useGetProducts,
+  useCreateProduct,
+  useGetTags,
+} from "../../hooks/useProducts";
+import { useGetCustomers } from "../../hooks/useCustomers";
 import {
   useCreateSalesOrder,
   useAddItemToOrder,
@@ -8,28 +12,63 @@ import {
   useRemoveItemFromOrder,
   useFinalizeOrder,
   useCancelSalesOrder,
-  useGetSalesOrders
-} from '../../hooks/useSalesOrders';
-import { Product, ProductVariant, CreateProductDto, UpdateProductDto } from '../../types/product.types';
-import { Customer } from '../../types/customer.types';
-import { SalesOrder } from '../../types/salesorder.types';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { Badge } from '../../components/ui/badge';
-import { PlusCircle, ShoppingCart, Edit2, Trash2, Check, X, Package, ClipboardList, Users } from 'lucide-react';
-import ProductFormModal from '../../components/products/ProductFormModal';
-import VariantModal from '../../components/products/VariantModal';
-import { CustomerCombobox } from '../../components/common/CustomerCombobox';
-import { CustomAlertDialog } from '../../components/common/AlertDialog';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+  useGetSalesOrders,
+} from "../../hooks/useSalesOrders";
+import {
+  Product,
+  ProductVariant,
+  CreateProductDto,
+  UpdateProductDto,
+} from "../../types/product.types";
+import { Customer } from "../../types/customer.types";
+import { SalesOrder } from "../../types/salesorder.types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import { Badge } from "../../components/ui/badge";
+import {
+  PlusCircle,
+  ShoppingCart,
+  Edit2,
+  Trash2,
+  Check,
+  X,
+  Package,
+  ClipboardList,
+  Users,
+} from "lucide-react";
+import ProductFormModal from "../../components/products/ProductFormModal";
+import VariantModal from "../../components/products/VariantModal";
+import { CustomerCombobox } from "../../components/common/CustomerCombobox";
+import { CustomAlertDialog } from "../../components/common/AlertDialog";
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 
 const LiveSalesPage = () => {
-  const { data: productsPagedResult } = useGetProducts(1, 9999, "published", ""); // Only published products
+  const { data: productsPagedResult } = useGetProducts(
+    1,
+    9999,
+    "published",
+    ""
+  ); // Only published products
   const { data: customers } = useGetCustomers();
   const { data: tags } = useGetTags();
-  const { data: draftOrders, refetch: refetchDraftOrders } = useGetSalesOrders('Draft');
+  const { data: draftOrders, refetch: refetchDraftOrders } =
+    useGetSalesOrders("Draft");
   const createSalesOrder = useCreateSalesOrder();
   const addItemToOrder = useAddItemToOrder();
   const updateItemInOrder = useUpdateItemInOrder();
@@ -38,85 +77,118 @@ const LiveSalesPage = () => {
   const cancelOrder = useCancelSalesOrder();
   const createProduct = useCreateProduct();
 
-  const products = useMemo(() => productsPagedResult?.items ?? [], [productsPagedResult]);
+  const variantproducts = useMemo(
+    () => productsPagedResult?.items ?? [],
+    [productsPagedResult]
+  );
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [currentDraftOrder, setCurrentDraftOrder] = useState<SalesOrder | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
+  const [currentDraftOrder, setCurrentDraftOrder] = useState<SalesOrder | null>(
+    null
+  );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showVariantDialog, setShowVariantDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState<{ itemId: string; quantity: number; price: number } | null>(null);
+  const [editingItem, setEditingItem] = useState<{
+    itemId: string;
+    quantity: number;
+    price: number;
+  } | null>(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
   // Product creation modal states
   const [showProductModal, setShowProductModal] = useState(false);
   const [showVariantManagerModal, setShowVariantManagerModal] = useState(false);
 
-
   // Dialog states
-  const [alertDialog, setAlertDialog] = useState<{ open: boolean; title: string; description: string }>({
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+  }>({
     open: false,
-    title: '',
-    description: '',
+    title: "",
+    description: "",
   });
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
     description: string;
     onConfirm: () => void;
-    variant?: 'default' | 'destructive';
+    variant?: "default" | "destructive";
     confirmText?: string;
   }>({
     open: false,
-    title: '',
-    description: '',
+    title: "",
+    description: "",
     onConfirm: () => {},
   });
 
-  const filteredProducts = searchTerm
-    ? products?.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) // Include SKU in search
+  const filteredVariantsProducts = searchTerm
+    ? variantproducts?.filter(
+        (p) =>
+          p.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.productDescription
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) // Include SKU in search
       )
-    : products;
+    : variantproducts;
 
   // Refetch draft orders when mutations complete
   useEffect(() => {
     refetchDraftOrders();
-  }, [createSalesOrder.isSuccess, addItemToOrder.isSuccess, updateItemInOrder.isSuccess, removeItemFromOrder.isSuccess, cancelOrder.isSuccess, finalizeOrder.isSuccess]);
+  }, [
+    createSalesOrder.isSuccess,
+    addItemToOrder.isSuccess,
+    updateItemInOrder.isSuccess,
+    removeItemFromOrder.isSuccess,
+    cancelOrder.isSuccess,
+    finalizeOrder.isSuccess,
+  ]);
 
   // Create initial draft order or add to existing
-  const handleCreateDraftOrder = async (customerId: string, firstItem: { productVariantId: string; quantity: number; price: number }) => {
+  const handleCreateDraftOrder = async (
+    customerId: string,
+    firstItem: { productVariantId: string; quantity: number; price: number }
+  ) => {
     try {
       const orderData = {
         customerId,
-        items: [{
-          productVariantId: firstItem.productVariantId,
-          quantity: firstItem.quantity,
-          customUnitPrice: firstItem.price,
-        }],
+        items: [
+          {
+            productVariantId: firstItem.productVariantId,
+            quantity: firstItem.quantity,
+            customUnitPrice: firstItem.price,
+          },
+        ],
       };
 
       const newOrder = await createSalesOrder.mutateAsync(orderData);
       setCurrentDraftOrder(newOrder);
     } catch (error) {
-      console.error('Error creating draft order:', error);
+      console.error("Error creating draft order:", error);
       setAlertDialog({
         open: true,
-        title: 'Error al crear orden',
-        description: 'No se pudo crear la orden. Por favor intente nuevamente.',
+        title: "Error al crear orden",
+        description: "No se pudo crear la orden. Por favor intente nuevamente.",
       });
     }
   };
 
   // Add variant to order
-  const handleAddToOrder = async (product: Product, variant: ProductVariant) => {
+  const handleAddToOrder = async (
+    product: Product,
+    variant: ProductVariant
+  ) => {
     if (!variant) {
       setAlertDialog({
         open: true,
-        title: 'Variante requerida',
-        description: 'Por favor seleccione una variante antes de agregar el producto.',
+        title: "Variante requerida",
+        description:
+          "Por favor seleccione una variante antes de agregar el producto.",
       });
       return;
     }
@@ -124,13 +196,15 @@ const LiveSalesPage = () => {
     if (!selectedCustomer) {
       setAlertDialog({
         open: true,
-        title: 'Cliente requerido',
-        description: 'Por favor seleccione un cliente primero antes de agregar productos.',
+        title: "Cliente requerido",
+        description:
+          "Por favor seleccione un cliente primero antes de agregar productos.",
       });
       return;
     }
 
-    const price = variant.price && variant.price > 0 ? variant.price : product.basePrice;
+    const price =
+      variant.price && variant.price > 0 ? variant.price : product.basePrice;
 
     try {
       if (currentDraftOrder) {
@@ -156,17 +230,22 @@ const LiveSalesPage = () => {
       setSelectedProduct(null);
       setShowVariantDialog(false);
     } catch (error) {
-      console.error('Error adding item to order:', error);
+      console.error("Error adding item to order:", error);
       setAlertDialog({
         open: true,
-        title: 'Error al agregar producto',
-        description: 'No se pudo agregar el producto a la orden. Por favor intente nuevamente.',
+        title: "Error al agregar producto",
+        description:
+          "No se pudo agregar el producto a la orden. Por favor intente nuevamente.",
       });
     }
   };
 
   // Update item in order
-  const handleUpdateItem = async (itemId: string, quantity: number, price: number) => {
+  const handleUpdateItem = async (
+    itemId: string,
+    quantity: number,
+    price: number
+  ) => {
     if (!currentDraftOrder) return;
 
     try {
@@ -181,11 +260,12 @@ const LiveSalesPage = () => {
       setCurrentDraftOrder(updatedOrder);
       setEditingItem(null);
     } catch (error) {
-      console.error('Error updating item:', error);
+      console.error("Error updating item:", error);
       setAlertDialog({
         open: true,
-        title: 'Error al actualizar item',
-        description: 'No se pudo actualizar el item. Por favor intente nuevamente.',
+        title: "Error al actualizar item",
+        description:
+          "No se pudo actualizar el item. Por favor intente nuevamente.",
       });
     }
   };
@@ -196,10 +276,10 @@ const LiveSalesPage = () => {
 
     setConfirmDialog({
       open: true,
-      title: 'Eliminar item',
-      description: '¿Está seguro de que desea eliminar este item de la orden?',
-      variant: 'destructive',
-      confirmText: 'Eliminar',
+      title: "Eliminar item",
+      description: "¿Está seguro de que desea eliminar este item de la orden?",
+      variant: "destructive",
+      confirmText: "Eliminar",
       onConfirm: async () => {
         try {
           const updatedOrder = await removeItemFromOrder.mutateAsync({
@@ -208,21 +288,23 @@ const LiveSalesPage = () => {
           });
           setCurrentDraftOrder(updatedOrder);
         } catch (error: any) {
-          console.error('Error removing item:', error);
-          if (error.response?.data?.message?.includes('último item')) {
+          console.error("Error removing item:", error);
+          if (error.response?.data?.message?.includes("último item")) {
             setConfirmDialog({
               open: true,
-              title: 'Último item',
-              description: 'Esta es la última item de la orden. ¿Desea cancelar toda la orden?',
-              variant: 'destructive',
-              confirmText: 'Cancelar orden',
+              title: "Último item",
+              description:
+                "Esta es la última item de la orden. ¿Desea cancelar toda la orden?",
+              variant: "destructive",
+              confirmText: "Cancelar orden",
               onConfirm: () => handleCancelOrder(),
             });
           } else {
             setAlertDialog({
               open: true,
-              title: 'Error al eliminar item',
-              description: 'No se pudo eliminar el item. Por favor intente nuevamente.',
+              title: "Error al eliminar item",
+              description:
+                "No se pudo eliminar el item. Por favor intente nuevamente.",
             });
           }
         }
@@ -240,17 +322,20 @@ const LiveSalesPage = () => {
     if (total > balance) {
       setAlertDialog({
         open: true,
-        title: 'Fondos insuficientes',
-        description: 'El cliente no tiene fondos suficientes en su wallet. Por favor agregue fondos primero.',
+        title: "Fondos insuficientes",
+        description:
+          "El cliente no tiene fondos suficientes en su wallet. Por favor agregue fondos primero.",
       });
       return;
     }
 
     setConfirmDialog({
       open: true,
-      title: 'Finalizar orden',
-      description: `¿Confirmar la orden por $${total.toFixed(2)}? Se descontará del wallet del cliente y se actualizará el inventario.`,
-      confirmText: 'Finalizar orden',
+      title: "Finalizar orden",
+      description: `¿Confirmar la orden por $${(total ?? 0).toFixed(
+        2
+      )}? Se descontará del wallet del cliente y se actualizará el inventario.`,
+      confirmText: "Finalizar orden",
       onConfirm: async () => {
         try {
           await finalizeOrder.mutateAsync(currentDraftOrder.id);
@@ -262,11 +347,12 @@ const LiveSalesPage = () => {
           setCurrentDraftOrder(null);
           setSelectedCustomer(null);
         } catch (error) {
-          console.error('Error finalizing order:', error);
+          console.error("Error finalizing order:", error);
           setAlertDialog({
             open: true,
-            title: 'Error al finalizar orden',
-            description: 'No se pudo finalizar la orden. Por favor intente nuevamente.',
+            title: "Error al finalizar orden",
+            description:
+              "No se pudo finalizar la orden. Por favor intente nuevamente.",
           });
         }
       },
@@ -279,21 +365,23 @@ const LiveSalesPage = () => {
 
     setConfirmDialog({
       open: true,
-      title: 'Cancelar orden',
-      description: '¿Está seguro de que desea cancelar esta orden? Esta acción no se puede deshacer.',
-      variant: 'destructive',
-      confirmText: 'Cancelar orden',
+      title: "Cancelar orden",
+      description:
+        "¿Está seguro de que desea cancelar esta orden? Esta acción no se puede deshacer.",
+      variant: "destructive",
+      confirmText: "Cancelar orden",
       onConfirm: async () => {
         try {
           await cancelOrder.mutateAsync(currentDraftOrder.id);
           setCurrentDraftOrder(null);
           setSelectedCustomer(null);
         } catch (error) {
-          console.error('Error canceling order:', error);
+          console.error("Error canceling order:", error);
           setAlertDialog({
             open: true,
-            title: 'Error al cancelar orden',
-            description: 'No se pudo cancelar la orden. Por favor intente nuevamente.',
+            title: "Error al cancelar orden",
+            description:
+              "No se pudo cancelar la orden. Por favor intente nuevamente.",
           });
         }
       },
@@ -302,7 +390,7 @@ const LiveSalesPage = () => {
 
   // Switch to existing draft order
   const handleSelectDraftOrder = (order: SalesOrder) => {
-    const customer = customers?.find(c => c.id === order.customerId);
+    const customer = customers?.find((c) => c.id === order.customerId);
     setSelectedCustomer(customer || null);
     setCurrentDraftOrder(order);
   };
@@ -322,18 +410,22 @@ const LiveSalesPage = () => {
   };
 
   // Handle product creation
-  const handleCreateProduct = async (data: CreateProductDto | UpdateProductDto, isEditing: boolean) => {
+  const handleCreateProduct = async (
+    data: CreateProductDto | UpdateProductDto,
+    isEditing: boolean
+  ) => {
     if (isEditing) return; // Solo crear, no editar
 
     try {
       await createProduct.mutateAsync(data as CreateProductDto);
       setShowProductModal(false);
     } catch (error) {
-      console.error('Error creating product:', error);
+      console.error("Error creating product:", error);
       setAlertDialog({
         open: true,
-        title: 'Error al crear producto',
-        description: 'No se pudo crear el producto. Por favor intente nuevamente.',
+        title: "Error al crear producto",
+        description:
+          "No se pudo crear el producto. Por favor intente nuevamente.",
       });
     }
   };
@@ -349,7 +441,8 @@ const LiveSalesPage = () => {
             </div>
             <div className="ml-3">
               <p className="text-sm text-green-700">
-                Orden completada exitosamente. El wallet ha sido debitado y el inventario actualizado.
+                Orden completada exitosamente. El wallet ha sido debitado y el
+                inventario actualizado.
               </p>
             </div>
           </div>
@@ -363,7 +456,9 @@ const LiveSalesPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <ClipboardList className="h-5 w-5 mr-2 text-indigo-600" />
-                <CardTitle className="text-base">Órdenes en Progreso ({draftOrders.length})</CardTitle>
+                <CardTitle className="text-base">
+                  Órdenes en Progreso ({draftOrders.length})
+                </CardTitle>
               </div>
               <Button size="sm" variant="outline" onClick={handleNewOrder}>
                 <PlusCircle className="h-4 w-4 mr-1" />
@@ -379,14 +474,20 @@ const LiveSalesPage = () => {
                   onClick={() => handleSelectDraftOrder(order)}
                   className={`flex-shrink-0 p-3 rounded-lg border-2 transition-all ${
                     currentDraftOrder?.id === order.id
-                      ? 'border-indigo-600 bg-indigo-50'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                      ? "border-indigo-600 bg-indigo-50"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
                   }`}
                 >
                   <div className="text-left min-w-[200px]">
-                    <p className="text-sm font-medium text-gray-900">{order.customerName}</p>
-                    <p className="text-xs text-gray-500">{order.items.length} items</p>
-                    <p className="text-sm font-bold text-indigo-600 mt-1">${order.totalAmount.toFixed(2)}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {order.customerName}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {order.items.length} items
+                    </p>
+                    <p className="text-sm font-bold text-indigo-600 mt-1">
+                      ${(order.totalAmount ?? 0).toFixed(2)}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -401,7 +502,11 @@ const LiveSalesPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Productos</span>
-              <Button size="sm" variant="outline" onClick={() => setShowProductModal(true)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowProductModal(true)}
+              >
                 <PlusCircle className="h-4 w-4 mr-1" />
                 Nuevo
               </Button>
@@ -417,26 +522,30 @@ const LiveSalesPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto space-y-3 p-4">
-            {filteredProducts && filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
+            {filteredVariantsProducts && filteredVariantsProducts.length > 0 ? (
+              filteredVariantsProducts.map((variantProduct) => (
                 <div
-                  key={product.id}
-                  onClick={() => openVariantDialog(product)}
+                  key={variantProduct.productId}
+                  onClick={() => openVariantDialog(variantProduct.product)}
                   className="bg-gray-50 rounded-lg p-3 cursor-pointer hover:bg-gray-100 border border-gray-200 transition-colors"
                 >
                   <div className="flex gap-3">
-                    {product.imageUrl && (
+                    {variantProduct.imageUrl && (
                       <img
-                        src={product.imageUrl}
-                        alt={product.name}
+                        src={variantProduct.imageUrl}
+                        alt={variantProduct.productName}
                         className="w-16 h-16 rounded object-cover flex-shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
-                      <p className="text-sm text-gray-500">${product.basePrice.toFixed(2)}</p>
+                      <h3 className="text-sm font-medium text-gray-900 truncate">
+                        {variantProduct.productName}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        ${(variantProduct.price ?? 0).toFixed(2)}
+                      </p>
                       <p className="text-xs text-gray-400 mt-1">
-                        {product.variants?.reduce((sum, v) => sum + v.stockQuantity, 0) || 0} unidades disponibles
+                        {variantProduct.stockQuantity || 0} unidades disponibles
                       </p>
                     </div>
                   </div>
@@ -445,7 +554,9 @@ const LiveSalesPage = () => {
             ) : (
               <div className="text-center py-8">
                 <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">No se encontraron productos</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  No se encontraron productos
+                </p>
               </div>
             )}
           </CardContent>
@@ -468,13 +579,15 @@ const LiveSalesPage = () => {
                   selectedCustomer={selectedCustomer}
                   onSelectCustomer={(customer) => {
                     // Check if this customer already has a draft order
-                    const existingOrder = draftOrders?.find(o => o.customerId === customer?.id);
+                    const existingOrder = draftOrders?.find(
+                      (o) => o.customerId === customer?.id
+                    );
                     if (existingOrder && customer) {
                       setConfirmDialog({
                         open: true,
-                        title: 'Orden existente',
+                        title: "Orden existente",
                         description: `${customer.firstName} ${customer.lastName} ya tiene una orden en progreso. ¿Desea continuar con esa orden?`,
-                        confirmText: 'Continuar con orden',
+                        confirmText: "Continuar con orden",
                         onConfirm: () => handleSelectDraftOrder(existingOrder),
                       });
                     } else {
@@ -495,36 +608,59 @@ const LiveSalesPage = () => {
           </CardHeader>
 
           <CardContent className="flex-1 overflow-y-auto space-y-3 p-4">
-            {currentDraftOrder && currentDraftOrder.items && currentDraftOrder.items.length > 0 ? (
+            {currentDraftOrder &&
+            currentDraftOrder.items &&
+            currentDraftOrder.items.length > 0 ? (
               currentDraftOrder.items.map((item) => (
-                <div key={item.id} className="bg-white rounded-lg p-3 border border-gray-200">
+                <div
+                  key={item.id}
+                  className="bg-white rounded-lg p-3 border border-gray-200"
+                >
                   {editingItem?.itemId === item.id ? (
                     <div className="space-y-2">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-900">{item.productName}</h4>
-                          <p className="text-xs text-gray-500">{item.variantSku}</p>
+                          <h4 className="text-sm font-medium text-gray-900">
+                            {item.productName}
+                          </h4>
+                          <p className="text-xs text-gray-500">
+                            {item.variantSku}
+                          </p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-xs text-gray-600">Cantidad</label>
+                          <label className="text-xs text-gray-600">
+                            Cantidad
+                          </label>
                           <Input
                             type="number"
                             min="1"
                             value={editingItem.quantity}
-                            onChange={(e) => setEditingItem({ ...editingItem, quantity: parseInt(e.target.value) || 1 })}
+                            onChange={(e) =>
+                              setEditingItem({
+                                ...editingItem,
+                                quantity: parseInt(e.target.value) || 1,
+                              })
+                            }
                             className="mt-1"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-600">Precio Unit.</label>
+                          <label className="text-xs text-gray-600">
+                            Precio Unit.
+                          </label>
                           <Input
                             type="number"
                             min="0"
                             step="0.01"
                             value={editingItem.price}
-                            onChange={(e) => setEditingItem({ ...editingItem, price: parseFloat(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              setEditingItem({
+                                ...editingItem,
+                                price: parseFloat(e.target.value) || 0,
+                              })
+                            }
                             className="mt-1"
                           />
                         </div>
@@ -532,7 +668,13 @@ const LiveSalesPage = () => {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          onClick={() => handleUpdateItem(item.id, editingItem.quantity, editingItem.price)}
+                          onClick={() =>
+                            handleUpdateItem(
+                              item.id,
+                              editingItem.quantity,
+                              editingItem.price
+                            )
+                          }
                           className="flex-1"
                         >
                           <Check className="h-4 w-4 mr-1" />
@@ -553,8 +695,12 @@ const LiveSalesPage = () => {
                     <>
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-900">{item.productName}</h4>
-                          <p className="text-xs text-gray-500">{item.variantSku}</p>
+                          <h4 className="text-sm font-medium text-gray-900">
+                            {item.productName}
+                          </h4>
+                          <p className="text-xs text-gray-500">
+                            {item.variantSku}
+                          </p>
                           {item.unitPrice !== item.originalPrice && (
                             <Badge variant="secondary" className="mt-1 text-xs">
                               Precio modificado
@@ -565,7 +711,13 @@ const LiveSalesPage = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => setEditingItem({ itemId: item.id, quantity: item.quantity, price: item.unitPrice })}
+                            onClick={() =>
+                              setEditingItem({
+                                itemId: item.id,
+                                quantity: item.quantity,
+                                price: item.unitPrice,
+                              })
+                            }
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -580,10 +732,16 @@ const LiveSalesPage = () => {
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <div>
-                          <span className="text-gray-600">Cantidad:</span> <span className="font-medium">{item.quantity}</span>
-                          <span className="text-gray-600 ml-3">x</span> <span className="font-medium">${item.unitPrice.toFixed(2)}</span>
+                          <span className="text-gray-600">Cantidad:</span>{" "}
+                          <span className="font-medium">{item.quantity}</span>
+                          <span className="text-gray-600 ml-3">x</span>{" "}
+                          <span className="font-medium">
+                            ${(item.unitPrice ?? 0).toFixed(2)}
+                          </span>
                         </div>
-                        <span className="font-bold text-gray-900">${item.subtotal.toFixed(2)}</span>
+                        <span className="font-bold text-gray-900">
+                          ${(item.subtotal ?? 0).toFixed(2)}
+                        </span>
                       </div>
                     </>
                   )}
@@ -595,8 +753,8 @@ const LiveSalesPage = () => {
                 <p className="mt-2 text-sm text-gray-500">Sin items</p>
                 <p className="text-xs text-gray-400 mt-1">
                   {selectedCustomer
-                    ? 'Agregue productos para crear una orden'
-                    : 'Seleccione un cliente para iniciar'}
+                    ? "Agregue productos para crear una orden"
+                    : "Seleccione un cliente para iniciar"}
                 </p>
               </div>
             )}
@@ -605,8 +763,12 @@ const LiveSalesPage = () => {
           {currentDraftOrder && (
             <CardFooter className="flex-col space-y-3 border-t bg-gray-50 p-4">
               <div className="w-full flex justify-between items-center">
-                <span className="text-base font-semibold text-gray-900">Total</span>
-                <span className="text-xl font-bold text-gray-900">${currentDraftOrder.totalAmount.toFixed(2)}</span>
+                <span className="text-base font-semibold text-gray-900">
+                  Total
+                </span>
+                <span className="text-xl font-bold text-gray-900">
+                  ${(currentDraftOrder.totalAmount ?? 0).toFixed(2)}
+                </span>
               </div>
               <div className="w-full grid grid-cols-2 gap-2">
                 <Button
@@ -643,43 +805,67 @@ const LiveSalesPage = () => {
                   <p className="text-xl font-bold mt-1">
                     {selectedCustomer.firstName} {selectedCustomer.lastName}
                   </p>
-                  <p className="text-xs opacity-75 mt-1">{selectedCustomer.email}</p>
+                  <p className="text-xs opacity-75 mt-1">
+                    {selectedCustomer.email}
+                  </p>
                 </div>
 
                 <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Información de Wallet</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">
+                    Información de Wallet
+                  </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Balance Actual:</span>
+                      <span className="text-sm text-gray-600">
+                        Balance Actual:
+                      </span>
                       <span className="text-sm font-bold text-green-600">
-                        ${selectedCustomer.wallet?.balance.toFixed(2) || '0.00'}
+                        $
+                        {(selectedCustomer.wallet?.balance ?? 0).toFixed(2) ||
+                          "0.00"}
                       </span>
                     </div>
                     {currentDraftOrder && (
                       <>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Total Orden:</span>
+                          <span className="text-sm text-gray-600">
+                            Total Orden:
+                          </span>
                           <span className="text-sm font-bold text-gray-900">
-                            ${currentDraftOrder.totalAmount.toFixed(2)}
+                            ${(currentDraftOrder.totalAmount ?? 0).toFixed(2)}
                           </span>
                         </div>
                         <div className="pt-2 border-t border-gray-200">
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Balance Después:</span>
-                            <span className={`text-sm font-bold ${
-                              (selectedCustomer.wallet?.balance || 0) - currentDraftOrder.totalAmount >= 0
-                                ? 'text-green-600'
-                                : 'text-red-600'
-                            }`}>
-                              ${((selectedCustomer.wallet?.balance || 0) - currentDraftOrder.totalAmount).toFixed(2)}
+                            <span className="text-sm text-gray-600">
+                              Balance Después:
+                            </span>
+                            <span
+                              className={`text-sm font-bold ${
+                                (selectedCustomer.wallet?.balance || 0) -
+                                  currentDraftOrder.totalAmount >=
+                                0
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              $
+                              {(
+                                (selectedCustomer.wallet?.balance || 0) -
+                                currentDraftOrder.totalAmount
+                              ).toFixed(2)}
                             </span>
                           </div>
                         </div>
-                        {currentDraftOrder.totalAmount > (selectedCustomer.wallet?.balance || 0) && (
+                        {currentDraftOrder.totalAmount >
+                          (selectedCustomer.wallet?.balance || 0) && (
                           <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
                             <p className="text-xs text-red-700">
                               Fondos insuficientes. Faltan: $
-                              {(currentDraftOrder.totalAmount - (selectedCustomer.wallet?.balance || 0)).toFixed(2)}
+                              {(
+                                currentDraftOrder.totalAmount -
+                                (selectedCustomer.wallet?.balance || 0)
+                              ).toFixed(2)}
                             </p>
                           </div>
                         )}
@@ -688,31 +874,42 @@ const LiveSalesPage = () => {
                   </div>
                 </div>
 
-                {currentDraftOrder && currentDraftOrder.items && currentDraftOrder.items.length > 0 && (
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Items de la Orden</h4>
-                    <ul className="space-y-2">
-                      {currentDraftOrder.items.map((item) => (
-                        <li key={item.id} className="text-sm flex justify-between">
-                          <span className="text-gray-700">
-                            {item.quantity}x {item.productName}
-                          </span>
-                          <span className="font-medium text-gray-900">
-                            ${item.subtotal.toFixed(2)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {currentDraftOrder &&
+                  currentDraftOrder.items &&
+                  currentDraftOrder.items.length > 0 && (
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">
+                        Items de la Orden
+                      </h4>
+                      <ul className="space-y-2">
+                        {currentDraftOrder.items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="text-sm flex justify-between"
+                          >
+                            <span className="text-gray-700">
+                              {item.quantity}x {item.productName}
+                            </span>
+                            <span className="font-medium text-gray-900">
+                              ${(item.subtotal ?? 0).toFixed(2)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
               </>
             ) : (
               <div className="text-center py-12">
                 <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
                   <Users className="h-6 w-6 text-gray-400" />
                 </div>
-                <p className="mt-2 text-sm text-gray-500">Sin cliente seleccionado</p>
-                <p className="text-xs text-gray-400 mt-1">Seleccione un cliente para iniciar</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Sin cliente seleccionado
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Seleccione un cliente para iniciar
+                </p>
               </div>
             )}
           </CardContent>
@@ -740,26 +937,37 @@ const LiveSalesPage = () => {
               )}
 
               <div>
-                <p className="text-sm text-gray-600">{selectedProduct.description}</p>
-                <p className="text-xl font-bold text-gray-900 mt-2">${selectedProduct.basePrice.toFixed(2)}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedProduct.description}
+                </p>
+                <p className="text-xl font-bold text-gray-900 mt-2">
+                  ${(selectedProduct.basePrice ?? 0).toFixed(2)}
+                </p>
               </div>
 
-              {selectedProduct.variants && selectedProduct.variants.length > 0 ? (
+              {selectedProduct.variants &&
+              selectedProduct.variants.length > 0 ? (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  <h4 className="text-sm font-medium text-gray-700">Variantes disponibles:</h4>
+                  <h4 className="text-sm font-medium text-gray-700">
+                    Variantes disponibles:
+                  </h4>
                   {selectedProduct.variants.map((variant) => (
                     <button
                       key={variant.id}
                       onClick={() => handleAddToOrder(selectedProduct, variant)}
-                      disabled={variant.stockQuantity === 0 || !selectedCustomer}
+                      disabled={
+                        variant.stockQuantity === 0 || !selectedCustomer
+                      }
                       className="w-full p-3 text-left border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{variant.sku}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {variant.sku}
+                          </p>
                           <p className="text-xs text-gray-500">
                             {variant.size && `Talla: ${variant.size}`}
-                            {variant.size && variant.color && ' • '}
+                            {variant.size && variant.color && " • "}
                             {variant.color && `Color: ${variant.color}`}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
@@ -768,7 +976,11 @@ const LiveSalesPage = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-bold text-gray-900">
-                            ${(variant.price || selectedProduct.basePrice).toFixed(2)}
+                            $
+                            {(
+                              (variant.price || selectedProduct.basePrice) ??
+                              0
+                            ).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -777,14 +989,19 @@ const LiveSalesPage = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-sm text-gray-500">No hay variantes disponibles</p>
+                  <p className="text-sm text-gray-500">
+                    No hay variantes disponibles
+                  </p>
                 </div>
               )}
             </div>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowVariantDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowVariantDialog(false)}
+            >
               Cerrar
             </Button>
           </DialogFooter>
