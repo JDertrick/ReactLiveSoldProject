@@ -38,7 +38,6 @@ import {
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
 import { NotificationDropdown } from "../notifications/NotificationDropdown";
-import { Input } from "../ui/input";
 
 const LiveSoldLogo = () => (
   <div className="flex items-center gap-2">

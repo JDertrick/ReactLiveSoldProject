@@ -14,7 +14,6 @@ import {
   CreateTaxRateDto,
   UpdateTaxRateDto,
   TaxRateDto,
-  getTaxSystemTypeName,
   getTaxApplicationModeName,
   parseTaxSystemType,
   parseTaxApplicationMode,
@@ -64,7 +63,7 @@ const TaxSettings = () => {
   // Configuration state
   const [configData, setConfigData] = useState<UpdateTaxConfigurationDto>({
     taxEnabled: false,
-    taxSystemType: TaxSystemType.None,
+    taxSystemType: TaxSystemType.VAT,
     taxDisplayName: "",
     taxApplicationMode: TaxApplicationMode.TaxIncluded,
     defaultTaxRateId: undefined,
@@ -91,15 +90,10 @@ const TaxSettings = () => {
   // Load config data when available
   useEffect(() => {
     if (taxConfig) {
-      console.log('Loading tax config:', taxConfig);
-      console.log('Tax System Type (raw):', taxConfig.taxSystemType);
-      console.log('Tax Application Mode (raw):', taxConfig.taxApplicationMode);
-
       const parsedSystemType = parseTaxSystemType(taxConfig.taxSystemType);
-      const parsedApplicationMode = parseTaxApplicationMode(taxConfig.taxApplicationMode);
-
-      console.log('Tax System Type (parsed):', parsedSystemType);
-      console.log('Tax Application Mode (parsed):', parsedApplicationMode);
+      const parsedApplicationMode = parseTaxApplicationMode(
+        taxConfig.taxApplicationMode
+      );
 
       const newConfig = {
         taxEnabled: taxConfig.taxEnabled,
@@ -109,14 +103,14 @@ const TaxSettings = () => {
         defaultTaxRateId: taxConfig.defaultTaxRateId,
       };
 
-      console.log('Setting config data to:', newConfig);
+      console.log("Setting config data to:", newConfig);
       setConfigData(newConfig);
     }
   }, [taxConfig]);
 
   // Monitor configData changes
   useEffect(() => {
-    console.log('configData updated:', configData);
+    console.log("configData updated:", configData);
   }, [configData]);
 
   const handleSaveConfiguration = async () => {
@@ -234,9 +228,9 @@ const TaxSettings = () => {
             </Label>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div>
             {/* Tax System Type */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label className="text-xs font-semibold text-gray-500 tracking-wider">
                 Tipo de Sistema de Impuestos
               </Label>
@@ -273,7 +267,7 @@ const TaxSettings = () => {
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {/* Tax Display Name */}
             <div className="space-y-2">
@@ -304,7 +298,7 @@ const TaxSettings = () => {
                 key={`tax-mode-${configData.taxApplicationMode}`}
                 value={configData.taxApplicationMode.toString()}
                 onValueChange={(value) => {
-                  console.log('Tax application mode changed to:', value);
+                  console.log("Tax application mode changed to:", value);
                   setConfigData({
                     ...configData,
                     taxApplicationMode: parseInt(value) as TaxApplicationMode,
@@ -332,7 +326,7 @@ const TaxSettings = () => {
                 Tasa de Impuesto Predeterminada
               </Label>
               <Select
-                key={`tax-rate-${configData.defaultTaxRateId || 'none'}`}
+                key={`tax-rate-${configData.defaultTaxRateId || "none"}`}
                 value={configData.defaultTaxRateId || "__none__"}
                 onValueChange={(value) =>
                   setConfigData({
