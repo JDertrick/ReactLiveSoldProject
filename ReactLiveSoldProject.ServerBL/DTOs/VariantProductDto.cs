@@ -10,6 +10,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string ProductDescription { get; set; }
         public string? Sku { get; set; }
         public decimal Price { get; set; }
+        public decimal? WholesalePrice { get; set; }
         public int StockQuantity { get; set; }
         public int Stock { get; set; }
         public decimal AverageCost { get; set; }

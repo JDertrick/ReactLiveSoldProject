@@ -409,6 +409,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 ProductId = productId,
                 Sku = dto.Sku,
                 Price = dto.Price,
+                WholesalePrice = dto.WholesalePrice,
                 StockQuantity = dto.StockQuantity,
                 Attributes = dto.Attributes,
                 ImageUrl = dto.ImageUrl,
@@ -436,6 +437,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 ProductId = variant.ProductId,
                 Sku = variant.Sku,
                 Price = variant.Price,
+                WholesalePrice = variant.WholesalePrice,
                 StockQuantity = variant.StockQuantity,
                 AverageCost = variant.AverageCost,
                 Attributes = variant.Attributes,
@@ -478,6 +480,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             variant.Sku = dto.Sku;
             variant.Price = dto.Price;
+            variant.WholesalePrice = dto.WholesalePrice;
             variant.StockQuantity = dto.StockQuantity;
             variant.Attributes = dto.Attributes;
             variant.ImageUrl = dto.ImageUrl;
@@ -508,6 +511,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 ProductId = variant.ProductId,
                 Sku = variant.Sku,
                 Price = variant.Price,
+                WholesalePrice = variant.WholesalePrice,
                 StockQuantity = variant.StockQuantity,
                 AverageCost = variant.AverageCost,
                 Attributes = variant.Attributes,

@@ -165,7 +165,7 @@ const ProductsPage = () => {
                   <TableHead>SKU</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Stock</TableHead>
-                  <TableHead>Precio Base</TableHead>
+                  <TableHead>Precios</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -236,7 +236,14 @@ const ProductsPage = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          ${(variant.price || 0).toFixed(2)}
+                          <div className="text-sm">
+                            <div>Detal: ${(variant.price || 0).toFixed(2)}</div>
+                            {variant.wholesalePrice && variant.wholesalePrice > 0 && (
+                              <div className="text-gray-600">
+                                Mayor: ${variant.wholesalePrice.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">

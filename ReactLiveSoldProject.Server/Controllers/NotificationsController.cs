@@ -21,7 +21,7 @@ namespace ReactLiveSoldProject.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> GetNotifications()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var notifications = await _notificationService.GetNotificationsForUserAsync(userId);
             return Ok(notifications);
         }
@@ -29,7 +29,7 @@ namespace ReactLiveSoldProject.Server.Controllers
         [HttpPost("{id}/read")]
         public async Task<IActionResult> MarkAsRead(Guid id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var result = await _notificationService.MarkAsReadAsync(id, userId);
             if (!result)
             {
@@ -41,7 +41,7 @@ namespace ReactLiveSoldProject.Server.Controllers
         [HttpPost("read-all")]
         public async Task<IActionResult> MarkAllAsRead()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
             await _notificationService.MarkAllAsReadAsync(userId);
             return NoContent();
         }
@@ -49,7 +49,7 @@ namespace ReactLiveSoldProject.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationDto createDto)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (userId == null)
             {
                 return Unauthorized();

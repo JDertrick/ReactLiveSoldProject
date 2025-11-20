@@ -15,6 +15,7 @@ export interface ProductVariant {
   productId: string;
   sku?: string;
   price: number;
+  wholesalePrice?: number;
   stockQuantity: number;
   averageCost: number;
   attributes?: string;  // JSON string
@@ -57,6 +58,7 @@ export interface PagedResult<T> {
 export interface CreateProductVariantDto {
   sku?: string;
   price: number;
+  wholesalePrice?: number;
   stockQuantity: number;
   attributes?: string;  // JSON string: {color, size, etc}
   imageUrl?: string;
@@ -67,6 +69,7 @@ export interface UpdateProductVariantDto {
   id?: string;
   sku?: string;
   price: number;
+  wholesalePrice?: number;
   attributes?: string;  // JSON string: {color, size, etc}
   imageUrl?: string;
   isPrimary?: boolean;
@@ -97,6 +100,7 @@ export interface ProductVariantDto {
   size?: string;
   color?: string;
   price: number;
+  wholesalePrice?: number;
   stock: number;
   stockQuantity: number; // Alias for stock
   imageUrl?: string;
@@ -113,6 +117,7 @@ export interface VariantProductDto {
   productDescription?: string;
   color?: string;
   price: number;
+  wholesalePrice?: number;
   stock: number;
   stockQuantity: number; // Alias for stock
   imageUrl?: string;
@@ -129,6 +134,7 @@ export interface VariantFormInput {
   size?: string;
   color?: string;
   price: string | number;
+  wholesalePrice?: string | number;
   stockQuantity: string | number;
   stock?: string | number;
   imageUrl?: string;

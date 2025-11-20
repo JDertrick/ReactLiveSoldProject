@@ -36,6 +36,7 @@ export default function ProductVariantsDialog({
     size: "",
     color: "",
     price: "",
+    wholesalePrice: "",
     stockQuantity: "",
     imageUrl: "",
   });
@@ -48,6 +49,7 @@ export default function ProductVariantsDialog({
           return {
             sku: v.sku || "",
             price: v.price,
+            wholesalePrice: v.wholesalePrice,
             stockQuantity: v.stockQuantity,
             attributes: v.attributes,
             imageUrl: v.imageUrl,
@@ -64,6 +66,11 @@ export default function ProductVariantsDialog({
       typeof variantInput.price === "string"
         ? parseFloat(variantInput.price)
         : variantInput.price;
+    const wholesalePrice = variantInput.wholesalePrice
+      ? typeof variantInput.wholesalePrice === "string"
+        ? parseFloat(variantInput.wholesalePrice)
+        : variantInput.wholesalePrice
+      : undefined;
     const stockQuantity =
       typeof variantInput.stockQuantity === "string"
         ? parseInt(variantInput.stockQuantity)
@@ -88,6 +95,7 @@ export default function ProductVariantsDialog({
     const newVariant: CreateProductVariantDto = {
       sku: variantInput.sku,
       price,
+      wholesalePrice,
       stockQuantity,
       attributes:
         Object.keys(attributes).length > 0
@@ -113,6 +121,7 @@ export default function ProductVariantsDialog({
       size: "",
       color: "",
       price: "",
+      wholesalePrice: "",
       stockQuantity: "",
       imageUrl: "",
     });
@@ -135,6 +144,7 @@ export default function ProductVariantsDialog({
       size: attributes.size || "",
       color: attributes.color || "",
       price: variant.price.toString(),
+      wholesalePrice: variant.wholesalePrice?.toString() || "",
       stockQuantity: variant.stockQuantity.toString(),
       imageUrl: variant.imageUrl || "",
     });
@@ -152,6 +162,7 @@ export default function ProductVariantsDialog({
         size: "",
         color: "",
         price: "",
+        wholesalePrice: "",
         stockQuantity: "",
         imageUrl: "",
       });
@@ -307,7 +318,7 @@ export default function ProductVariantsDialog({
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Precio * ($)
+                          Precio Detal * ($)
                         </label>
                         <input
                           type="number"
@@ -325,6 +336,28 @@ export default function ProductVariantsDialog({
                         />
                       </div>
 
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Precio al Por Mayor ($)
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                          value={variantInput.wholesalePrice}
+                          onChange={(e) =>
+                            setVariantInput({
+                              ...variantInput,
+                              wholesalePrice: e.target.value,
+                            })
+                          }
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Cantidad *
@@ -420,7 +453,9 @@ export default function ProductVariantsDialog({
                                   Cantidad: {variant.stockQuantity}
                                 </span>
                                 {" • "}
-                                Precio: ${variant.price.toFixed(2)}
+                                Detal: ${variant.price.toFixed(2)}
+                                {variant.wholesalePrice && variant.wholesalePrice > 0 &&
+                                  ` • Mayor: $${variant.wholesalePrice.toFixed(2)}`}
                               </p>
                             </div>
                             <div className="flex items-center gap-2 ml-2">

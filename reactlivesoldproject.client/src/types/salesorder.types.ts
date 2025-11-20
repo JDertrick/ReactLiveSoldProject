@@ -1,4 +1,9 @@
 // Sales Order Types
+export enum SaleType {
+  Retail = "Retail",
+  Wholesale = "Wholesale"
+}
+
 export interface SalesOrderItem {
   id: string;
   productVariantId: string;
@@ -31,6 +36,7 @@ export interface SalesOrder {
 export interface CreateSalesOrderItemDto {
   productVariantId: string;
   quantity: number;
+  saleType?: SaleType;
   customUnitPrice?: number;
   itemDescription?: string;
 }

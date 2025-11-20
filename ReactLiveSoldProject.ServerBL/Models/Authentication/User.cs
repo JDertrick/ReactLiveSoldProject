@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using ReactLiveSoldProject.ServerBL.Models.Audit;
+﻿using ReactLiveSoldProject.ServerBL.Models.Audit;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
+using ReactLiveSoldProject.ServerBL.Models.Notifications;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
+using System.ComponentModel.DataAnnotations;
 
 namespace ReactLiveSoldProject.ServerBL.Models.Authentication
 {
@@ -39,5 +40,7 @@ namespace ReactLiveSoldProject.ServerBL.Models.Authentication
         public virtual ICollection<SalesOrder> CreatedSalesOrders { get; set; } = new List<SalesOrder>();
         
         public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+
+        public virtual ICollection<Notification> Notificacions { get; set; } = new List<Notification>();
     }
 }

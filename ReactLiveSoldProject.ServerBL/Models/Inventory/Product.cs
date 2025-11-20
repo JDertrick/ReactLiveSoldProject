@@ -27,6 +27,12 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         [Range(0, double.MaxValue, ErrorMessage = "El precio debe ser mayor o igual a 0")]
         public decimal BasePrice { get; set; } = 0.00m;
 
+        /// <summary>
+        /// Precio al por mayor (mayorista). Si es null, se usa el precio normal (Price) para ventas al por mayor.
+        /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "El precio al por mayor debe ser mayor o igual a 0")]
+        public decimal? WholesalePrice { get; set; }
+
         public string? ImageUrl { get; set; } = null;
 
         public bool IsPublished { get; set; } = true;

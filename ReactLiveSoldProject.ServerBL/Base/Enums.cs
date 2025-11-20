@@ -122,6 +122,22 @@
     }
 
     /// <summary>
+    /// Tipo de venta (precio a aplicar)
+    /// </summary>
+    public enum SaleType
+    {
+        /// <summary>
+        /// Venta al detal/minorista - Usa Price
+        /// </summary>
+        Retail,
+
+        /// <summary>
+        /// Venta al por mayor/mayorista - Usa WholesalePrice (si existe, sino Price)
+        /// </summary>
+        Wholesale
+    }
+
+    /// <summary>
     /// Tipo de movimiento de inventario
     /// </summary>
     public enum StockMovementType
@@ -165,5 +181,13 @@
         /// Cancelación de venta (devuelve stock)
         /// </summary>
         SaleCancellation
+    }
+
+    public enum NotificationType
+    {
+        Info,
+        Success,
+        Warning,
+        Error
     }
 }

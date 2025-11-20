@@ -23,6 +23,25 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
+        public DbSet<Receipt> Receipts { get; set; }
+        public DbSet<ReceiptItem> ReceiptItems { get; set; }
+
+
+        // BLOQUE 3: INVENTARIO
+        public DbSet<Location> Locations { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<ProductTag> ProductTags { get; set; }
+        public DbSet<ProductVariant> ProductVariants { get; set; }
+        public DbSet<StockMovement> StockMovements { get; set; }
+
+        // BLOQUE 4: VENTAS
+        public DbSet<SalesOrder> SalesOrders { get; set; }
+        public DbSet<SalesOrderItem> SalesOrderItems { get; set; }
+
+        // BLOQUE 5: AUDITORÍA
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
 
@@ -294,6 +313,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(p => p.ImageUrl).HasColumnName("image_url").IsRequired(false);
                 e.Property(p => p.BasePrice).HasColumnName("base_price").HasDefaultValue(0);
                 e.Property(p => p.CategoryId).HasColumnName("category_id");
+                e.Property(pv => pv.WholesalePrice).HasColumnName("wholesale_price").HasColumnType("decimal(10, 2)").IsRequired(false);
                 e.Property(p => p.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(p => p.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
@@ -380,6 +400,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(pv => pv.ProductId).HasColumnName("product_id").IsRequired();
                 e.Property(pv => pv.Sku).HasColumnName("sku");
                 e.Property(pv => pv.Price).HasColumnName("price").HasColumnType("decimal(10, 2)").IsRequired().HasDefaultValue(0.00m);
+                e.Property(pv => pv.WholesalePrice).HasColumnName("wholesale_price").HasColumnType("decimal(10, 2)").IsRequired(false);
                 e.Property(pv => pv.StockQuantity).HasColumnName("stock_quantity").IsRequired().HasDefaultValue(0);
                 e.Property(pv => pv.Attributes).HasColumnName("attributes").HasColumnType("jsonb");
                 e.Property(pv => pv.ImageUrl).HasColumnName("image_url");
@@ -571,6 +592,26 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany(u => u.AuditLogs)
                     .HasForeignKey(al => al.UserId)
                     .OnDelete(DeleteBehavior.SetNull); // Como en el SQL
+            });
+
+            modelBuilder.Entity<Notification>(e =>
+            {
+                e.HasKey(al => al.Id);
+
+                e.Property(al => al.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(al => al.UserId).HasColumnName("user_id").IsRequired();
+                e.Property(al => al.Title).HasColumnName("title").IsRequired();
+                e.Property(al => al.Message).HasColumnName("message").IsRequired();
+                e.Property(al => al.Type).HasColumnName("type").HasConversion<string>().IsRequired();
+                e.Property(al => al.IsRead).HasColumnName("is_read").IsRequired().HasDefaultValue(false);
+                e.Property(al => al.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(al => al.UserId);
+
+                e.HasOne(al => al.User)
+                    .WithMany(u => u.Notificacions)
+                    .HasForeignKey(al => al.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

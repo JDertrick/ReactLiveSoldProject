@@ -18,7 +18,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<NotificationDto> CreateNotificationAsync(string userId, CreateNotificationDto createDto)
+        public async Task<NotificationDto> CreateNotificationAsync(Guid userId, CreateNotificationDto createDto)
         {
             if (!Enum.TryParse<NotificationType>(createDto.Type, true, out var notificationType))
             {
@@ -39,7 +39,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return _mapper.Map<NotificationDto>(notification);
         }
 
-        public async Task<IEnumerable<NotificationDto>> GetNotificationsForUserAsync(string userId)
+        public async Task<IEnumerable<NotificationDto>> GetNotificationsForUserAsync(Guid userId)
         {
             var notifications = await _context.Notifications
                 .Where(n => n.UserId == userId)
@@ -49,7 +49,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return _mapper.Map<IEnumerable<NotificationDto>>(notifications);
         }
 
-        public async Task<bool> MarkAllAsReadAsync(string userId)
+        public async Task<bool> MarkAllAsReadAsync(Guid userId)
         {
             var notificationsToUpdate = await _context.Notifications
                 .Where(n => n.UserId == userId && !n.IsRead)
@@ -68,7 +68,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> MarkAsReadAsync(Guid notificationId, string userId)
+        public async Task<bool> MarkAsReadAsync(Guid notificationId, Guid userId)
         {
             var notification = await _context.Notifications
                 .FirstOrDefaultAsync(n => n.Id == notificationId && n.UserId == userId);

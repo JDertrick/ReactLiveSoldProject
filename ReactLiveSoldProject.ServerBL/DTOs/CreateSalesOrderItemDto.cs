@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ReactLiveSoldProject.ServerBL.Base;
 
 namespace ReactLiveSoldProject.ServerBL.DTOs
 {
@@ -12,7 +13,12 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public int Quantity { get; set; }
 
         /// <summary>
-        /// Precio unitario personalizado (opcional, si no se envía se usa el precio del producto)
+        /// Tipo de venta (Retail o Wholesale). Por defecto es Retail.
+        /// </summary>
+        public SaleType SaleType { get; set; } = SaleType.Retail;
+
+        /// <summary>
+        /// Precio unitario personalizado (opcional, si no se envía se usa el precio según SaleType)
         /// </summary>
         public decimal? CustomUnitPrice { get; set; }
 

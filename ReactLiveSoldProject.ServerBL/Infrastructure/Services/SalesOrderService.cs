@@ -118,7 +118,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (variant == null)
                     throw new KeyNotFoundException($"Variante de producto no encontrada: {itemDto.ProductVariantId}");
 
-                var unitPrice = itemDto.CustomUnitPrice ?? variant.Price;
+                // Determinar precio según el tipo de venta
+                var defaultPrice = itemDto.SaleType == Base.SaleType.Wholesale
+                    ? (variant.WholesalePrice ?? variant.Price)  // Si no tiene precio mayorista, usa detal
+                    : variant.Price;  // Precio detal por defecto
+
+                var unitPrice = itemDto.CustomUnitPrice ?? defaultPrice;
                 var subtotal = unitPrice * itemDto.Quantity;
 
                 var orderItem = new SalesOrderItem
@@ -171,7 +176,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (variant == null)
                 throw new KeyNotFoundException("Variante de producto no encontrada");
 
-            var unitPrice = dto.CustomUnitPrice ?? variant.Price;
+            // Determinar precio según el tipo de venta
+            var defaultPrice = dto.SaleType == Base.SaleType.Wholesale
+                ? (variant.WholesalePrice ?? variant.Price)
+                : variant.Price;
+
+            var unitPrice = dto.CustomUnitPrice ?? defaultPrice;
             var subtotal = unitPrice * dto.Quantity;
 
             var orderItem = new SalesOrderItem

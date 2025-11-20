@@ -11,6 +11,12 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
 
+        /// <summary>
+        /// Precio al por mayor (mayorista). Opcional. Si no se especifica, se usa Price para ventas al por mayor.
+        /// </summary>
+        [Range(0, double.MaxValue)]
+        public decimal? WholesalePrice { get; set; }
+
         [Required]
         [Range(0, int.MaxValue)]
         public int StockQuantity { get; set; } = 0;

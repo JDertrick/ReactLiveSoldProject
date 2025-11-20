@@ -26,6 +26,7 @@ const VariantManager = ({
     color: "",
     stock: "",
     price: "",
+    wholesalePrice: "",
     isPrimary: false,
     imageUrl: "",
   });
@@ -54,6 +55,7 @@ const VariantManager = ({
   const handleAddOrUpdateVariant = async () => {
     const stock = parseInt(variantInput.stock) || 0;
     const price = parseFloat(variantInput.price) || 0;
+    const wholesalePrice = variantInput.wholesalePrice ? parseFloat(variantInput.wholesalePrice) : undefined;
 
     if (!variantInput.sku) {
       setAlertDialog({
@@ -73,6 +75,7 @@ const VariantManager = ({
       const variantData = {
         sku: variantInput.sku,
         price,
+        wholesalePrice,
         stockQuantity: stock,
         attributes:
           Object.keys(attributes).length > 0
@@ -129,6 +132,7 @@ const VariantManager = ({
         color: "",
         stock: "",
         price: "",
+        wholesalePrice: "",
         isPrimary: false,
         imageUrl: "",
       });
@@ -165,6 +169,7 @@ const VariantManager = ({
       color,
       stock: variant.stockQuantity.toString(),
       price: variant.price.toString(),
+      wholesalePrice: variant.wholesalePrice?.toString() || "",
       isPrimary: variant.isPrimary || false,
       imageUrl: variant.imageUrl || "",
     });
@@ -290,7 +295,7 @@ const VariantManager = ({
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Precio
+              Precio (Detal) *
             </label>
             <input
               type="number"
@@ -302,6 +307,25 @@ const VariantManager = ({
                 setVariantInput({
                   ...variantInput,
                   price: e.target.value,
+                })
+              }
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Precio al Por Mayor (opcional)
+            </label>
+            <input
+              type="number"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              value={variantInput.wholesalePrice}
+              onChange={(e) =>
+                setVariantInput({
+                  ...variantInput,
+                  wholesalePrice: e.target.value,
                 })
               }
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
@@ -446,7 +470,9 @@ const VariantManager = ({
                     Stock: {variant.stockQuantity}
                   </span>
                   {variant.price > 0 &&
-                    ` • Precio: $${variant.price.toFixed(2)}`}
+                    ` • Detal: $${variant.price.toFixed(2)}`}
+                  {variant.wholesalePrice && variant.wholesalePrice > 0 &&
+                    ` • Mayor: $${variant.wholesalePrice.toFixed(2)}`}
                   {` • Costo Prom: $${variant.averageCost.toFixed(2)}`}
                 </p>
               </div>

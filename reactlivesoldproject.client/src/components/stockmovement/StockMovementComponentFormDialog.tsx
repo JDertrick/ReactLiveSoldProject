@@ -225,6 +225,9 @@ const StockMovementComponentFormDialog = ({
                       <SelectValue placeholder="Seleccionar tipo..." />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value={StockMovementType.Adjustment}>
+                        Ajuste de Inventario
+                      </SelectItem>
                       <SelectItem value={StockMovementType.Purchase}>
                         Compra
                       </SelectItem>

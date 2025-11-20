@@ -23,7 +23,7 @@ import {
   VariantProductDto,
 } from "../../types/product.types";
 import { Customer } from "../../types/customer.types";
-import { SalesOrder } from "../../types/salesorder.types";
+import { SalesOrder, SaleType } from "../../types/salesorder.types";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -83,6 +83,7 @@ const LiveSalesPage = () => {
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showVariantDialog, setShowVariantDialog] = useState(false);
+  const [saleType, setSaleType] = useState<SaleType>(SaleType.Retail);
   const [editingItem, setEditingItem] = useState<{
     itemId: string;
     quantity: number;
@@ -156,7 +157,7 @@ const LiveSalesPage = () => {
   // Create initial draft order or add to existing
   const handleCreateDraftOrder = async (
     customerId: string,
-    firstItem: { productVariantId: string; quantity: number; price: number }
+    firstItem: { productVariantId: string; quantity: number; price: number; saleType: SaleType }
   ) => {
     try {
       const orderData = {
@@ -165,6 +166,7 @@ const LiveSalesPage = () => {
           {
             productVariantId: firstItem.productVariantId,
             quantity: firstItem.quantity,
+            saleType: firstItem.saleType,
             customUnitPrice: firstItem.price,
           },
         ],
@@ -207,10 +209,21 @@ const LiveSalesPage = () => {
       return;
     }
 
-    const price =
-      variantProduct.price && variantProduct.price > 0
+    // Determinar precio según el tipo de venta seleccionado
+    let price: number;
+    if (saleType === SaleType.Wholesale) {
+      // Usar precio al por mayor si está disponible, sino usar precio detal
+      price = variantProduct.wholesalePrice && variantProduct.wholesalePrice > 0
+        ? variantProduct.wholesalePrice
+        : variantProduct.price && variantProduct.price > 0
         ? variantProduct.price
         : product.basePrice;
+    } else {
+      // Usar precio detal
+      price = variantProduct.price && variantProduct.price > 0
+        ? variantProduct.price
+        : product.basePrice;
+    }
 
     try {
       if (currentDraftOrder) {
@@ -220,6 +233,7 @@ const LiveSalesPage = () => {
           item: {
             productVariantId: variantProduct.id ?? "",
             quantity: 1,
+            saleType: saleType,
             customUnitPrice: price,
           },
         });
@@ -230,6 +244,7 @@ const LiveSalesPage = () => {
           productVariantId: variantProduct.id ?? "",
           quantity: 1,
           price,
+          saleType: saleType,
         });
       }
 
@@ -579,9 +594,16 @@ const LiveSalesPage = () => {
                     </p>
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <p className="font-bold text-indigo-600">
-                      ${variantProduct.price?.toFixed(2)}
-                    </p>
+                    <div>
+                      <p className="font-bold text-indigo-600">
+                        ${saleType === SaleType.Wholesale && variantProduct.wholesalePrice
+                          ? variantProduct.wholesalePrice.toFixed(2)
+                          : variantProduct.price?.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {saleType === SaleType.Wholesale ? "Mayor" : "Detal"}
+                      </p>
+                    </div>
                     {/* <Button
                       size="icon"
                       className="rounded-full w-8 h-8"
@@ -740,7 +762,7 @@ const LiveSalesPage = () => {
                 Elija un cliente existente o cree uno nuevo para comenzar a
                 vender.
               </p>
-              <div className="mt-4 w-full">
+              <div className="mt-4 w-full space-y-4">
                 <CustomerCombobox
                   customers={customers}
                   selectedCustomer={selectedCustomer}
@@ -763,6 +785,37 @@ const LiveSalesPage = () => {
                   }}
                   disabled={!!currentDraftOrder}
                 />
+
+                {/* Selector de tipo de venta */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Tipo de Venta
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSaleType(SaleType.Retail)}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                        saleType === SaleType.Retail
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      Al Detal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSaleType(SaleType.Wholesale)}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                        saleType === SaleType.Wholesale
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      Al Por Mayor
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
