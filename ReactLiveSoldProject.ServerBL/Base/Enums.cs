@@ -190,4 +190,51 @@
         Warning,
         Error
     }
+
+    /// <summary>
+    /// Tipo de sistema de impuestos
+    /// </summary>
+    public enum TaxSystemType
+    {
+        /// <summary>
+        /// Sin impuestos
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// IVA (Impuesto al Valor Agregado) - Latinoamérica, Europa
+        /// </summary>
+        VAT,
+
+        /// <summary>
+        /// Sales Tax - USA, Canadá
+        /// </summary>
+        SalesTax,
+
+        /// <summary>
+        /// GST (Goods and Services Tax) - Australia, India, Nueva Zelanda
+        /// </summary>
+        GST,
+
+        /// <summary>
+        /// IGV (Impuesto General a las Ventas) - Perú
+        /// </summary>
+        IGV
+    }
+
+    /// <summary>
+    /// Modo de aplicación del impuesto
+    /// </summary>
+    public enum TaxApplicationMode
+    {
+        /// <summary>
+        /// El precio del producto ya incluye el impuesto (común en Europa/Latinoamérica)
+        /// </summary>
+        TaxIncluded,
+
+        /// <summary>
+        /// El impuesto se agrega al precio del producto (común en USA/Canadá)
+        /// </summary>
+        TaxExcluded
+    }
 }

@@ -40,6 +40,11 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         public Guid? CategoryId { get; set; }
         public virtual Category? Category { get; set; }
 
+        /// <summary>
+        /// Indica si este producto está exento de impuestos (por ley o regulación)
+        /// </summary>
+        public bool IsTaxExempt { get; set; } = false;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
+using ReactLiveSoldProject.ServerBL.Models.Taxes;
 
 namespace ReactLiveSoldProject.ServerBL.Models.Sales
 {
@@ -44,5 +45,41 @@ namespace ReactLiveSoldProject.ServerBL.Models.Sales
 
         [MaxLength(500, ErrorMessage = "La descripción del item no puede exceder los 500 caracteres")]
         public string? ItemDescription { get; set; }
+
+        // ==================== CAMPOS DE IMPUESTOS ====================
+
+        /// <summary>
+        /// ID de la tasa de impuesto aplicada a este item (nullable si no aplica impuesto)
+        /// </summary>
+        public Guid? TaxRateId { get; set; }
+
+        /// <summary>
+        /// Tasa de impuesto aplicada (ej: 0.19 para 19%)
+        /// Se guarda para histórico, aunque la tasa cambie después
+        /// </summary>
+        [Range(0, 1, ErrorMessage = "La tasa de impuesto debe estar entre 0 y 1")]
+        public decimal TaxRate { get; set; } = 0.00m;
+
+        /// <summary>
+        /// Monto de impuesto calculado para este item
+        /// TaxAmount = (UnitPrice * Quantity * TaxRate) dependiendo del modo de aplicación
+        /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "El monto de impuesto debe ser mayor o igual a 0")]
+        public decimal TaxAmount { get; set; } = 0.00m;
+
+        /// <summary>
+        /// Subtotal sin impuestos (UnitPrice * Quantity)
+        /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "El subtotal debe ser mayor o igual a 0")]
+        public decimal Subtotal { get; set; } = 0.00m;
+
+        /// <summary>
+        /// Total del item incluyendo impuestos (Subtotal + TaxAmount)
+        /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "El total debe ser mayor o igual a 0")]
+        public decimal Total { get; set; } = 0.00m;
+
+        // Relaciones
+        public virtual TaxRate? TaxRateEntity { get; set; }
     }
 }

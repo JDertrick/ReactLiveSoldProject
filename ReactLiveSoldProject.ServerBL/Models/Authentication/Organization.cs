@@ -4,6 +4,7 @@ using ReactLiveSoldProject.ServerBL.Models.Audit;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
+using ReactLiveSoldProject.ServerBL.Models.Taxes;
 
 namespace ReactLiveSoldProject.ServerBL.Models.Authentication
 {
@@ -40,6 +41,34 @@ namespace ReactLiveSoldProject.ServerBL.Models.Authentication
         /// </summary>
         public string? CustomizationSettings { get; set; }
 
+        // ==================== CONFIGURACIÓN DE IMPUESTOS ====================
+
+        /// <summary>
+        /// Indica si el sistema de impuestos está habilitado para esta organización
+        /// </summary>
+        public bool TaxEnabled { get; set; } = false;
+
+        /// <summary>
+        /// Tipo de sistema de impuestos utilizado (IVA, Sales Tax, GST, etc.)
+        /// </summary>
+        public TaxSystemType TaxSystemType { get; set; } = TaxSystemType.None;
+
+        /// <summary>
+        /// Nombre personalizado para mostrar del impuesto (ej: "IVA", "IGV", "Tax")
+        /// </summary>
+        [MaxLength(50)]
+        public string? TaxDisplayName { get; set; }
+
+        /// <summary>
+        /// Modo de aplicación del impuesto: Incluido en precio o Excluido (se suma al precio)
+        /// </summary>
+        public TaxApplicationMode TaxApplicationMode { get; set; } = TaxApplicationMode.TaxIncluded;
+
+        /// <summary>
+        /// ID de la tasa de impuesto por defecto (se aplica automáticamente si no se especifica otra)
+        /// </summary>
+        public Guid? DefaultTaxRateId { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -54,8 +83,10 @@ namespace ReactLiveSoldProject.ServerBL.Models.Authentication
         public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
         
         public virtual ICollection<SalesOrder> SalesOrders { get; set; } = new List<SalesOrder>();
-        
+
         public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+
+        public virtual ICollection<TaxRate> TaxRates { get; set; } = new List<TaxRate>();
 
     }
 }

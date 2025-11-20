@@ -5,6 +5,7 @@ using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
 using ReactLiveSoldProject.ServerBL.Models.Notifications;
+using ReactLiveSoldProject.ServerBL.Models.Taxes;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -40,7 +41,10 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<SalesOrder> SalesOrders { get; set; }
         public DbSet<SalesOrderItem> SalesOrderItems { get; set; }
 
-        // BLOQUE 5: AUDITORÍA
+        // BLOQUE 5: IMPUESTOS
+        public DbSet<TaxRate> TaxRates { get; set; }
+
+        // BLOQUE 6: AUDITORÍA
         public DbSet<AuditLog> AuditLogs { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
@@ -75,6 +79,11 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(o => o.PlanType).HasColumnName("plan_type").HasConversion<string>().IsRequired().HasDefaultValue(PlanType.Standard);
                 e.Property(o => o.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
                 e.Property(o => o.CustomizationSettings).HasColumnName("custom_settings").IsRequired().HasDefaultValue(true);
+                e.Property(o => o.TaxEnabled).HasColumnName("tax_enabled").HasDefaultValue(false);
+                e.Property(o => o.TaxSystemType).HasColumnName("tax_system_type").HasConversion<string>().HasDefaultValue(TaxSystemType.None);
+                e.Property(o => o.TaxDisplayName).HasColumnName("tax_display_name").HasMaxLength(50);
+                e.Property(o => o.TaxApplicationMode).HasColumnName("tax_application_mode").HasConversion<string>().HasDefaultValue(TaxApplicationMode.TaxIncluded);
+                e.Property(o => o.DefaultTaxRateId).HasColumnName("default_tax_rate_id");
                 e.Property(o => o.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(o => o.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
@@ -310,6 +319,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(p => p.Description).HasColumnName("description");
                 e.Property(p => p.ProductType).HasColumnName("product_type").HasConversion<string>().IsRequired().HasDefaultValue(ProductType.Simple);
                 e.Property(p => p.IsPublished).HasColumnName("is_published").IsRequired().HasDefaultValue(true);
+                e.Property(p => p.IsTaxExempt).HasColumnName("is_tax_exempt").HasDefaultValue(false);
                 e.Property(p => p.ImageUrl).HasColumnName("image_url").IsRequired(false);
                 e.Property(p => p.BasePrice).HasColumnName("base_price").HasDefaultValue(0);
                 e.Property(p => p.CategoryId).HasColumnName("category_id");
@@ -508,6 +518,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(so => so.CreatedByUserId).HasColumnName("created_by_user_id");
                 e.Property(so => so.Status).HasColumnName("status").HasConversion<string>().IsRequired().HasDefaultValue(OrderStatus.Draft);
                 e.Property(so => so.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(10, 2)").IsRequired().HasDefaultValue(0.00m);
+                e.Property(so => so.SubtotalAmount).HasColumnName("subtotal_amount").HasColumnType("decimal(10, 2)").HasDefaultValue(0.00m);
+                e.Property(so => so.TotalTaxAmount).HasColumnName("total_tax_amount").HasColumnType("decimal(10, 2)").HasDefaultValue(0.00m);
                 e.Property(so => so.Notes).HasColumnName("notes");
                 e.Property(so => so.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(so => so.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
@@ -546,6 +558,11 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(oi => oi.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(10, 2)").IsRequired();
                 e.Property(oi => oi.ItemDescription).HasColumnName("item_description");
                 e.Property(oi => oi.UnitCost).HasColumnName("unit_cost");
+                e.Property(oi => oi.TaxRateId).HasColumnName("tax_rate_id");
+                e.Property(oi => oi.TaxRate).HasColumnName("tax_rate").HasColumnType("decimal(5, 4)").HasDefaultValue(0.00m);
+                e.Property(oi => oi.TaxAmount).HasColumnName("tax_amount").HasColumnType("decimal(10, 2)").HasDefaultValue(0.00m);
+                e.Property(oi => oi.Subtotal).HasColumnName("subtotal").HasColumnType("decimal(10, 2)").HasDefaultValue(0.00m);
+                e.Property(oi => oi.Total).HasColumnName("total").HasColumnType("decimal(10, 2)").HasDefaultValue(0.00m);
 
                 e.HasOne(oi => oi.Organization)
                     .WithMany()
@@ -561,6 +578,11 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany(pv => pv.SalesOrderItems)
                     .HasForeignKey(oi => oi.ProductVariantId)
                     .OnDelete(DeleteBehavior.Restrict); // Como en el SQL
+
+                e.HasOne(oi => oi.TaxRateEntity)
+                    .WithMany()
+                    .HasForeignKey(oi => oi.TaxRateId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // --- BLOQUE 5: AUDITORÍA ---
@@ -612,6 +634,33 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany(u => u.Notificacions)
                     .HasForeignKey(al => al.UserId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // --- BLOQUE 6: IMPUESTOS ---
+
+            modelBuilder.Entity<TaxRate>(e =>
+            {
+                e.ToTable("tax_rates");
+                e.HasKey(tr => tr.Id);
+                e.Property(tr => tr.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(tr => tr.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(tr => tr.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
+                e.Property(tr => tr.Rate).HasColumnName("rate").HasColumnType("decimal(5, 4)").IsRequired();
+                e.Property(tr => tr.IsDefault).HasColumnName("is_default").HasDefaultValue(false);
+                e.Property(tr => tr.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+                e.Property(tr => tr.Description).HasColumnName("description").HasMaxLength(500);
+                e.Property(tr => tr.EffectiveFrom).HasColumnName("effective_from");
+                e.Property(tr => tr.EffectiveTo).HasColumnName("effective_to");
+                e.Property(tr => tr.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(tr => tr.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(tr => tr.OrganizationId);
+                e.HasIndex(tr => new { tr.OrganizationId, tr.IsDefault });
+
+                e.HasOne(tr => tr.Organization)
+                    .WithMany(o => o.TaxRates)
+                    .HasForeignKey(tr => tr.OrganizationId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

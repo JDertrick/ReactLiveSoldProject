@@ -30,6 +30,20 @@ namespace ReactLiveSoldProject.ServerBL.Models.Sales
         [Range(0, double.MaxValue, ErrorMessage = "El monto total debe ser mayor o igual a 0")]
         public decimal TotalAmount { get; set; } = 0.00m;
 
+        // ==================== CAMPOS DE IMPUESTOS ====================
+
+        /// <summary>
+        /// Subtotal de la orden (suma de todos los items sin impuestos)
+        /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "El subtotal debe ser mayor o igual a 0")]
+        public decimal SubtotalAmount { get; set; } = 0.00m;
+
+        /// <summary>
+        /// Total de impuestos de la orden (suma de impuestos de todos los items)
+        /// </summary>
+        [Range(0, double.MaxValue, ErrorMessage = "El total de impuestos debe ser mayor o igual a 0")]
+        public decimal TotalTaxAmount { get; set; } = 0.00m;
+
         [MaxLength(2000, ErrorMessage = "Las notas no pueden exceder los 2000 caracteres")]
         public string? Notes { get; set; }
 

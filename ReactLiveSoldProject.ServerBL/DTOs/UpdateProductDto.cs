@@ -16,7 +16,11 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
 
         public decimal BasePrice { get; set; } = 0.00m;
 
+        public decimal? WholesalePrice { get; set; }
+
         public bool IsPublished { get; set; } = true;
+
+        public bool IsTaxExempt { get; set; } = false;
 
         public Guid? CategoryId { get; set; }
     }

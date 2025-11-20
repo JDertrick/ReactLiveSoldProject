@@ -5,6 +5,7 @@ using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using ReactLiveSoldProject.ServerBL.Models.Notifications;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
+using ReactLiveSoldProject.ServerBL.Models.Taxes;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -143,6 +144,21 @@ namespace ReactLiveSoldProject.ServerBL.Base
 
             CreateMap<Notification, NotificationDto>()
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString().ToLower()));
+
+            // Tax Mappings
+            CreateMap<TaxRate, TaxRateDto>();
+            CreateMap<TaxRateDto, TaxRate>();
+            CreateMap<CreateTaxRateDto, TaxRate>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Organization, opt => opt.Ignore());
+            CreateMap<UpdateTaxRateDto, TaxRate>()
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Organization, opt => opt.Ignore());
 
         }
     }

@@ -11,11 +11,13 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     {
         private readonly LiveSoldDbContext _dbContext;
         private readonly IStockMovementService _stockMovementService;
+        private readonly ITaxService _taxService;
 
-        public SalesOrderService(LiveSoldDbContext dbContext, IStockMovementService stockMovementService)
+        public SalesOrderService(LiveSoldDbContext dbContext, IStockMovementService stockMovementService, ITaxService taxService)
         {
             _dbContext = dbContext;
             _stockMovementService = stockMovementService;
+            _taxService = taxService;
         }
 
         public async Task<List<SalesOrderDto>> GetSalesOrdersByOrganizationAsync(Guid organizationId, string? status = null)
@@ -108,6 +110,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             // Agregar items y calcular el total
             decimal totalAmount = 0m;
+            decimal totalSubtotal = 0m;
+            decimal totalTax = 0m;
 
             foreach (var itemDto in dto.Items)
             {
@@ -124,7 +128,24 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     : variant.Price;  // Precio detal por defecto
 
                 var unitPrice = itemDto.CustomUnitPrice ?? defaultPrice;
-                var subtotal = unitPrice * itemDto.Quantity;
+                var lineTotal = unitPrice * itemDto.Quantity;
+
+                // Calcular impuestos para este item (si el producto no está exento)
+                decimal itemSubtotal = lineTotal;
+                decimal itemTaxAmount = 0m;
+                decimal itemTotal = lineTotal;
+                decimal itemTaxRate = 0m;
+                Guid? itemTaxRateId = null;
+
+                if (!variant.Product.IsTaxExempt)
+                {
+                    var taxCalc = await _taxService.CalculateTaxAsync(organizationId, lineTotal);
+                    itemSubtotal = taxCalc.Subtotal;
+                    itemTaxAmount = taxCalc.TaxAmount;
+                    itemTotal = taxCalc.Total;
+                    itemTaxRate = taxCalc.TaxRate;
+                    itemTaxRateId = taxCalc.TaxRateId;
+                }
 
                 var orderItem = new SalesOrderItem
                 {
@@ -135,14 +156,23 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     Quantity = itemDto.Quantity,
                     OriginalPrice = variant.Price,
                     UnitPrice = unitPrice,
-                    ItemDescription = itemDto.ItemDescription
+                    ItemDescription = itemDto.ItemDescription,
+                    TaxRateId = itemTaxRateId,
+                    TaxRate = itemTaxRate,
+                    TaxAmount = itemTaxAmount,
+                    Subtotal = itemSubtotal,
+                    Total = itemTotal
                 };
 
                 _dbContext.SalesOrderItems.Add(orderItem);
-                totalAmount += subtotal;
+                totalSubtotal += itemSubtotal;
+                totalTax += itemTaxAmount;
+                totalAmount += itemTotal;
             }
 
             order.TotalAmount = totalAmount;
+            order.SubtotalAmount = totalSubtotal;
+            order.TotalTaxAmount = totalTax;
 
             await _dbContext.SaveChangesAsync();
 
@@ -171,6 +201,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 throw new InvalidOperationException("Solo se pueden modificar órdenes en estado Draft");
 
             var variant = await _dbContext.ProductVariants
+                .Include(pv => pv.Product)
                 .FirstOrDefaultAsync(pv => pv.Id == dto.ProductVariantId && pv.OrganizationId == organizationId);
 
             if (variant == null)
@@ -182,7 +213,24 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 : variant.Price;
 
             var unitPrice = dto.CustomUnitPrice ?? defaultPrice;
-            var subtotal = unitPrice * dto.Quantity;
+            var lineTotal = unitPrice * dto.Quantity;
+
+            // Calcular impuestos para este item (si el producto no está exento)
+            decimal itemSubtotal = lineTotal;
+            decimal itemTaxAmount = 0m;
+            decimal itemTotal = lineTotal;
+            decimal itemTaxRate = 0m;
+            Guid? itemTaxRateId = null;
+
+            if (!variant.Product.IsTaxExempt)
+            {
+                var taxCalc = await _taxService.CalculateTaxAsync(organizationId, lineTotal);
+                itemSubtotal = taxCalc.Subtotal;
+                itemTaxAmount = taxCalc.TaxAmount;
+                itemTotal = taxCalc.Total;
+                itemTaxRate = taxCalc.TaxRate;
+                itemTaxRateId = taxCalc.TaxRateId;
+            }
 
             var orderItem = new SalesOrderItem
             {
@@ -193,13 +241,20 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Quantity = dto.Quantity,
                 OriginalPrice = variant.Price,
                 UnitPrice = unitPrice,
-                ItemDescription = dto.ItemDescription
+                ItemDescription = dto.ItemDescription,
+                TaxRateId = itemTaxRateId,
+                TaxRate = itemTaxRate,
+                TaxAmount = itemTaxAmount,
+                Subtotal = itemSubtotal,
+                Total = itemTotal
             };
 
             _dbContext.SalesOrderItems.Add(orderItem);
 
-            // Recalcular total
-            order.TotalAmount += subtotal;
+            // Recalcular totales
+            order.SubtotalAmount += itemSubtotal;
+            order.TotalTaxAmount += itemTaxAmount;
+            order.TotalAmount += itemTotal;
             order.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
@@ -234,18 +289,50 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (item == null)
                 throw new KeyNotFoundException("Item no encontrado en la orden");
 
-            // Calcular el cambio en el total
-            var oldSubtotal = item.UnitPrice * item.Quantity;
+            // Guardar valores antiguos para recalcular totales
+            var oldSubtotal = item.Subtotal;
+            var oldTaxAmount = item.TaxAmount;
+            var oldTotal = item.Total;
 
             // Actualizar el item
             item.Quantity = dto.Quantity;
             item.UnitPrice = dto.CustomUnitPrice ?? item.ProductVariant.Price;
             item.ItemDescription = dto.ItemDescription;
 
-            var newSubtotal = item.UnitPrice * item.Quantity;
+            // Recalcular impuestos para este item
+            var lineTotal = item.UnitPrice * item.Quantity;
+            decimal itemSubtotal = lineTotal;
+            decimal itemTaxAmount = 0m;
+            decimal itemTotal = lineTotal;
+            decimal itemTaxRate = 0m;
+            Guid? itemTaxRateId = null;
 
-            // Recalcular total
-            order.TotalAmount = order.TotalAmount - oldSubtotal + newSubtotal;
+            // Cargar el Product si no está cargado
+            if (item.ProductVariant.Product == null)
+            {
+                await _dbContext.Entry(item.ProductVariant).Reference(pv => pv.Product).LoadAsync();
+            }
+
+            if (!item.ProductVariant.Product.IsTaxExempt)
+            {
+                var taxCalc = await _taxService.CalculateTaxAsync(organizationId, lineTotal);
+                itemSubtotal = taxCalc.Subtotal;
+                itemTaxAmount = taxCalc.TaxAmount;
+                itemTotal = taxCalc.Total;
+                itemTaxRate = taxCalc.TaxRate;
+                itemTaxRateId = taxCalc.TaxRateId;
+            }
+
+            item.TaxRateId = itemTaxRateId;
+            item.TaxRate = itemTaxRate;
+            item.TaxAmount = itemTaxAmount;
+            item.Subtotal = itemSubtotal;
+            item.Total = itemTotal;
+
+            // Recalcular totales de la orden
+            order.SubtotalAmount = order.SubtotalAmount - oldSubtotal + itemSubtotal;
+            order.TotalTaxAmount = order.TotalTaxAmount - oldTaxAmount + itemTaxAmount;
+            order.TotalAmount = order.TotalAmount - oldTotal + itemTotal;
             order.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
@@ -282,12 +369,17 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (order.Items.Count <= 1)
                 throw new InvalidOperationException("No se puede eliminar el último item de la orden. Cancele la orden en su lugar.");
 
-            var subtotal = item.UnitPrice * item.Quantity;
+            // Guardar valores para ajustar totales
+            var itemSubtotal = item.Subtotal;
+            var itemTaxAmount = item.TaxAmount;
+            var itemTotal = item.Total;
 
             _dbContext.SalesOrderItems.Remove(item);
 
-            // Recalcular total
-            order.TotalAmount -= subtotal;
+            // Recalcular totales
+            order.SubtotalAmount -= itemSubtotal;
+            order.TotalTaxAmount -= itemTaxAmount;
+            order.TotalAmount -= itemTotal;
             order.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
