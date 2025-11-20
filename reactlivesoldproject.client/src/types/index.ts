@@ -7,4 +7,5 @@ export * from './wallet.types';
 export * from './salesorder.types';
 export * from './stockmovement.types';
 export * from './user';
+export * from './tax.types';
 

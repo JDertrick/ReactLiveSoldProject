@@ -33,6 +33,7 @@ import {
   Plus,
   FileText,
   Search,
+  Receipt,
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
@@ -216,6 +217,11 @@ const AppLayout = () => {
           name: "Bodegas",
           path: "/app/locations",
           icon: <Warehouse size={20} />,
+        },
+        {
+          name: "Impuestos",
+          path: "/app/tax-settings",
+          icon: <Receipt size={20} />,
         },
       ],
     },

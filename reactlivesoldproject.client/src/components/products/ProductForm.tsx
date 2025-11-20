@@ -90,6 +90,26 @@ const ProductForm = ({ formData, onFormChange }: ProductFormProps) => {
           </div>
         </div>
 
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-gray-500 tracking-wider">
+            PRECIO AL POR MAYOR
+          </Label>
+          <div className="relative">
+            <Input
+              type="number"
+              name="wholesalePrice"
+              id="wholesalePrice"
+              step="0"
+              placeholder="0"
+              value={formData.wholesalePrice || ''}
+              onChange={onFormChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         {/* Category Dropdown */}
         <div>
           <Label className="text-xs font-semibold text-gray-500 tracking-wider">
@@ -119,21 +139,40 @@ const ProductForm = ({ formData, onFormChange }: ProductFormProps) => {
         </div>
       </div>
 
-      <div className="flex items-center">
-        <input
-          id="isPublished"
-          name="isPublished"
-          type="checkbox"
-          checked={formData.isPublished}
-          onChange={onFormChange}
-          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-        />
-        <label
-          htmlFor="isPublished"
-          className="ml-2 block text-sm text-gray-900"
-        >
-          Publicado (visible para los clientes)
-        </label>
+      <div className="space-y-2">
+        <div className="flex items-center">
+          <input
+            id="isPublished"
+            name="isPublished"
+            type="checkbox"
+            checked={formData.isPublished}
+            onChange={onFormChange}
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label
+            htmlFor="isPublished"
+            className="ml-2 block text-sm text-gray-900"
+          >
+            Publicado (visible para los clientes)
+          </label>
+        </div>
+
+        <div className="flex items-center">
+          <input
+            id="isTaxExempt"
+            name="isTaxExempt"
+            type="checkbox"
+            checked={formData.isTaxExempt || false}
+            onChange={onFormChange}
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label
+            htmlFor="isTaxExempt"
+            className="ml-2 block text-sm text-gray-900"
+          >
+            Exento de impuestos
+          </label>
+        </div>
       </div>
     </div>
   );

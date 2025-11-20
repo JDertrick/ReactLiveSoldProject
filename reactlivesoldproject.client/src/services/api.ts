@@ -1,4 +1,13 @@
 import axios from 'axios';
+import type {
+  TaxConfigurationDto,
+  UpdateTaxConfigurationDto,
+  TaxRateDto,
+  CreateTaxRateDto,
+  UpdateTaxRateDto,
+  TaxCalculationRequest,
+  TaxCalculationResult,
+} from '../types/tax.types';
 
 // Crear instancia de Axios
 // En desarrollo, Vite proxy redirigirá /api a http://localhost:5165/api
@@ -56,5 +65,39 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ==================== TAX API ENDPOINTS ====================
+
+export const taxApi = {
+  // Configuración
+  getTaxConfiguration: () =>
+    apiClient.get<TaxConfigurationDto>('/tax/configuration'),
+
+  updateTaxConfiguration: (data: UpdateTaxConfigurationDto) =>
+    apiClient.put('/tax/configuration', data),
+
+  // Tasas
+  getTaxRates: () =>
+    apiClient.get<TaxRateDto[]>('/tax/rates'),
+
+  getTaxRateById: (id: string) =>
+    apiClient.get<TaxRateDto>(`/tax/rates/${id}`),
+
+  getDefaultTaxRate: () =>
+    apiClient.get<TaxRateDto>('/tax/rates/default'),
+
+  createTaxRate: (data: CreateTaxRateDto) =>
+    apiClient.post<TaxRateDto>('/tax/rates', data),
+
+  updateTaxRate: (id: string, data: UpdateTaxRateDto) =>
+    apiClient.put<TaxRateDto>(`/tax/rates/${id}`, data),
+
+  deleteTaxRate: (id: string) =>
+    apiClient.delete(`/tax/rates/${id}`),
+
+  // Cálculos
+  calculateTax: (data: TaxCalculationRequest) =>
+    apiClient.post<TaxCalculationResult>('/tax/calculate', data),
+};
 
 export default apiClient;

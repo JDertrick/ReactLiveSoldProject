@@ -24,6 +24,7 @@ import StockMovementsPage from "../pages/app/StockMovements";
 import CustomerWalletPage from "../pages/app/CustomerWalletPage";
 import CategoryListPage from "../pages/app/CategoryListPage";
 import LocationListPage from "../pages/app/LocationListPage";
+import TaxSettings from "../pages/app/TaxSettings";
 
 // Portal Pages (Customer)
 import CustomerDashboard from "../pages/portal/Dashboard";
@@ -138,6 +139,10 @@ export const router = createBrowserRouter([
       {
         path: "receipts",
         element: <AllReceiptsPage />,
+      },
+      {
+        path: "tax-settings",
+        element: <TaxSettings />,
       },
     ],
   },

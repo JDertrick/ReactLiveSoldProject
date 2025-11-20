@@ -34,8 +34,10 @@ export interface Product {
   description?: string;
   productType: string;
   basePrice: number;
+  wholesalePrice?: number;
   imageUrl: string;
   isPublished: boolean;
+  isTaxExempt?: boolean;
   categoryId?: string;
   category?: Category;
   tags: Tag[];
@@ -81,6 +83,8 @@ export interface CreateProductDto {
   productType: string;
   isPublished: boolean;
   basePrice?: number;
+  wholesalePrice?: number;
+  isTaxExempt?: boolean;
   categoryId?: string;
 }
 
@@ -89,6 +93,8 @@ export interface UpdateProductDto {
   description?: string;
   productType: string;
   basePrice?: number;
+  wholesalePrice?: number;
+  isTaxExempt?: boolean;
   isPublished: boolean;
   categoryId?: string;
 }

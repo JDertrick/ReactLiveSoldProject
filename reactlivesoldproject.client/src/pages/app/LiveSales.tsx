@@ -15,6 +15,8 @@ import {
   useCancelSalesOrder,
   useGetSalesOrders,
 } from "../../hooks/useSalesOrders";
+import { useGetTaxConfiguration } from "../../hooks/useTax";
+import { TaxApplicationMode, parseTaxApplicationMode } from "../../types/tax.types";
 import {
   Product,
   ProductVariant,
@@ -62,6 +64,7 @@ const LiveSalesPage = () => {
   const { categories } = useCategories();
   const { data: draftOrders, refetch: refetchDraftOrders } =
     useGetSalesOrders("Draft");
+  const { data: taxConfig } = useGetTaxConfiguration();
   const createSalesOrder = useCreateSalesOrder();
   const addItemToOrder = useAddItemToOrder();
   const updateItemInOrder = useUpdateItemInOrder();
@@ -118,6 +121,50 @@ const LiveSalesPage = () => {
   const [showVariantManagerModal, setShowVariantManagerModal] = useState(false);
 
   const products = useMemo(() => productsData?.items ?? [], [productsData]);
+
+  // Calculate tax and totals
+  const orderTotals = useMemo(() => {
+    if (!currentDraftOrder) {
+      return { subtotal: 0, taxAmount: 0, total: 0 };
+    }
+
+    const subtotal = currentDraftOrder.totalAmount;
+
+    // Parse tax application mode from backend (could be string or number)
+    const taxApplicationMode = taxConfig?.taxApplicationMode
+      ? parseTaxApplicationMode(taxConfig.taxApplicationMode)
+      : TaxApplicationMode.TaxIncluded;
+
+    // Calculate tax if enabled
+    let taxAmount = 0;
+    if (taxConfig?.taxEnabled && taxConfig.defaultTaxRateId) {
+      const defaultRate = taxConfig.taxRates?.find(
+        r => r.id === taxConfig.defaultTaxRateId
+      );
+
+      if (defaultRate) {
+        if (taxApplicationMode === TaxApplicationMode.TaxIncluded) {
+          // Tax is included in the price, calculate the tax portion
+          taxAmount = subtotal - (subtotal / (1 + defaultRate.rate));
+        } else {
+          // Tax is excluded, add it to the price
+          taxAmount = subtotal * defaultRate.rate;
+        }
+      }
+    }
+
+    const total = taxApplicationMode === TaxApplicationMode.TaxExcluded
+      ? subtotal + taxAmount
+      : subtotal;
+
+    return {
+      subtotal: taxApplicationMode === TaxApplicationMode.TaxIncluded
+        ? subtotal - taxAmount
+        : subtotal,
+      taxAmount,
+      total,
+    };
+  }, [currentDraftOrder, taxConfig]);
 
   const filteredVariantsProducts = useMemo(() => {
     let filteredProducts = products;
@@ -351,7 +398,7 @@ const LiveSalesPage = () => {
   const handleFinalizeOrder = () => {
     if (!currentDraftOrder || !selectedCustomer) return;
 
-    const total = currentDraftOrder.totalAmount;
+    const total = orderTotals.total;
     const balance = selectedCustomer.wallet?.balance || 0;
 
     if (total > balance) {
@@ -485,7 +532,23 @@ const LiveSalesPage = () => {
                 <p className="text-sm font-semibold">{order.customerName}</p>
                 <p className="text-xs text-gray-500">
                   Ord #{order.id.substring(0, 4)}... • $
-                  {order.totalAmount.toFixed(2)}
+                  {(() => {
+                    // Calculate total with tax for display
+                    if (!taxConfig?.taxEnabled || !taxConfig.defaultTaxRateId) {
+                      return order.totalAmount.toFixed(2);
+                    }
+                    const defaultRate = taxConfig.taxRates?.find(r => r.id === taxConfig.defaultTaxRateId);
+                    if (!defaultRate) return order.totalAmount.toFixed(2);
+
+                    const taxApplicationMode = parseTaxApplicationMode(taxConfig.taxApplicationMode);
+
+                    if (taxApplicationMode === TaxApplicationMode.TaxIncluded) {
+                      return order.totalAmount.toFixed(2);
+                    } else {
+                      const taxAmount = order.totalAmount * defaultRate.rate;
+                      return (order.totalAmount + taxAmount).toFixed(2);
+                    }
+                  })()}
                 </p>
               </div>
               {currentDraftOrder?.id === order.id && (
@@ -736,13 +799,28 @@ const LiveSalesPage = () => {
                     Subtotal ({currentDraftOrder.items.length} items)
                   </p>
                   <p className="font-semibold">
-                    ${currentDraftOrder.totalAmount.toFixed(2)}
+                    ${orderTotals.subtotal.toFixed(2)}
                   </p>
                 </div>
+                {taxConfig?.taxEnabled && orderTotals.taxAmount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <p className="text-gray-500">
+                      {taxConfig.taxDisplayName || 'Impuesto'}
+                      {taxConfig.defaultTaxRateId && (
+                        <span className="ml-1">
+                          ({(taxConfig.taxRates?.find(r => r.id === taxConfig.defaultTaxRateId)?.rate * 100 || 0).toFixed(0)}%)
+                        </span>
+                      )}
+                    </p>
+                    <p className="font-semibold">
+                      ${orderTotals.taxAmount.toFixed(2)}
+                    </p>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <p className="text-gray-500">Total a Pagar</p>
                   <p className="font-bold text-2xl">
-                    ${currentDraftOrder.totalAmount.toFixed(2)}
+                    ${orderTotals.total.toFixed(2)}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
