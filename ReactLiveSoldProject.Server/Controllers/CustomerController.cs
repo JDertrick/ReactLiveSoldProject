@@ -26,7 +26,7 @@ namespace ReactLiveSoldProject.Server.Controllers
         /// Obtiene todos los clientes de la organización del usuario autenticado
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<List<CustomerDto>>> GetCustomers()
+        public async Task<ActionResult<List<CustomerDto>>> GetCustomers([FromQuery] string? searchTerm, [FromQuery] string? status)
         {
             try
             {
@@ -35,11 +35,61 @@ namespace ReactLiveSoldProject.Server.Controllers
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
                 var customers = await _customerService.GetCustomersByOrganizationAsync(organizationId.Value);
+
+                // Server-side filtering
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    var lowerSearchTerm = searchTerm.ToLower();
+                    customers = customers.Where(c =>
+                        c.FirstName.ToLower().Contains(lowerSearchTerm) ||
+                        c.LastName.ToLower().Contains(lowerSearchTerm) ||
+                        (c.Email != null && c.Email.ToLower().Contains(lowerSearchTerm)) ||
+                        (c.Phone != null && c.Phone.ToLower().Contains(lowerSearchTerm))
+                    ).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")
+                {
+                    var isActive = status.ToLower() == "active";
+                    customers = customers.Where(c => c.IsActive == isActive).ToList();
+                }
+
+
                 return Ok(customers);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting customers");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        [HttpGet("stats")]
+        public async Task<ActionResult<CustomerStatsDto>> GetCustomerStats()
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+                
+                var customers = await _customerService.GetCustomersByOrganizationAsync(organizationId.Value);
+
+                var now = DateTime.UtcNow;
+                var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
+
+                var stats = new CustomerStatsDto
+                {
+                    TotalCustomers = customers.Count,
+                    NewCustomersThisMonth = customers.Count(c => c.CreatedAt >= firstDayOfMonth),
+                    TotalWalletSum = customers.Sum(c => c.Wallet?.Balance ?? 0)
+                };
+
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting customer stats");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }

@@ -42,3 +42,10 @@ export interface UpdateCustomerDto {
   notes?: string;
   isActive: boolean;
 }
+
+export interface CustomerStats {
+  totalWalletSum: number;
+  newCustomersThisMonth: number;
+  totalCustomers: number;
+}
+

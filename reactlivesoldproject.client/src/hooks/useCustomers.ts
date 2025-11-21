@@ -1,14 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../services/api';
-import { Customer, CreateCustomerDto, UpdateCustomerDto } from '../types';
+import { Customer, CreateCustomerDto, UpdateCustomerDto, CustomerStats } from '../types';
 
 // Get All Customers
-export const useGetCustomers = () => {
+export const useGetCustomers = (searchTerm?: string, status?: string) => {
   return useQuery({
-    queryKey: ['customers'],
+    queryKey: ['customers', searchTerm, status],
     queryFn: async (): Promise<Customer[]> => {
-      const response = await apiClient.get('/customer');
+      const response = await apiClient.get('/customer', {
+        params: { searchTerm, status },
+      });
       console.log(response.data);
+      return response.data;
+    },
+  });
+};
+
+// Get Customer Stats
+export const useGetCustomerStats = () => {
+  return useQuery({
+    queryKey: ['customerStats'],
+    queryFn: async (): Promise<CustomerStats> => {
+      const response = await apiClient.get('/customer/stats');
       return response.data;
     },
   });

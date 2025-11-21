@@ -63,65 +63,69 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
         public async Task<CustomerDto> CreateCustomerAsync(Guid organizationId, CreateCustomerDto dto)
         {
-            // Verificar que no exista un cliente con el mismo email en esta organización
-            var existingCustomer = await _dbContext.Customers
-                .FirstOrDefaultAsync(c => c.OrganizationId == organizationId && c.Email == dto.Email);
-
-            if (existingCustomer != null)
-                throw new InvalidOperationException("Ya existe un cliente con este email en la organización");
-
-            // Si tiene teléfono, verificar que tampoco exista
-            if (!string.IsNullOrWhiteSpace(dto.Phone))
+            try
             {
-                var existingPhone = await _dbContext.Customers
-                    .FirstOrDefaultAsync(c => c.OrganizationId == organizationId && c.Phone == dto.Phone);
+                // Verificar que no exista un cliente con el mismo email en esta organización
+                var existingCustomer = await _dbContext.Customers
+                    .FirstOrDefaultAsync(c => c.OrganizationId == organizationId && c.Email == dto.Email);
 
-                if (existingPhone != null)
-                    throw new InvalidOperationException("Ya existe un cliente con este teléfono en la organización");
+                if (existingCustomer != null)
+                    throw new InvalidOperationException("Ya existe un cliente con este email en la organización");
+
+                // Si tiene teléfono, verificar que tampoco exista
+                if (!string.IsNullOrWhiteSpace(dto.Phone))
+                {
+                    var existingPhone = await _dbContext.Customers
+                        .FirstOrDefaultAsync(c => c.OrganizationId == organizationId && c.Phone == dto.Phone);
+
+                    if (existingPhone != null)
+                        throw new InvalidOperationException("Ya existe un cliente con este teléfono en la organización");
+                }
+
+                // Verificar que el assigned seller pertenezca a la organización (si se proporciona)
+                if (dto.AssignedSellerId.HasValue)
+                {
+                    var sellerExists = await _dbContext.OrganizationMembers
+                        .AnyAsync(om => om.OrganizationId == organizationId && om.UserId == dto.AssignedSellerId.Value);
+
+                    if (!sellerExists)
+                        throw new InvalidOperationException("El vendedor asignado no pertenece a esta organización");
+                }
+
+                // Crear el cliente
+                var customerId = Guid.NewGuid();
+                var customer = _mapper.Map<Customer>(dto);
+                customer.Id = customerId;
+                customer.PasswordHash = PasswordHelper.HashPassword(dto.Password);
+                customer.OrganizationId = organizationId;
+
+                _dbContext.Customers.Add(customer);
+
+                // Crear automáticamente el wallet para el cliente
+                var wallet = new Wallet
+                {
+                    OrganizationId = organizationId,
+                    CustomerId = customerId,
+                    Balance = 0.00m
+                };
+
+                _dbContext.Wallets.Add(wallet);
+
+                await _dbContext.SaveChangesAsync();
+
+                // Recargar el customer con sus relaciones
+                var createdCustomer = await _dbContext.Customers
+                    .Include(c => c.Wallet)
+                    .Include(c => c.AssignedSeller)
+                    .FirstAsync(c => c.Id == customerId);
+
+                return MapToDto(createdCustomer);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
 
-            // Verificar que el assigned seller pertenezca a la organización (si se proporciona)
-            if (dto.AssignedSellerId.HasValue)
-            {
-                var sellerExists = await _dbContext.OrganizationMembers
-                    .AnyAsync(om => om.OrganizationId == organizationId && om.UserId == dto.AssignedSellerId.Value);
-
-                if (!sellerExists)
-                    throw new InvalidOperationException("El vendedor asignado no pertenece a esta organización");
-            }
-
-            // Crear el cliente
-            var customerId = Guid.NewGuid();
-
-            var customer = _mapper.Map<Customer>(dto);
-            customer.Id = customerId;
-            customer.PasswordHash = PasswordHelper.HashPassword(dto.Password);
-            customer.CreatedAt = DateTime.UtcNow;
-            customer.UpdatedAt = DateTime.UtcNow;
-
-            _dbContext.Customers.Add(customer);
-
-            // Crear automáticamente el wallet para el cliente
-            var wallet = new Wallet
-            {
-                Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
-                CustomerId = customerId,
-                Balance = 0.00m,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            _dbContext.Wallets.Add(wallet);
-
-            await _dbContext.SaveChangesAsync();
-
-            // Recargar el customer con sus relaciones
-            var createdCustomer = await _dbContext.Customers
-                .Include(c => c.Wallet)
-                .Include(c => c.AssignedSeller)
-                .FirstAsync(c => c.Id == customerId);
-
-            return MapToDto(createdCustomer);
         }
 
         public async Task<CustomerDto> UpdateCustomerAsync(Guid customerId, Guid organizationId, UpdateCustomerDto dto)
