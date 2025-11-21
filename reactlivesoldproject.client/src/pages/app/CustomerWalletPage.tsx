@@ -31,14 +31,13 @@ const CustomerWalletPage = () => {
   }
 
   if (!customer) {
-    return <div className="text-center text-gray-500">Cliente no encontrado.</div>;
+    return (
+      <div className="text-center text-gray-500">Cliente no encontrado.</div>
+    );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">
-        Billetera de {customer.firstName} {customer.lastName}
-      </h1>
       <CustomerWalletTab customer={customer} />
     </div>
   );

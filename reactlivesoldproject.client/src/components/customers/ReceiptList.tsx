@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Receipt } from '../../types/wallet.types';
 import { ReceiptDetails } from './ReceiptDetails';
-import { DollarSign, Eye, CheckCircle, Send, XCircle } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Eye, CheckCircle, Send, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePostReceipt, useRejectReceipt } from '../../hooks/useWallet';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/currencyHelper';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,6 +75,24 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
@@ -84,76 +103,129 @@ export const ReceiptList = ({ receipts, isLoading }: ReceiptListProps) => {
 
   if (!receipts || receipts.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        No se encontraron recibos para este cliente.
+      <div className="bg-white rounded-xl border border-gray-200 text-center py-12">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <p className="text-gray-500 text-sm">No se encontraron recibos para este cliente.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-      <ul role="list" className="divide-y divide-gray-200">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <ul role="list" className="divide-y divide-gray-100">
         {receipts.map((receipt) => (
           <li key={receipt.id}>
-            <div className="block hover:bg-gray-50">
-              <div className="px-4 py-4 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-indigo-600 truncate">
-                      {receipt.type}
+            <div className="block hover:bg-gray-50 transition-colors">
+              <div className="px-6 py-4">
+                <div className="flex items-center gap-4">
+                  {/* Icon */}
+                  <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                    receipt.type === 'Deposit' ? 'bg-green-100' : 'bg-red-100'
+                  }`}>
+                    {receipt.type === 'Deposit' ? (
+                      <ArrowDownCircle className="w-6 h-6 text-green-600" />
+                    ) : (
+                      <ArrowUpCircle className="w-6 h-6 text-red-600" />
+                    )}
+                  </div>
+
+                  {/* Receipt Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-base font-semibold text-gray-900">
+                        {receipt.notes || (receipt.type === 'Deposit' ? 'Depósito' : 'Retiro')}
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      {receipt.type} • Ref: {receipt.id.substring(0, 8)}
                     </p>
+                  </div>
+
+                  {/* Date & Time */}
+                  <div className="hidden sm:flex flex-col items-end mr-4">
+                    <p className="text-sm font-medium text-gray-900">
+                      {formatDate(receipt.createdAt)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatTime(receipt.createdAt)}
+                    </p>
+                  </div>
+
+                  {/* Created By */}
+                  <div className="hidden md:flex items-center gap-2 mr-4">
+                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-semibold text-indigo-600">
+                        {receipt.createdByUserName?.substring(0, 2).toUpperCase() || 'DP'}
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium text-gray-700">
+                        {receipt.createdByUserName || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="flex-shrink-0">
                     {receipt.isPosted ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <CheckCircle className="h-3 w-3 mr-1" /> Posteado
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        Posteado
                       </span>
                     ) : receipt.isRejected ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <XCircle className="h-3 w-3 mr-1" /> Rechazado
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                        <XCircle className="h-3.5 w-3.5" />
+                        Rechazado
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
                         Borrador
                       </span>
                     )}
                   </div>
-                  <div className="ml-2 flex-shrink-0 flex">
-                    <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      receipt.type === 'Deposit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+
+                  {/* Amount */}
+                  <div className="flex-shrink-0 min-w-[140px] text-right">
+                    <p className={`text-lg font-bold ${
+                      receipt.type === 'Deposit' ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      <DollarSign className="h-3 w-3 mr-1" /> {receipt.totalAmount.toFixed(2)}
+                      {receipt.type === 'Deposit' ? '+' : '-'}{formatCurrency(receipt.totalAmount)}
                     </p>
                   </div>
-                </div>
-                <div className="mt-2 sm:flex justify-between">
-                  <div className="sm:flex flex-col">
-                    <p className="flex items-center text-sm text-gray-500">
-                      {receipt.notes || 'Sin notas'}
-                    </p>
-                    {receipt.isPosted && (
-                      <p className="text-xs text-gray-400">
-                        Posteado por {receipt.postedByUserName} el {new Date(receipt.postedAt!).toLocaleDateString()}
-                      </p>
-                    )}
-                    {receipt.isRejected && (
-                      <p className="text-xs text-gray-400">
-                        Rechazado por {receipt.rejectedByUserName} el {new Date(receipt.rejectedAt!).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    <p>
-                      Creado el <time dateTime={receipt.createdAt}>{new Date(receipt.createdAt).toLocaleDateString()}</time>
-                    </p>
-                    <Button variant="ghost" size="sm" className="ml-2" onClick={() => handleViewDetails(receipt)}>
-                      <Eye className="h-4 w-4 mr-1" /> Ver Detalles
+
+                  {/* Actions */}
+                  <div className="flex-shrink-0 flex items-center gap-2 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewDetails(receipt)}
+                      className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <Eye className="h-4 w-4 mr-1" /> Ver
                     </Button>
                     {!receipt.isPosted && !receipt.isRejected && (
                       <>
-                        <Button variant="ghost" size="sm" className="ml-2 text-blue-600" onClick={() => handlePostClick(receipt)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => handlePostClick(receipt)}
+                        >
                           <Send className="h-4 w-4 mr-1" /> Postear
                         </Button>
-                        <Button variant="ghost" size="sm" className="ml-2 text-red-600" onClick={() => handleRejectClick(receipt)}>
-                          <XCircle className="h-4 w-4 mr-1" /> Rechazar
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleRejectClick(receipt)}
+                        >
+                          <XCircle className="h-4 w-4" />
                         </Button>
                       </>
                     )}

@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CustomerForm from "@/components/customers/CustomerForm";
 import { useDebounce } from "@/hooks/useDebounce";
+import { formatCurrency } from "@/utils/currencyHelper";
 
 const columnHelper = createColumnHelper<Customer>();
 
@@ -207,7 +208,8 @@ const CustomersPage = () => {
       header: "Billetera",
       cell: (info) => (
         <div className="font-medium text-green-600">
-          ${(info.getValue() ?? 0).toFixed(2)}
+          {formatCurrency(info.getValue() ?? 0)}
+          {/* ${(info.getValue() ?? 0).toFixed(2)} */}
         </div>
       ),
     }),
@@ -289,7 +291,7 @@ const CustomersPage = () => {
         />
         <StatCard
           title="Billetera Total"
-          value={`$${(stats?.totalWalletSum ?? 0).toFixed(2)}`}
+          value={`${formatCurrency(stats?.totalWalletSum ?? 0)}`}
           icon={<Wallet className="w-6 h-6" />}
           colorClass="text-green-500"
           circleColorClass="bg-green-500"
@@ -406,8 +408,6 @@ const CustomersPage = () => {
       {/* Modal */}
       <CustomerForm
         isModalOpen={isModalOpen}
-        createCustomer={createCustomer}
-        updateCustomer={updateCustomer}
         handleCloseModal={handleCloseModal}
         handleSubmit={handleSubmit}
         handleChange={handleChange}
