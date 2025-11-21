@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReactLiveSoldProject.ServerBL.Base;
@@ -11,9 +12,11 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    partial class LiveSoldDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121045656_12")]
+    partial class _12
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -690,9 +693,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("description");
 
-                    b.Property<Guid?>("LocationId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -707,15 +707,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
-
-                    b.Property<string>("ScopeDescription")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("ScopeType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("SnapshotTakenAt")
                         .HasColumnType("timestamp with time zone")
@@ -761,8 +752,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.HasIndex("CompletedByUserId");
 
                     b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("LocationId");
 
                     b.HasIndex("OrganizationId");
 
@@ -1707,10 +1696,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", "Location")
-                        .WithMany()
-                        .HasForeignKey("LocationId");
-
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
                         .WithMany()
                         .HasForeignKey("OrganizationId")
@@ -1720,8 +1705,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("CompletedByUser");
 
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("Location");
 
                     b.Navigation("Organization");
                 });

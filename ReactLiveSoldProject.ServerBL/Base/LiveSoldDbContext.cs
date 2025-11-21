@@ -36,6 +36,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<ProductTag> ProductTags { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<StockMovement> StockMovements { get; set; }
+        public DbSet<InventoryAudit> InventoryAudits { get; set; }
+        public DbSet<InventoryAuditItem> InventoryAuditItems { get; set; }
 
         // BLOQUE 4: VENTAS
         public DbSet<SalesOrder> SalesOrders { get; set; }
@@ -503,6 +505,93 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasOne(sm => sm.DestinationLocation)
                     .WithMany()
                     .HasForeignKey(sm => sm.DestinationLocationId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // --- BLOQUE 3.1: AUDITORÍA DE INVENTARIO ---
+
+            modelBuilder.Entity<InventoryAudit>(e =>
+            {
+                e.ToTable("InventoryAudits");
+                e.HasKey(ia => ia.Id);
+                e.Property(ia => ia.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(ia => ia.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(ia => ia.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+                e.Property(ia => ia.Description).HasColumnName("description").HasMaxLength(500);
+                e.Property(ia => ia.Status).HasColumnName("status").HasConversion<string>().IsRequired().HasDefaultValue(InventoryAuditStatus.Draft);
+                e.Property(ia => ia.SnapshotTakenAt).HasColumnName("snapshot_taken_at").IsRequired();
+                e.Property(ia => ia.StartedAt).HasColumnName("started_at");
+                e.Property(ia => ia.CompletedAt).HasColumnName("completed_at");
+                e.Property(ia => ia.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
+                e.Property(ia => ia.CompletedByUserId).HasColumnName("completed_by_user_id");
+                e.Property(ia => ia.TotalVariants).HasColumnName("total_variants").IsRequired().HasDefaultValue(0);
+                e.Property(ia => ia.CountedVariants).HasColumnName("counted_variants").IsRequired().HasDefaultValue(0);
+                e.Property(ia => ia.TotalVariance).HasColumnName("total_variance").IsRequired().HasDefaultValue(0);
+                e.Property(ia => ia.TotalVarianceValue).HasColumnName("total_variance_value").HasColumnType("decimal(10, 2)").HasDefaultValue(0.00m);
+                e.Property(ia => ia.Notes).HasColumnName("notes").HasMaxLength(1000);
+                e.Property(ia => ia.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(ia => ia.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(ia => ia.OrganizationId);
+                e.HasIndex(ia => ia.Status);
+
+                e.HasOne(ia => ia.Organization)
+                    .WithMany()
+                    .HasForeignKey(ia => ia.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(ia => ia.CreatedByUser)
+                    .WithMany()
+                    .HasForeignKey(ia => ia.CreatedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(ia => ia.CompletedByUser)
+                    .WithMany()
+                    .HasForeignKey(ia => ia.CompletedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<InventoryAuditItem>(e =>
+            {
+                e.ToTable("InventoryAuditItems");
+                e.HasKey(iai => iai.Id);
+                e.Property(iai => iai.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(iai => iai.InventoryAuditId).HasColumnName("inventory_audit_id").IsRequired();
+                e.Property(iai => iai.ProductVariantId).HasColumnName("product_variant_id").IsRequired();
+                e.Property(iai => iai.TheoreticalStock).HasColumnName("theoretical_stock").IsRequired();
+                e.Property(iai => iai.CountedStock).HasColumnName("counted_stock");
+                e.Property(iai => iai.Variance).HasColumnName("variance");
+                e.Property(iai => iai.VarianceValue).HasColumnName("variance_value").HasColumnType("decimal(10, 2)");
+                e.Property(iai => iai.SnapshotAverageCost).HasColumnName("snapshot_average_cost").HasColumnType("decimal(10, 2)").IsRequired();
+                e.Property(iai => iai.CountedByUserId).HasColumnName("counted_by_user_id");
+                e.Property(iai => iai.CountedAt).HasColumnName("counted_at");
+                e.Property(iai => iai.AdjustmentMovementId).HasColumnName("adjustment_movement_id");
+                e.Property(iai => iai.Notes).HasColumnName("notes").HasMaxLength(500);
+                e.Property(iai => iai.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(iai => iai.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(iai => iai.InventoryAuditId);
+                e.HasIndex(iai => iai.ProductVariantId);
+                e.HasIndex(iai => new { iai.InventoryAuditId, iai.ProductVariantId }).IsUnique();
+
+                e.HasOne(iai => iai.InventoryAudit)
+                    .WithMany(ia => ia.Items)
+                    .HasForeignKey(iai => iai.InventoryAuditId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(iai => iai.ProductVariant)
+                    .WithMany()
+                    .HasForeignKey(iai => iai.ProductVariantId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(iai => iai.CountedByUser)
+                    .WithMany()
+                    .HasForeignKey(iai => iai.CountedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(iai => iai.AdjustmentMovement)
+                    .WithMany()
+                    .HasForeignKey(iai => iai.AdjustmentMovementId)
                     .OnDelete(DeleteBehavior.SetNull);
             });
 

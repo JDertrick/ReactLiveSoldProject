@@ -34,6 +34,7 @@ import {
   FileText,
   Search,
   Receipt,
+  ClipboardCheck,
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
@@ -184,6 +185,11 @@ const AppLayout = () => {
           name: "Movimientos",
           path: "/app/stock-movements",
           icon: <ArrowRightLeft size={20} />,
+        },
+        {
+          name: "Auditoría",
+          path: "/app/inventory-audit",
+          icon: <ClipboardCheck size={20} />,
         },
         { name: "Clientes", path: "/app/customers", icon: <Users size={20} /> },
       ],

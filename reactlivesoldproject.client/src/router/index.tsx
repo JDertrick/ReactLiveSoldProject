@@ -25,6 +25,9 @@ import CustomerWalletPage from "../pages/app/CustomerWalletPage";
 import CategoryListPage from "../pages/app/CategoryListPage";
 import LocationListPage from "../pages/app/LocationListPage";
 import TaxSettings from "../pages/app/TaxSettings";
+import InventoryAuditPage from "../pages/app/InventoryAudit";
+import InventoryAuditDetailPage from "../pages/app/InventoryAuditDetail";
+import InventoryAuditCountPage from "../pages/app/InventoryAuditCount";
 
 // Portal Pages (Customer)
 import CustomerDashboard from "../pages/portal/Dashboard";
@@ -143,6 +146,18 @@ export const router = createBrowserRouter([
       {
         path: "tax-settings",
         element: <TaxSettings />,
+      },
+      {
+        path: "inventory-audit",
+        element: <InventoryAuditPage />,
+      },
+      {
+        path: "inventory-audit/:auditId",
+        element: <InventoryAuditDetailPage />,
+      },
+      {
+        path: "inventory-audit/:auditId/count",
+        element: <InventoryAuditCountPage />,
       },
     ],
   },

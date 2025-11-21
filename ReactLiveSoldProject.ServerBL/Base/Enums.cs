@@ -180,7 +180,38 @@
         /// <summary>
         /// Cancelación de venta (devuelve stock)
         /// </summary>
-        SaleCancellation
+        SaleCancellation,
+
+        /// <summary>
+        /// Ajuste por auditoría/toma física de inventario
+        /// </summary>
+        InventoryAudit
+    }
+
+    /// <summary>
+    /// Estado de una auditoría de inventario
+    /// </summary>
+    public enum InventoryAuditStatus
+    {
+        /// <summary>
+        /// Borrador - Snapshot tomado, pendiente de iniciar conteo
+        /// </summary>
+        Draft,
+
+        /// <summary>
+        /// En progreso - Conteo en curso
+        /// </summary>
+        InProgress,
+
+        /// <summary>
+        /// Completada - Conteo finalizado y ajustes aplicados
+        /// </summary>
+        Completed,
+
+        /// <summary>
+        /// Cancelada - Auditoría cancelada sin aplicar ajustes
+        /// </summary>
+        Cancelled
     }
 
     public enum NotificationType
