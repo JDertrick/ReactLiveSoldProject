@@ -35,6 +35,7 @@ import {
   Search,
   Receipt,
   ClipboardCheck,
+  Contact,
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
@@ -191,7 +192,6 @@ const AppLayout = () => {
           path: "/app/inventory-audit",
           icon: <ClipboardCheck size={20} />,
         },
-        { name: "Clientes", path: "/app/customers", icon: <Users size={20} /> },
       ],
     },
     {
@@ -213,6 +213,16 @@ const AppLayout = () => {
     {
       group: "CONFIGURACIÓN",
       items: [
+        {
+          name: "Clientes",
+          path: "/app/customers",
+          icon: <Users size={20} />,
+        },
+        {
+          name: "Contact",
+          path: "/app/contacts",
+          icon: <Contact size={20} />,
+        },
         {
           name: "Categorias",
           path: "/app/categories",
