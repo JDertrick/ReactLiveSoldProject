@@ -2,54 +2,7 @@ using ReactLiveSoldProject.ServerBL.Base;
 
 namespace ReactLiveSoldProject.ServerBL.DTOs
 {
-    /// <summary>
-    /// Tipo de auditoría
-    /// </summary>
-    public enum AuditScopeType
-    {
-        Total,      // Todas las variantes
-        Partial     // Filtrado por categorías, tags, etc.
-    }
 
-    /// <summary>
-    /// DTO para crear una nueva auditoría de inventario
-    /// </summary>
-    public class CreateInventoryAuditDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public string? Notes { get; set; }
-
-        /// <summary>
-        /// Tipo de alcance de la auditoría (Total o Parcial)
-        /// </summary>
-        public AuditScopeType ScopeType { get; set; } = AuditScopeType.Total;
-
-        /// <summary>
-        /// ID de la bodega/ubicación (opcional)
-        /// </summary>
-        public Guid? LocationId { get; set; }
-
-        /// <summary>
-        /// IDs de categorías a incluir (para auditoría parcial)
-        /// </summary>
-        public List<Guid>? CategoryIds { get; set; }
-
-        /// <summary>
-        /// IDs de tags/proveedores a incluir (para auditoría parcial)
-        /// </summary>
-        public List<Guid>? TagIds { get; set; }
-
-        /// <summary>
-        /// Cantidad de productos a seleccionar aleatoriamente (0 = todos los que coincidan)
-        /// </summary>
-        public int RandomSampleCount { get; set; } = 0;
-
-        /// <summary>
-        /// Excluir productos auditados en los últimos X días (0 = no excluir)
-        /// </summary>
-        public int ExcludeAuditedInLastDays { get; set; } = 0;
-    }
 
     /// <summary>
     /// DTO principal de auditoría de inventario

@@ -30,7 +30,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             var scopeParts = new List<string>();
 
             // Aplicar filtros según el tipo de auditoría
-            if (dto.ScopeType == DTOs.AuditScopeType.Partial)
+            if (dto.ScopeType == DTOs.AuditScopeType.Manual && dto.ProductVariantIds != null && dto.ProductVariantIds.Any())
+            {
+                query = query.Where(v => dto.ProductVariantIds.Contains(v.Id));
+                scopeParts.Add($"Manual: {dto.ProductVariantIds.Count} items seleccionados");
+            }
+            else if (dto.ScopeType == DTOs.AuditScopeType.Partial)
             {
                 // Filtro por categorías
                 if (dto.CategoryIds != null && dto.CategoryIds.Any())

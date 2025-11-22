@@ -70,7 +70,7 @@ export interface BlindCountItemDto {
   notes?: string;
 }
 
-export type AuditScopeType = 'Total' | 'Partial';
+export type AuditScopeType = 'Total' | 'Partial' | 'Manual';
 
 export interface CreateInventoryAuditDto {
   name: string;
@@ -80,6 +80,7 @@ export interface CreateInventoryAuditDto {
   locationId?: string;
   categoryIds?: string[];
   tagIds?: string[];
+  productVariantIds?: string[];
   randomSampleCount?: number;
   excludeAuditedInLastDays?: number;
 }

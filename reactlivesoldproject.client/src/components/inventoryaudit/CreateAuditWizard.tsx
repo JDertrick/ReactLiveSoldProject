@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useCategories } from "../../hooks/useCategories";
 import { useLocations } from "../../hooks/useLocations";
-import { useGetTags } from "../../hooks/useProducts";
+import { useGetTags, useGetProducts } from "../../hooks/useProducts";
 import { CreateInventoryAuditDto, AuditScopeType } from "../../types/inventoryAudit.types";
 import {
   Dialog,
@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Warehouse,
   ClipboardList,
@@ -35,7 +37,10 @@ import {
   Tag,
   FolderTree,
   X,
+  ListPlus,
+  Search,
 } from "lucide-react";
+import { useDebounce } from "@uidotdev/usehooks";
 
 interface CreateAuditWizardProps {
   open: boolean;
@@ -43,6 +48,27 @@ interface CreateAuditWizardProps {
   onSubmit: (data: CreateInventoryAuditDto) => Promise<void>;
   isLoading?: boolean;
 }
+
+const ProductSelectItem = ({ item, isSelected, onToggle }) => (
+    <div
+      key={item.id}
+      className={`flex items-center gap-3 p-2 rounded-md transition-colors ${
+        isSelected ? 'bg-primary/10' : 'hover:bg-muted/50'
+      }`}
+    >
+      <Checkbox
+        id={`product-${item.id}`}
+        checked={isSelected}
+        onCheckedChange={onToggle}
+      />
+      <div className="flex-1">
+        <Label htmlFor={`product-${item.id}`} className="font-normal cursor-pointer">
+          {item.name}
+        </Label>
+        <p className="text-xs text-muted-foreground">{item.sku}</p>
+      </div>
+    </div>
+  );
 
 export const CreateAuditWizard = ({
   open,
@@ -55,6 +81,18 @@ export const CreateAuditWizard = ({
   const { data: tags } = useGetTags();
 
   const [step, setStep] = useState(1);
+  const [partialType, setPartialType] = useState<"Filter" | "Manual">("Filter");
+  const [productSearch, setProductSearch] = useState("");
+  const debouncedSearchTerm = useDebounce(productSearch, 300);
+
+  const { data: productsData } = useGetProducts(
+    1,
+    1000,
+    "Published",
+    debouncedSearchTerm
+  );
+  const allProducts = useMemo(() => productsData?.items || [], [productsData]);
+
   const [formData, setFormData] = useState<CreateInventoryAuditDto>({
     name: "",
     description: "",
@@ -63,12 +101,15 @@ export const CreateAuditWizard = ({
     locationId: undefined,
     categoryIds: [],
     tagIds: [],
+    productVariantIds: [],
     randomSampleCount: 0,
     excludeAuditedInLastDays: 0,
   });
 
   const handleClose = () => {
     setStep(1);
+    setPartialType("Filter");
+    setProductSearch("");
     setFormData({
       name: "",
       description: "",
@@ -77,6 +118,7 @@ export const CreateAuditWizard = ({
       locationId: undefined,
       categoryIds: [],
       tagIds: [],
+      productVariantIds: [],
       randomSampleCount: 0,
       excludeAuditedInLastDays: 0,
     });
@@ -84,7 +126,26 @@ export const CreateAuditWizard = ({
   };
 
   const handleSubmit = async () => {
-    await onSubmit(formData);
+    let submissionData = { ...formData };
+    if (formData.scopeType === "Partial") {
+      if (partialType === "Manual") {
+        submissionData = {
+            ...submissionData,
+            scopeType: "Manual",
+            // Clear other filters if manual is selected
+            categoryIds: [],
+            tagIds: [],
+            randomSampleCount: 0,
+        };
+      } else {
+        submissionData = {
+            ...submissionData,
+            productVariantIds: [],
+        }
+      }
+    }
+
+    await onSubmit(submissionData);
     handleClose();
   };
 
@@ -106,9 +167,21 @@ export const CreateAuditWizard = ({
     }));
   };
 
+  const toggleProduct = (variantId: string) => {
+    setFormData((prev) => ({
+        ...prev,
+        productVariantIds: prev.productVariantIds?.includes(variantId)
+            ? prev.productVariantIds.filter((id) => id !== variantId)
+            : [...(prev.productVariantIds || []), variantId],
+    }));
+  }
+
   const canProceed = () => {
     if (step === 1) {
       return formData.name.trim().length > 0;
+    }
+    if (step === 3 && formData.scopeType === 'Partial' && partialType === 'Manual') {
+        return formData.productVariantIds && formData.productVariantIds.length > 0;
     }
     return true;
   };
@@ -124,7 +197,10 @@ export const CreateAuditWizard = ({
           <DialogDescription>
             {step === 1 && "Configura los detalles básicos de la auditoría"}
             {step === 2 && "Selecciona el alcance de la auditoría"}
-            {step === 3 && "Configura filtros adicionales (opcional)"}
+            {step === 3 &&
+              (formData.scopeType === "Partial"
+                ? "Define el alcance de tu auditoría parcial"
+                : "Revisa la configuración")}
           </DialogDescription>
         </DialogHeader>
 
@@ -248,8 +324,7 @@ export const CreateAuditWizard = ({
                         </Label>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Incluye todos los SKUs activos del inventario. Ideal para
-                        cierres de mes o auditorías anuales.
+                        Incluye todos los SKUs activos del inventario.
                       </p>
                     </div>
                   </div>
@@ -271,12 +346,11 @@ export const CreateAuditWizard = ({
                       <div className="flex items-center gap-2">
                         <Filter className="h-5 w-5 text-primary" />
                         <Label htmlFor="partial" className="text-base font-medium cursor-pointer">
-                          Auditoría Parcial / Cíclica
+                          Auditoría Parcial / Manual
                         </Label>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Selecciona productos por categoría, proveedor/marca, o usa
-                        selección aleatoria inteligente.
+                        Filtra por criterios o selecciona manualmente los productos a auditar.
                       </p>
                     </div>
                   </div>
@@ -286,7 +360,7 @@ export const CreateAuditWizard = ({
           </div>
         )}
 
-        {/* Step 3: Filters (for Partial) */}
+        {/* Step 3: Filters / Manual Selection */}
         {step === 3 && (
           <div className="space-y-6">
             {formData.scopeType === "Total" ? (
@@ -301,125 +375,169 @@ export const CreateAuditWizard = ({
               </div>
             ) : (
               <>
-                {/* Category Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <FolderTree className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Por Categoría</Label>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {categories?.map((cat) => (
-                      <Badge
-                        key={cat.id}
-                        variant={
-                          formData.categoryIds?.includes(cat.id)
-                            ? "default"
-                            : "outline"
-                        }
-                        className="cursor-pointer hover:bg-primary/90"
-                        onClick={() => toggleCategory(cat.id)}
-                      >
-                        {cat.name}
-                        {formData.categoryIds?.includes(cat.id) && (
-                          <X className="h-3 w-3 ml-1" />
-                        )}
-                      </Badge>
-                    ))}
-                    {(!categories || categories.length === 0) && (
-                      <span className="text-sm text-muted-foreground">
-                        No hay categorías disponibles
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <RadioGroup
+                  value={partialType}
+                  onValueChange={(value: "Filter" | "Manual") => setPartialType(value)}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <Label
+                    htmlFor="filter-mode"
+                    className={`flex items-center justify-center gap-2 p-3 rounded-md border cursor-pointer transition-colors ${
+                      partialType === "Filter"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "hover:bg-muted/50"
+                    }`}
+                  >
+                    <RadioGroupItem value="Filter" id="filter-mode" className="sr-only" />
+                    <Filter className="h-4 w-4" />
+                    Automática (Filtros)
+                  </Label>
+                  <Label
+                    htmlFor="manual-mode"
+                    className={`flex items-center justify-center gap-2 p-3 rounded-md border cursor-pointer transition-colors ${
+                      partialType === "Manual"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "hover:bg-muted/50"
+                    }`}
+                  >
+                    <RadioGroupItem value="Manual" id="manual-mode" className="sr-only" />
+                    <ListPlus className="h-4 w-4" />
+                    Manual
+                  </Label>
+                </RadioGroup>
 
-                {/* Tag Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Tag className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Por Tag / Proveedor</Label>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {tags?.map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant={
-                          formData.tagIds?.includes(tag.id) ? "default" : "outline"
-                        }
-                        className="cursor-pointer hover:bg-primary/90"
-                        onClick={() => toggleTag(tag.id)}
-                      >
-                        {tag.name}
-                        {formData.tagIds?.includes(tag.id) && (
-                          <X className="h-3 w-3 ml-1" />
-                        )}
-                      </Badge>
-                    ))}
-                    {(!tags || tags.length === 0) && (
-                      <span className="text-sm text-muted-foreground">
-                        No hay tags disponibles
-                      </span>
-                    )}
-                  </div>
-                </div>
+                {partialType === "Filter" ? (
+                    <div className="space-y-6 pt-4 border-t">
+                        {/* Category Filter */}
+                        <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                            <FolderTree className="h-4 w-4 text-muted-foreground" />
+                            <Label className="text-sm font-medium">Por Categoría</Label>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {categories?.map((cat) => (
+                            <Badge
+                                key={cat.id}
+                                variant={
+                                formData.categoryIds?.includes(cat.id)
+                                    ? "default"
+                                    : "outline"
+                                }
+                                className="cursor-pointer"
+                                onClick={() => toggleCategory(cat.id)}
+                            >
+                                {cat.name}
+                                {formData.categoryIds?.includes(cat.id) && (
+                                <X className="h-3 w-3 ml-1" />
+                                )}
+                            </Badge>
+                            ))}
+                        </div>
+                        </div>
 
-                {/* Random Sample */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Shuffle className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Selección Aleatoria</Label>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      className="w-24"
-                      value={formData.randomSampleCount || ""}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          randomSampleCount: parseInt(e.target.value) || 0,
-                        })
-                      }
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      productos (0 = todos los que coincidan)
-                    </span>
-                  </div>
-                </div>
+                        {/* Tag Filter */}
+                        <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                            <Tag className="h-4 w-4 text-muted-foreground" />
+                            <Label className="text-sm font-medium">Por Tag / Proveedor</Label>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {tags?.map((tag) => (
+                            <Badge
+                                key={tag.id}
+                                variant={
+                                formData.tagIds?.includes(tag.id) ? "default" : "outline"
+                                }
+                                className="cursor-pointer"
+                                onClick={() => toggleTag(tag.id)}
+                            >
+                                {tag.name}
+                                {formData.tagIds?.includes(tag.id) && (
+                                <X className="h-3 w-3 ml-1" />
+                                )}
+                            </Badge>
+                            ))}
+                        </div>
+                        </div>
 
-                {/* Exclude Recently Audited */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Excluir Auditados Recientemente</Label>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      className="w-24"
-                      value={formData.excludeAuditedInLastDays || ""}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          excludeAuditedInLastDays: parseInt(e.target.value) || 0,
-                        })
-                      }
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      días (0 = incluir todos)
-                    </span>
-                  </div>
-                </div>
+                        {/* Random Sample */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                              <Shuffle className="h-4 w-4 text-muted-foreground" />
+                              <Label className="text-sm font-medium">Muestra Aleatoria</Label>
+                          </div>
+                          <div className="flex items-center gap-3">
+                              <Input
+                              type="number" min="0" placeholder="0" className="w-24"
+                              value={formData.randomSampleCount || ""}
+                              onChange={(e) => setFormData({ ...formData, randomSampleCount: parseInt(e.target.value) || 0 })}
+                              />
+                              <span className="text-sm text-muted-foreground">
+                              productos (0 = todos los que coincidan)
+                              </span>
+                          </div>
+                        </div>
+
+                        {/* Exclude Recently Audited */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <Label className="text-sm font-medium">Excluir Auditados Recientemente</Label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Input
+                                type="number" min="0" placeholder="0" className="w-24"
+                                value={formData.excludeAuditedInLastDays || ""}
+                                onChange={(e) => setFormData({ ...formData, excludeAuditedInLastDays: parseInt(e.target.value) || 0 })}
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                días (0 = incluir todos)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4 pt-4 border-t">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Buscar producto por nombre o SKU..."
+                                value={productSearch}
+                                onChange={(e) => setProductSearch(e.target.value)}
+                                className="pl-10"
+                            />
+                        </div>
+
+                        <p className="text-sm text-muted-foreground">
+                            Seleccionados: {formData.productVariantIds?.length || 0}
+                        </p>
+                        
+                        <ScrollArea className="h-64 border rounded-md">
+                            <div className="p-4 space-y-2">
+                            {allProducts.length > 0 ? (
+                                allProducts.map((p) => (
+                                    <ProductSelectItem
+                                        key={p.id}
+                                        item={p}
+                                        isSelected={formData.productVariantIds?.includes(p.id) || false}
+                                        onToggle={() => toggleProduct(p.id)}
+                                    />
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">
+                                    {debouncedSearchTerm ? 'No se encontraron productos.' : 'Escribe para buscar...'}
+                                </p>
+                            )}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                )}
               </>
             )}
           </div>
         )}
 
-        <DialogFooter className="flex gap-2 sm:gap-0">
+        <DialogFooter className="flex gap-2 sm:gap-0 pt-4">
           {step > 1 && (
             <Button
               variant="outline"
