@@ -33,6 +33,8 @@ apiClient.interceptors.request.use(
   }
 );
 
+import { useAuthStore } from '../store/authStore';
+
 // Interceptor para manejar errores de respuesta
 apiClient.interceptors.response.use(
   (response) => response,
@@ -47,8 +49,7 @@ apiClient.interceptors.response.use(
 
       if (!isLoginEndpoint) {
         // Token inválido o expirado en endpoint protegido
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        useAuthStore.getState().logout();
 
         // Redirigir según el contexto
         const isPortalRoute = window.location.pathname.includes('/portal/');
