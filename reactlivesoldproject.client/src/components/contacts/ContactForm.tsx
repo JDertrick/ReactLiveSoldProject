@@ -1,10 +1,14 @@
-import { useForm } from 'react-hook-form';
-import { Contact, CreateContactDto, UpdateContactDto } from '../../types/contact.types';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Switch } from '../ui/switch';
+import { useForm } from "react-hook-form";
+import {
+  Contact,
+  CreateContactDto,
+  UpdateContactDto,
+} from "../../types/contact.types";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { Switch } from "../ui/switch";
 
 interface ContactFormProps {
   contact?: Contact;
@@ -13,7 +17,12 @@ interface ContactFormProps {
   isLoading?: boolean;
 }
 
-export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactFormProps) {
+export function ContactForm({
+  contact,
+  onSubmit,
+  onCancel,
+  isLoading,
+}: ContactFormProps) {
   const {
     register,
     handleSubmit,
@@ -22,22 +31,22 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
     setValue,
   } = useForm<CreateContactDto | UpdateContactDto>({
     defaultValues: contact || {
-      email: '',
-      firstName: '',
-      lastName: '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      postalCode: '',
-      country: '',
-      company: '',
-      jobTitle: '',
+      email: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      address: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "",
+      company: "",
+      jobTitle: "",
       isActive: true,
     },
   });
 
-  const isActive = watch('isActive');
+  const isActive = watch("isActive");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -50,7 +59,7 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
             <Label htmlFor="firstName">Nombre</Label>
             <Input
               id="firstName"
-              {...register('firstName')}
+              {...register("firstName")}
               placeholder="Nombre"
             />
           </div>
@@ -59,7 +68,7 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
             <Label htmlFor="lastName">Apellido</Label>
             <Input
               id="lastName"
-              {...register('lastName')}
+              {...register("lastName")}
               placeholder="Apellido"
             />
           </div>
@@ -71,8 +80,8 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
             <Input
               id="email"
               type="email"
-              {...register('email', {
-                required: !contact ? 'El email es obligatorio' : false
+              {...register("email", {
+                required: !contact ? "El email es obligatorio" : false,
               })}
               placeholder="email@ejemplo.com"
             />
@@ -86,7 +95,7 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
             <Input
               id="phone"
               type="tel"
-              {...register('phone')}
+              {...register("phone")}
               placeholder="+1234567890"
             />
           </div>
@@ -102,7 +111,7 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
             <Label htmlFor="company">Empresa</Label>
             <Input
               id="company"
-              {...register('company')}
+              {...register("company")}
               placeholder="Nombre de la empresa"
             />
           </div>
@@ -111,7 +120,7 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
             <Label htmlFor="jobTitle">Puesto</Label>
             <Input
               id="jobTitle"
-              {...register('jobTitle')}
+              {...register("jobTitle")}
               placeholder="Gerente, Director, etc."
             />
           </div>
@@ -126,7 +135,7 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
           <Label htmlFor="address">Dirección</Label>
           <Textarea
             id="address"
-            {...register('address')}
+            {...register("address")}
             placeholder="Calle, número, departamento..."
             rows={2}
           />
@@ -135,18 +144,14 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="city">Ciudad</Label>
-            <Input
-              id="city"
-              {...register('city')}
-              placeholder="Ciudad"
-            />
+            <Input id="city" {...register("city")} placeholder="Ciudad" />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="state">Estado/Provincia</Label>
             <Input
               id="state"
-              {...register('state')}
+              {...register("state")}
               placeholder="Estado o provincia"
             />
           </div>
@@ -157,18 +162,14 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
             <Label htmlFor="postalCode">Código Postal</Label>
             <Input
               id="postalCode"
-              {...register('postalCode')}
+              {...register("postalCode")}
               placeholder="12345"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="country">País</Label>
-            <Input
-              id="country"
-              {...register('country')}
-              placeholder="País"
-            />
+            <Input id="country" {...register("country")} placeholder="País" />
           </div>
         </div>
       </div>
@@ -178,18 +179,23 @@ export function ContactForm({ contact, onSubmit, onCancel, isLoading }: ContactF
         <Switch
           id="isActive"
           checked={isActive}
-          onCheckedChange={(checked) => setValue('isActive', checked)}
+          onCheckedChange={(checked) => setValue("isActive", checked)}
         />
         <Label htmlFor="isActive">Contacto activo</Label>
       </div>
 
       {/* Botones de acción */}
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isLoading}
+        >
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Guardando...' : contact ? 'Actualizar' : 'Crear'}
+          {isLoading ? "Guardando..." : contact ? "Actualizar" : "Crear"}
         </Button>
       </div>
     </form>

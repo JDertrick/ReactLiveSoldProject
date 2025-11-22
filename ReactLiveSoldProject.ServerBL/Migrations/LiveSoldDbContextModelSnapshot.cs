@@ -267,7 +267,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.CustomerWallet.Customer", b =>
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -275,9 +275,25 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid?>("AssignedSellerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("assigned_seller_id");
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("address");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("company");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("country");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -302,10 +318,80 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<string>("JobTitle")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("job_title");
+
                     b.Property<string>("LastName")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("last_name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("postal_code");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("state");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Email")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "Phone")
+                        .IsUnique()
+                        .HasFilter("\"phone\" IS NOT NULL");
+
+                    b.ToTable("Contacts", (string)null);
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.CustomerWallet.Customer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("AssignedSellerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_seller_id");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -321,11 +407,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
-                    b.Property<string>("Phone")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("phone");
-
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -336,12 +417,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("AssignedSellerId");
 
-                    b.HasIndex("OrganizationId", "Email")
+                    b.HasIndex("ContactId")
                         .IsUnique();
 
-                    b.HasIndex("OrganizationId", "Phone")
-                        .IsUnique()
-                        .HasFilter("\"phone\" IS NOT NULL");
+                    b.HasIndex("OrganizationId");
 
                     b.ToTable("Customers", (string)null);
                 });
@@ -1503,6 +1582,79 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.ToTable("tax_rates", (string)null);
                 });
 
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Vendors.Vendor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("AssignedBuyerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_buyer_id");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<decimal>("CreditLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("credit_limit");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("PaymentTerms")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("payment_terms");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("VendorCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("vendor_code");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedBuyerId");
+
+                    b.HasIndex("ContactId")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "VendorCode")
+                        .IsUnique()
+                        .HasFilter("\"vendor_code\" IS NOT NULL");
+
+                    b.ToTable("Vendors", (string)null);
+                });
+
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Audit.AuditLog", b =>
                 {
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
@@ -1539,12 +1691,29 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.CustomerWallet.Customer", b =>
                 {
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "AssignedSeller")
                         .WithMany("AssignedCustomers")
                         .HasForeignKey("AssignedSellerId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", "Contact")
+                        .WithMany()
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
                         .WithMany("Customers")
@@ -1553,6 +1722,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .IsRequired();
 
                     b.Navigation("AssignedSeller");
+
+                    b.Navigation("Contact");
 
                     b.Navigation("Organization");
                 });
@@ -1981,6 +2152,32 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Vendors.Vendor", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "AssignedBuyer")
+                        .WithMany()
+                        .HasForeignKey("AssignedBuyerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", "Contact")
+                        .WithMany()
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedBuyer");
+
+                    b.Navigation("Contact");
 
                     b.Navigation("Organization");
                 });

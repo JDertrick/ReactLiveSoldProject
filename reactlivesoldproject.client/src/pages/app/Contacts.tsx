@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useContacts } from "../../hooks/useContacts";
-import { Contact, CreateContactDto, UpdateContactDto } from "../../types/contact.types";
+import {
+  Contact,
+  CreateContactDto,
+  UpdateContactDto,
+} from "../../types/contact.types";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -49,16 +53,17 @@ import {
 } from "@/components/ui/dialog";
 import { ContactForm } from "@/components/contacts/ContactForm";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const columnHelper = createColumnHelper<Contact>();
 
 const ContactsPage = () => {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState<Contact | undefined>(undefined);
+  const [editingContact, setEditingContact] = useState<Contact | undefined>(
+    undefined
+  );
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -79,17 +84,10 @@ const ContactsPage = () => {
   const handleCreateContact = async (data: CreateContactDto) => {
     const result = await createContact(data);
     if (result) {
-      toast({
-        title: "Contacto creado",
-        description: "El contacto ha sido creado exitosamente",
-      });
+      toast.success("El contacto ha sido creado exitosamente");
       setIsDialogOpen(false);
     } else {
-      toast({
-        title: "Error",
-        description: error || "No se pudo crear el contacto",
-        variant: "destructive",
-      });
+      toast.error("No se pudo crear el contacto");
     }
   };
 
@@ -98,18 +96,11 @@ const ContactsPage = () => {
 
     const result = await updateContact(editingContact.id, data);
     if (result) {
-      toast({
-        title: "Contacto actualizado",
-        description: "El contacto ha sido actualizado exitosamente",
-      });
+      toast.success("El contacto ha sido actualizado exitosamente");
       setIsDialogOpen(false);
       setEditingContact(undefined);
     } else {
-      toast({
-        title: "Error",
-        description: error || "No se pudo actualizar el contacto",
-        variant: "destructive",
-      });
+      toast.error("No se pudo actualizar el contacto");
     }
   };
 
@@ -118,16 +109,9 @@ const ContactsPage = () => {
 
     const result = await deleteContact(id);
     if (result) {
-      toast({
-        title: "Contacto eliminado",
-        description: "El contacto ha sido eliminado exitosamente",
-      });
+      toast.success("El contacto ha sido eliminado exitosamente");
     } else {
-      toast({
-        title: "Error",
-        description: error || "No se pudo eliminar el contacto",
-        variant: "destructive",
-      });
+      toast.error(error || "No se pudo eliminar el contacto");
     }
   };
 
@@ -151,7 +135,9 @@ const ContactsPage = () => {
       header: "Nombre",
       cell: (info) => {
         const contact = info.row.original;
-        const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Sin nombre';
+        const fullName =
+          `${contact.firstName || ""} ${contact.lastName || ""}`.trim() ||
+          "Sin nombre";
         return <div className="font-medium">{fullName}</div>;
       },
     }),
@@ -161,7 +147,7 @@ const ContactsPage = () => {
     }),
     columnHelper.accessor("phone", {
       header: "Teléfono",
-      cell: (info) => <div className="text-sm">{info.getValue() || '-'}</div>,
+      cell: (info) => <div className="text-sm">{info.getValue() || "-"}</div>,
     }),
     columnHelper.accessor("company", {
       header: "Empresa",
@@ -179,7 +165,7 @@ const ContactsPage = () => {
     }),
     columnHelper.accessor("jobTitle", {
       header: "Puesto",
-      cell: (info) => <div className="text-sm">{info.getValue() || '-'}</div>,
+      cell: (info) => <div className="text-sm">{info.getValue() || "-"}</div>,
     }),
     columnHelper.accessor("isActive", {
       header: "Estado",
@@ -243,7 +229,9 @@ const ContactsPage = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Contactos</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Contactos
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -333,7 +321,10 @@ const ContactsPage = () => {
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -360,7 +351,9 @@ const ContactsPage = () => {
           </DialogHeader>
           <ContactForm
             contact={editingContact}
-            onSubmit={editingContact ? handleUpdateContact : handleCreateContact}
+            onSubmit={
+              editingContact ? handleUpdateContact : handleCreateContact
+            }
             onCancel={closeDialog}
             isLoading={loading}
           />

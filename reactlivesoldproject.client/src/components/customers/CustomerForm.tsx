@@ -9,7 +9,10 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { CreateCustomerDto, Customer, UpdateCustomerDto } from "@/types";
-import { Contact as ContactType, CreateContactDto } from "@/types/contact.types";
+import {
+  Contact as ContactType,
+  CreateContactDto,
+} from "@/types/contact.types";
 import { UserCircle, UserPlus } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -17,7 +20,7 @@ import { Button } from "../ui/button";
 import { ContactCombobox } from "../common/ContactCombobox";
 import { ContactForm } from "../contacts/ContactForm";
 import { Separator } from "../ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface CustomerFormProps {
   isModalOpen: boolean;
@@ -32,12 +35,18 @@ const CustomerForm = ({
   editingCustomer,
   onSuccess,
 }: CustomerFormProps) => {
-  const { toast } = useToast();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
-  const { contacts, fetchContacts, createContact, loading: contactsLoading } = useContacts();
+  const {
+    contacts,
+    fetchContacts,
+    createContact,
+    loading: contactsLoading,
+  } = useContacts();
 
-  const [selectedContact, setSelectedContact] = useState<ContactType | null>(null);
+  const [selectedContact, setSelectedContact] = useState<ContactType | null>(
+    null
+  );
   const [showContactForm, setShowContactForm] = useState(false);
   const [password, setPassword] = useState("");
   const [notes, setNotes] = useState("");
@@ -71,10 +80,9 @@ const CustomerForm = ({
     if (newContact) {
       setSelectedContact(newContact);
       setShowContactForm(false);
-      toast({
-        title: "Contacto creado",
-        description: "El contacto ha sido creado y seleccionado automáticamente",
-      });
+      toast.success(
+        "El contacto ha sido creado y seleccionado automáticamente"
+      );
     }
   };
 
@@ -82,20 +90,12 @@ const CustomerForm = ({
     e.preventDefault();
 
     if (!selectedContact) {
-      toast({
-        title: "Error",
-        description: "Debe seleccionar un contacto",
-        variant: "destructive",
-      });
+      toast.error("Debe seleccionar un contacto");
       return;
     }
 
     if (!editingCustomer && !password) {
-      toast({
-        title: "Error",
-        description: "La contraseña es obligatoria",
-        variant: "destructive",
-      });
+      toast.error("La contraseña es obligatoria");
       return;
     }
 
@@ -123,10 +123,7 @@ const CustomerForm = ({
           data: updateData,
         });
 
-        toast({
-          title: "Cliente actualizado",
-          description: "El cliente ha sido actualizado exitosamente",
-        });
+        toast.success("El cliente ha sido actualizado exitosamente");
       } else {
         // Crear nuevo cliente
         const createData: CreateCustomerDto = {
@@ -147,20 +144,16 @@ const CustomerForm = ({
 
         await createCustomer.mutateAsync(createData);
 
-        toast({
-          title: "Cliente creado",
-          description: "El cliente ha sido creado exitosamente",
-        });
+        toast.success("El cliente ha sido creado exitosamente");
       }
 
       handleCloseModal();
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Ocurrió un error al guardar el cliente",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message ||
+          "Ocurrió un error al guardar el cliente"
+      );
     }
   };
 
@@ -184,7 +177,8 @@ const CustomerForm = ({
                 Crear Nuevo Contacto
               </DialogTitle>
               <DialogDescription>
-                Completa la información del contacto. Una vez creado, se seleccionará automáticamente para el cliente.
+                Completa la información del contacto. Una vez creado, se
+                seleccionará automáticamente para el cliente.
               </DialogDescription>
             </DialogHeader>
             <ContactForm
@@ -223,12 +217,18 @@ const CustomerForm = ({
                     <div className="font-medium">
                       {selectedContact.firstName} {selectedContact.lastName}
                     </div>
-                    <div className="text-muted-foreground">{selectedContact.email}</div>
+                    <div className="text-muted-foreground">
+                      {selectedContact.email}
+                    </div>
                     {selectedContact.phone && (
-                      <div className="text-muted-foreground">{selectedContact.phone}</div>
+                      <div className="text-muted-foreground">
+                        {selectedContact.phone}
+                      </div>
                     )}
                     {selectedContact.company && (
-                      <div className="text-muted-foreground">{selectedContact.company}</div>
+                      <div className="text-muted-foreground">
+                        {selectedContact.company}
+                      </div>
                     )}
                   </div>
                 )}
@@ -238,7 +238,9 @@ const CustomerForm = ({
 
               {/* Información del cliente */}
               <div className="space-y-4">
-                <h3 className="text-sm font-medium">Credenciales del Cliente</h3>
+                <h3 className="text-sm font-medium">
+                  Credenciales del Cliente
+                </h3>
 
                 <div className="space-y-2">
                   <Label htmlFor="password">
@@ -249,7 +251,11 @@ const CustomerForm = ({
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder={editingCustomer ? "Dejar en blanco para mantener" : "Contraseña"}
+                    placeholder={
+                      editingCustomer
+                        ? "Dejar en blanco para mantener"
+                        : "Contraseña"
+                    }
                     required={!editingCustomer}
                   />
                   {editingCustomer && (
@@ -295,7 +301,11 @@ const CustomerForm = ({
               </Button>
               <Button
                 type="submit"
-                disabled={createCustomer.isPending || updateCustomer.isPending || !selectedContact}
+                disabled={
+                  createCustomer.isPending ||
+                  updateCustomer.isPending ||
+                  !selectedContact
+                }
               >
                 {createCustomer.isPending || updateCustomer.isPending
                   ? "Guardando..."

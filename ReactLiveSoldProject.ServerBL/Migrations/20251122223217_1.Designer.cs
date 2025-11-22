@@ -12,8 +12,8 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    [Migration("20251116232327_7")]
-    partial class _7
+    [Migration("20251122223217_1")]
+    partial class _1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -97,6 +97,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValue("True")
                         .HasColumnName("custom_settings");
 
+                    b.Property<Guid?>("DefaultTaxRateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("default_tax_rate_id");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -132,6 +136,31 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("slug");
+
+                    b.Property<string>("TaxApplicationMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("TaxIncluded")
+                        .HasColumnName("tax_application_mode");
+
+                    b.Property<string>("TaxDisplayName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("tax_display_name");
+
+                    b.Property<bool>("TaxEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("tax_enabled");
+
+                    b.Property<string>("TaxSystemType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("None")
+                        .HasColumnName("tax_system_type");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -241,7 +270,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.CustomerWallet.Customer", b =>
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -249,9 +278,25 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid?>("AssignedSellerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("assigned_seller_id");
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("address");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("company");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("country");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -276,10 +321,80 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<string>("JobTitle")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("job_title");
+
                     b.Property<string>("LastName")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("last_name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("postal_code");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("state");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Email")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "Phone")
+                        .IsUnique()
+                        .HasFilter("\"phone\" IS NOT NULL");
+
+                    b.ToTable("Contacts", (string)null);
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.CustomerWallet.Customer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("AssignedSellerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_seller_id");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -295,11 +410,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
-                    b.Property<string>("Phone")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("phone");
-
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -310,12 +420,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("AssignedSellerId");
 
-                    b.HasIndex("OrganizationId", "Email")
+                    b.HasIndex("ContactId")
                         .IsUnique();
 
-                    b.HasIndex("OrganizationId", "Phone")
-                        .IsUnique()
-                        .HasFilter("\"phone\" IS NOT NULL");
+                    b.HasIndex("OrganizationId");
 
                     b.ToTable("Customers", (string)null);
                 });
@@ -627,6 +735,205 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.InventoryAudit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<Guid?>("CompletedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("completed_by_user_id");
+
+                    b.Property<int>("CountedVariants")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("counted_variants");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid?>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("ScopeDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ScopeType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("SnapshotTakenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("snapshot_taken_at");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("status");
+
+                    b.Property<int>("TotalVariance")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_variance");
+
+                    b.Property<decimal>("TotalVarianceValue")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("total_variance_value");
+
+                    b.Property<int>("TotalVariants")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_variants");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompletedByUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("InventoryAudits", (string)null);
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.InventoryAuditItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("AdjustmentMovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("adjustment_movement_id");
+
+                    b.Property<DateTime?>("CountedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("counted_at");
+
+                    b.Property<Guid?>("CountedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("counted_by_user_id");
+
+                    b.Property<int?>("CountedStock")
+                        .HasColumnType("integer")
+                        .HasColumnName("counted_stock");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<Guid>("InventoryAuditId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("inventory_audit_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("ProductVariantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_variant_id");
+
+                    b.Property<decimal>("SnapshotAverageCost")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("snapshot_average_cost");
+
+                    b.Property<int>("TheoreticalStock")
+                        .HasColumnType("integer")
+                        .HasColumnName("theoretical_stock");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<int?>("Variance")
+                        .HasColumnType("integer")
+                        .HasColumnName("variance");
+
+                    b.Property<decimal?>("VarianceValue")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("variance_value");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdjustmentMovementId");
+
+                    b.HasIndex("CountedByUserId");
+
+                    b.HasIndex("InventoryAuditId");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("InventoryAuditId", "ProductVariantId")
+                        .IsUnique();
+
+                    b.ToTable("InventoryAuditItems", (string)null);
+                });
+
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", b =>
                 {
                     b.Property<Guid>("Id")
@@ -709,6 +1016,12 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_published");
 
+                    b.Property<bool>("IsTaxExempt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_tax_exempt");
+
                     b.Property<Guid?>("LocationId")
                         .HasColumnType("uuid");
 
@@ -734,6 +1047,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<decimal?>("WholesalePrice")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("wholesale_price");
 
                     b.HasKey("Id");
 
@@ -795,6 +1112,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("image_url");
 
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
@@ -831,6 +1151,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("(now() at time zone 'utc')");
 
+                    b.Property<decimal?>("WholesalePrice")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("wholesale_price");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
@@ -860,6 +1184,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by_user_id");
 
+                    b.Property<Guid?>("DestinationLocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("destination_location_id");
+
                     b.Property<bool>("IsPosted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -871,10 +1199,6 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_rejected");
-
-                    b.Property<Guid?>("LocationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("location_id");
 
                     b.Property<string>("MovementType")
                         .IsRequired()
@@ -923,6 +1247,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("related_sales_order_id");
 
+                    b.Property<Guid?>("SourceLocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_location_id");
+
                     b.Property<int>("StockAfter")
                         .HasColumnType("integer")
                         .HasColumnName("stock_after");
@@ -941,7 +1269,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("LocationId");
+                    b.HasIndex("DestinationLocationId");
 
                     b.HasIndex("OrganizationId");
 
@@ -952,6 +1280,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.HasIndex("RejectedByUserId");
 
                     b.HasIndex("RelatedSalesOrderId");
+
+                    b.HasIndex("SourceLocationId");
 
                     b.ToTable("StockMovements", (string)null);
                 });
@@ -980,6 +1310,54 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .IsUnique();
 
                     b.ToTable("Tags", (string)null);
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Notifications.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_read");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Sales.SalesOrder", b =>
@@ -1020,11 +1398,23 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValue("Draft")
                         .HasColumnName("status");
 
+                    b.Property<decimal>("SubtotalAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("subtotal_amount");
+
                     b.Property<decimal>("TotalAmount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(10, 2)")
                         .HasDefaultValue(0.00m)
                         .HasColumnName("total_amount");
+
+                    b.Property<decimal>("TotalTaxAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("total_tax_amount");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -1078,6 +1468,34 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("sales_order_id");
 
+                    b.Property<decimal>("Subtotal")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal>("TaxAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("tax_amount");
+
+                    b.Property<decimal>("TaxRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5, 4)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("tax_rate");
+
+                    b.Property<Guid?>("TaxRateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tax_rate_id");
+
+                    b.Property<decimal>("Total")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("total");
+
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("numeric")
                         .HasColumnName("unit_cost");
@@ -1094,7 +1512,150 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("SalesOrderId");
 
+                    b.HasIndex("TaxRateId");
+
                     b.ToTable("SalesOrderItems", (string)null);
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Taxes.TaxRate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<DateTime?>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("effective_from");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("effective_to");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_default");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(5, 4)")
+                        .HasColumnName("rate");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("OrganizationId", "IsDefault");
+
+                    b.ToTable("tax_rates", (string)null);
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Vendors.Vendor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("AssignedBuyerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_buyer_id");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<decimal>("CreditLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("credit_limit");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("PaymentTerms")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("payment_terms");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("VendorCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("vendor_code");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedBuyerId");
+
+                    b.HasIndex("ContactId")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "VendorCode")
+                        .IsUnique()
+                        .HasFilter("\"vendor_code\" IS NOT NULL");
+
+                    b.ToTable("Vendors", (string)null);
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Audit.AuditLog", b =>
@@ -1133,12 +1694,29 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.CustomerWallet.Customer", b =>
                 {
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "AssignedSeller")
                         .WithMany("AssignedCustomers")
                         .HasForeignKey("AssignedSellerId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", "Contact")
+                        .WithMany()
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
                         .WithMany("Customers")
@@ -1147,6 +1725,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .IsRequired();
 
                     b.Navigation("AssignedSeller");
+
+                    b.Navigation("Contact");
 
                     b.Navigation("Organization");
                 });
@@ -1288,6 +1868,71 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.InventoryAudit", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "CompletedByUser")
+                        .WithMany()
+                        .HasForeignKey("CompletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId");
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompletedByUser");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Location");
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.InventoryAuditItem", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.StockMovement", "AdjustmentMovement")
+                        .WithMany()
+                        .HasForeignKey("AdjustmentMovementId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "CountedByUser")
+                        .WithMany()
+                        .HasForeignKey("CountedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.InventoryAudit", "InventoryAudit")
+                        .WithMany("Items")
+                        .HasForeignKey("InventoryAuditId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AdjustmentMovement");
+
+                    b.Navigation("CountedByUser");
+
+                    b.Navigation("InventoryAudit");
+
+                    b.Navigation("ProductVariant");
+                });
+
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", b =>
                 {
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
@@ -1367,9 +2012,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", "Location")
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", "DestinationLocation")
                         .WithMany()
-                        .HasForeignKey("LocationId")
+                        .HasForeignKey("DestinationLocationId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
@@ -1399,9 +2044,14 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasForeignKey("RelatedSalesOrderId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", "SourceLocation")
+                        .WithMany()
+                        .HasForeignKey("SourceLocationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("CreatedByUser");
 
-                    b.Navigation("Location");
+                    b.Navigation("DestinationLocation");
 
                     b.Navigation("Organization");
 
@@ -1412,6 +2062,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("RejectedByUser");
 
                     b.Navigation("RelatedSalesOrder");
+
+                    b.Navigation("SourceLocation");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.Tag", b =>
@@ -1423,6 +2075,17 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .IsRequired();
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Notifications.Notification", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "User")
+                        .WithMany("Notificacions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Sales.SalesOrder", b =>
@@ -1471,11 +2134,55 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Taxes.TaxRate", "TaxRateEntity")
+                        .WithMany()
+                        .HasForeignKey("TaxRateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Organization");
 
                     b.Navigation("ProductVariant");
 
                     b.Navigation("SalesOrder");
+
+                    b.Navigation("TaxRateEntity");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Taxes.TaxRate", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
+                        .WithMany("TaxRates")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Vendors.Vendor", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "AssignedBuyer")
+                        .WithMany()
+                        .HasForeignKey("AssignedBuyerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", "Contact")
+                        .WithMany()
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedBuyer");
+
+                    b.Navigation("Contact");
+
+                    b.Navigation("Organization");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", b =>
@@ -1491,6 +2198,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("SalesOrders");
 
                     b.Navigation("Tags");
+
+                    b.Navigation("TaxRates");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Authentication.User", b =>
@@ -1502,6 +2211,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("AuthorizedTransactions");
 
                     b.Navigation("CreatedSalesOrders");
+
+                    b.Navigation("Notificacions");
 
                     b.Navigation("OrganizationLinks");
                 });
@@ -1533,6 +2244,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("Children");
 
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.InventoryAudit", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Inventory.Location", b =>
