@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { useCreateCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
+import { useContacts } from "@/hooks/useContacts";
 import {
   Dialog,
   DialogContent,
@@ -7,185 +9,303 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { CreateCustomerDto, Customer, UpdateCustomerDto } from "@/types";
-import { Contact } from "lucide-react";
+import { Contact as ContactType, CreateContactDto } from "@/types/contact.types";
+import { UserCircle, UserPlus } from "lucide-react";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
+import { ContactCombobox } from "../common/ContactCombobox";
+import { ContactForm } from "../contacts/ContactForm";
+import { Separator } from "../ui/separator";
+import { useToast } from "@/hooks/use-toast";
 
 interface CustomerFormProps {
   isModalOpen: boolean;
   handleCloseModal: () => void;
-  handleSubmit: (e: React.FormEvent) => void;
-  handleChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void;
-  formData: CreateCustomerDto | UpdateCustomerDto;
   editingCustomer: Customer | null;
+  onSuccess?: () => void;
 }
 
 const CustomerForm = ({
   isModalOpen,
   handleCloseModal,
-  handleSubmit,
-  handleChange,
-  formData,
   editingCustomer,
+  onSuccess,
 }: CustomerFormProps) => {
+  const { toast } = useToast();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
+  const { contacts, fetchContacts, createContact, loading: contactsLoading } = useContacts();
+
+  const [selectedContact, setSelectedContact] = useState<ContactType | null>(null);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [password, setPassword] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isActive, setIsActive] = useState(true);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      fetchContacts();
+    }
+  }, [isModalOpen, fetchContacts]);
+
+  useEffect(() => {
+    if (editingCustomer) {
+      // Si estamos editando, cargar el contacto asociado
+      if (editingCustomer.contact) {
+        setSelectedContact(editingCustomer.contact);
+      }
+      setNotes(editingCustomer.notes || "");
+      setIsActive(editingCustomer.isActive);
+    } else {
+      // Limpiar al crear nuevo
+      setSelectedContact(null);
+      setPassword("");
+      setNotes("");
+      setIsActive(true);
+    }
+  }, [editingCustomer]);
+
+  const handleCreateContact = async (contactData: CreateContactDto) => {
+    const newContact = await createContact(contactData);
+    if (newContact) {
+      setSelectedContact(newContact);
+      setShowContactForm(false);
+      toast({
+        title: "Contacto creado",
+        description: "El contacto ha sido creado y seleccionado automáticamente",
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedContact) {
+      toast({
+        title: "Error",
+        description: "Debe seleccionar un contacto",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!editingCustomer && !password) {
+      toast({
+        title: "Error",
+        description: "La contraseña es obligatoria",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (editingCustomer) {
+        // Actualizar cliente existente
+        const updateData: UpdateCustomerDto = {
+          email: selectedContact.email,
+          firstName: selectedContact.firstName,
+          lastName: selectedContact.lastName,
+          phone: selectedContact.phone,
+          address: selectedContact.address,
+          city: selectedContact.city,
+          state: selectedContact.state,
+          postalCode: selectedContact.postalCode,
+          country: selectedContact.country,
+          company: selectedContact.company,
+          notes,
+          isActive,
+          password: password || undefined,
+        };
+
+        await updateCustomer.mutateAsync({
+          id: editingCustomer.id,
+          data: updateData,
+        });
+
+        toast({
+          title: "Cliente actualizado",
+          description: "El cliente ha sido actualizado exitosamente",
+        });
+      } else {
+        // Crear nuevo cliente
+        const createData: CreateCustomerDto = {
+          email: selectedContact.email,
+          firstName: selectedContact.firstName,
+          lastName: selectedContact.lastName,
+          phone: selectedContact.phone,
+          address: selectedContact.address,
+          city: selectedContact.city,
+          state: selectedContact.state,
+          postalCode: selectedContact.postalCode,
+          country: selectedContact.country,
+          company: selectedContact.company,
+          password,
+          notes,
+          isActive,
+        };
+
+        await createCustomer.mutateAsync(createData);
+
+        toast({
+          title: "Cliente creado",
+          description: "El cliente ha sido creado exitosamente",
+        });
+      }
+
+      handleCloseModal();
+      if (onSuccess) onSuccess();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Ocurrió un error al guardar el cliente",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    handleCloseModal();
+    setShowContactForm(false);
+    setSelectedContact(null);
+    setPassword("");
+    setNotes("");
+    setIsActive(true);
+  };
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleCloseModal}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-0">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader className="p-6 pb-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-indigo-100 p-3 rounded-lg">
-                <Contact className="w-6 h-6 text-indigo-600" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl font-bold">
-                  Agregar producto
-                </DialogTitle>
-                <DialogDescription className="text-sm text-gray-500"></DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
-            <DialogTitle className="text-lg leading-6 font-medium text-gray-900">
-              {editingCustomer ? "Editar Cliente" : "Crear Cliente"}
-            </DialogTitle>
-            <div className="mt-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    htmlFor="firstName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Nombre
-                  </label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    id="firstName"
-                    required
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-                  />
-                </div>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        {showContactForm ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5" />
+                Crear Nuevo Contacto
+              </DialogTitle>
+              <DialogDescription>
+                Completa la información del contacto. Una vez creado, se seleccionará automáticamente para el cliente.
+              </DialogDescription>
+            </DialogHeader>
+            <ContactForm
+              onSubmit={handleCreateContact}
+              onCancel={() => setShowContactForm(false)}
+              isLoading={contactsLoading}
+            />
+          </>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <UserCircle className="h-5 w-5" />
+                {editingCustomer ? "Editar Cliente" : "Crear Cliente"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingCustomer
+                  ? "Modifica la información del cliente"
+                  : "Selecciona o crea un contacto y proporciona las credenciales"}
+              </DialogDescription>
+            </DialogHeader>
 
-                <div>
-                  <label
-                    htmlFor="lastName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Apellido
-                  </label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    id="lastName"
-                    required
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Correo Electrónico
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+            <div className="space-y-6 py-4">
+              {/* Selección de contacto */}
+              <div className="space-y-2">
+                <Label>Contacto *</Label>
+                <ContactCombobox
+                  contacts={contacts}
+                  selectedContact={selectedContact}
+                  onSelectContact={setSelectedContact}
+                  onCreateNew={() => setShowContactForm(true)}
+                  disabled={!!editingCustomer} // No permitir cambiar contacto al editar
                 />
+                {selectedContact && (
+                  <div className="mt-2 p-3 bg-muted rounded-md text-sm">
+                    <div className="font-medium">
+                      {selectedContact.firstName} {selectedContact.lastName}
+                    </div>
+                    <div className="text-muted-foreground">{selectedContact.email}</div>
+                    {selectedContact.phone && (
+                      <div className="text-muted-foreground">{selectedContact.phone}</div>
+                    )}
+                    {selectedContact.company && (
+                      <div className="text-muted-foreground">{selectedContact.company}</div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label
-                  htmlFor="phoneNumber"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Número de Teléfono
-                </label>
-                <Input
-                  type="tel"
-                  name="phone"
-                  id="phone"
-                  required
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-                />
-              </div>
+              <Separator />
 
-              {!editingCustomer && (
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Contraseña
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
+              {/* Información del cliente */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium">Credenciales del Cliente</h3>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">
+                    Contraseña {!editingCustomer && "*"}
+                  </Label>
+                  <Input
                     id="password"
-                    required
-                    value={(formData as CreateCustomerDto).password || ""}
-                    onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={editingCustomer ? "Dejar en blanco para mantener" : "Contraseña"}
+                    required={!editingCustomer}
+                  />
+                  {editingCustomer && (
+                    <p className="text-xs text-muted-foreground">
+                      Deja en blanco para mantener la contraseña actual
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notas</Label>
+                  <textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Notas adicionales sobre el cliente..."
+                    className="w-full min-h-[80px] px-3 py-2 rounded-md border border-input bg-background"
                   />
                 </div>
-              )}
 
-              <div className="flex items-center">
-                <input
-                  id="isActive"
-                  name="isActive"
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="isActive"
-                  className="ml-2 block text-sm text-gray-900"
-                >
-                  Activo
-                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    id="isActive"
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="isActive">Cliente activo</Label>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-            <button
-              type="submit"
-              disabled={createCustomer.isPending || updateCustomer.isPending}
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-            >
-              {createCustomer.isPending || updateCustomer.isPending
-                ? "Guardando..."
-                : "Guardar"}
-            </button>
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
+            {/* Botones de acción */}
+            <div className="flex justify-end gap-4 pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={createCustomer.isPending || updateCustomer.isPending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={createCustomer.isPending || updateCustomer.isPending || !selectedContact}
+              >
+                {createCustomer.isPending || updateCustomer.isPending
+                  ? "Guardando..."
+                  : editingCustomer
+                  ? "Actualizar"
+                  : "Crear Cliente"}
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

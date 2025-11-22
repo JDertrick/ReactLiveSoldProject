@@ -16,6 +16,7 @@ import OrganizationsPage from "../pages/superadmin/Organizations";
 
 // App Pages (Seller/Owner)
 import AppDashboard from "../pages/app/Dashboard";
+import ContactsPage from "../pages/app/Contacts";
 import CustomersPage from "../pages/app/Customers";
 import ProductsPage from "../pages/app/Products";
 import LiveSalesPage from "../pages/app/LiveSales";
@@ -106,6 +107,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <AppDashboard />,
+      },
+      {
+        path: "contacts",
+        element: <ContactsPage />,
       },
       {
         path: "customers",

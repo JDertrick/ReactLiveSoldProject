@@ -5,11 +5,7 @@ import {
   useUpdateCustomer,
   useGetCustomerStats,
 } from "../../hooks/useCustomers";
-import {
-  CreateCustomerDto,
-  UpdateCustomerDto,
-  Customer,
-} from "../../types/customer.types";
+import { Customer } from "../../types/customer.types";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -102,84 +98,23 @@ const CustomersPage = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const debouncedStatusFilter = useDebounce(statusFilter, 500);
 
-  const { data: customers, isLoading } = useGetCustomers(
+  const { data: customers } = useGetCustomers(
     debouncedSearchTerm,
     debouncedStatusFilter
   );
   const { data: stats } = useGetCustomerStats();
-  const createCustomer = useCreateCustomer();
-  const updateCustomer = useUpdateCustomer();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  const [formData, setFormData] = useState<
-    CreateCustomerDto | UpdateCustomerDto
-  >({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    password: "",
-    isActive: true,
-  });
-
   const handleOpenModal = (customer?: Customer) => {
-    if (customer) {
-      setEditingCustomer(customer);
-      setFormData({
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        email: customer.email,
-        phone: customer.phone,
-        isActive: customer.isActive,
-      });
-    } else {
-      setEditingCustomer(null);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        password: "",
-        isActive: true,
-      });
-    }
+    setEditingCustomer(customer || null);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCustomer(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      if (editingCustomer) {
-        await updateCustomer.mutateAsync({
-          id: editingCustomer.id,
-          data: formData as UpdateCustomerDto,
-        });
-      } else {
-        await createCustomer.mutateAsync(formData as CreateCustomerDto);
-      }
-      handleCloseModal();
-    } catch (error) {
-      console.error("Error saving customer:", error);
-    }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    setFormData({
-      ...formData,
-      [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    });
   };
 
   const columns = [
@@ -409,9 +344,6 @@ const CustomersPage = () => {
       <CustomerForm
         isModalOpen={isModalOpen}
         handleCloseModal={handleCloseModal}
-        handleSubmit={handleSubmit}
-        handleChange={handleChange}
-        formData={formData}
         editingCustomer={editingCustomer}
       />
     </div>
