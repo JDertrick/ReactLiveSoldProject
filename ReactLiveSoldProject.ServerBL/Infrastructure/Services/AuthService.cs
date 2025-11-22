@@ -96,9 +96,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (organization == null)
                 throw new UnauthorizedAccessException("Organización no encontrada");
 
-            // Buscar cliente por email
+            // Buscar cliente por email (ahora el email está en Contact)
             var customer = await _dbContext.Customers
-                .FirstOrDefaultAsync(c => c.Email == request.Email);
+                .Include(c => c.Contact)
+                .FirstOrDefaultAsync(c => c.Contact.Email == request.Email);
 
             if (customer == null)
                 throw new UnauthorizedAccessException("Email o contraseña incorrectos");
@@ -114,7 +115,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             // Generar token de customer
             var token = _jwtHelper.GenerateCustomerToken(
                 customer.Id,
-                customer.Email,
+                customer.Contact.Email,
                 customer.OrganizationId
             );
 
@@ -124,9 +125,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 User = new UserProfileDto
                 {
                     Id = customer.Id,
-                    Email = customer.Email,
-                    FirstName = customer.FirstName,
-                    LastName = customer.LastName,
+                    Email = customer.Contact.Email,
+                    FirstName = customer.Contact.FirstName,
+                    LastName = customer.Contact.LastName,
                     Role = "Customer",
                     OrganizationId = customer.OrganizationId,
                     OrganizationSlug = organization.Slug,
@@ -177,6 +178,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         public async Task<CustomerProfileDto> GetCustomerProfileAsync(Guid customerId)
         {
             var customer = await _dbContext.Customers
+                .Include(c => c.Contact)
                 .FirstOrDefaultAsync(c => c.Id == customerId);
 
             if (customer == null)
@@ -185,10 +187,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return new CustomerProfileDto
             {
                 Id = customer.Id,
-                Email = customer.Email,
-                FirstName = customer.FirstName,
-                LastName = customer.LastName,
-                Phone = customer.Phone,
+                Email = customer.Contact.Email,
+                FirstName = customer.Contact.FirstName,
+                LastName = customer.Contact.LastName,
+                Phone = customer.Contact.Phone,
                 OrganizationId = customer.OrganizationId
             };
         }

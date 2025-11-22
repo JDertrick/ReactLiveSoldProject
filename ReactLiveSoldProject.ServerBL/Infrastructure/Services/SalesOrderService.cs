@@ -24,6 +24,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var query = _dbContext.SalesOrders
                 .Include(so => so.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(so => so.CreatedByUser)
                 .Include(so => so.Items)
                     .ThenInclude(oi => oi.ProductVariant)
@@ -47,6 +48,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var order = await _dbContext.SalesOrders
                 .Include(so => so.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(so => so.CreatedByUser)
                 .Include(so => so.Items)
                     .ThenInclude(oi => oi.ProductVariant)
@@ -60,6 +62,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var orders = await _dbContext.SalesOrders
                 .Include(so => so.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(so => so.CreatedByUser)
                 .Include(so => so.Items)
                     .ThenInclude(oi => oi.ProductVariant)
@@ -179,6 +182,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             // Recargar la orden con sus relaciones
             var createdOrder = await _dbContext.SalesOrders
                 .Include(so => so.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(so => so.CreatedByUser)
                 .Include(so => so.Items)
                     .ThenInclude(oi => oi.ProductVariant)
@@ -267,6 +271,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 await _dbContext.Entry(item.ProductVariant).Reference(pv => pv.Product).LoadAsync();
             }
             await _dbContext.Entry(order).Reference(o => o.Customer).LoadAsync();
+            await _dbContext.Entry(order.Customer).Reference(c => c.Contact).LoadAsync();
             await _dbContext.Entry(order).Reference(o => o.CreatedByUser).LoadAsync();
 
             return MapToDto(order);
@@ -345,6 +350,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 await _dbContext.Entry(orderItem.ProductVariant).Reference(pv => pv.Product).LoadAsync();
             }
             await _dbContext.Entry(order).Reference(o => o.Customer).LoadAsync();
+            await _dbContext.Entry(order.Customer).Reference(c => c.Contact).LoadAsync();
             await _dbContext.Entry(order).Reference(o => o.CreatedByUser).LoadAsync();
 
             return MapToDto(order);
@@ -392,6 +398,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 await _dbContext.Entry(orderItem.ProductVariant).Reference(pv => pv.Product).LoadAsync();
             }
             await _dbContext.Entry(order).Reference(o => o.Customer).LoadAsync();
+            await _dbContext.Entry(order.Customer).Reference(c => c.Contact).LoadAsync();
             await _dbContext.Entry(order).Reference(o => o.CreatedByUser).LoadAsync();
 
             return MapToDto(order);
@@ -400,6 +407,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         public async Task<SalesOrderDto> FinalizeOrderAsync(Guid salesOrderId, Guid organizationId)
         {
             var order = await _dbContext.SalesOrders
+                .Include(so => so.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(so => so.Customer)
                     .ThenInclude(c => c.Wallet)
                 .Include(so => so.CreatedByUser)
@@ -478,6 +487,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var order = await _dbContext.SalesOrders
                 .Include(so => so.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(so => so.CreatedByUser)
                 .Include(so => so.Items)
                     .ThenInclude(oi => oi.ProductVariant)
@@ -504,8 +514,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 Id = order.Id,
                 CustomerId = order.CustomerId,
-                CustomerName = $"{order.Customer.FirstName} {order.Customer.LastName}".Trim(),
-                CustomerEmail = order.Customer.Email,
+                CustomerName = $"{order.Customer.Contact.FirstName} {order.Customer.Contact.LastName}".Trim(),
+                CustomerEmail = order.Customer.Contact.Email,
                 CreatedByUserId = order.CreatedByUserId,
                 CreatedByUserName = order.CreatedByUser != null
                     ? $"{order.CreatedByUser.FirstName} {order.CreatedByUser.LastName}".Trim()

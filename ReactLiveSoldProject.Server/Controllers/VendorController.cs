@@ -9,24 +9,24 @@ namespace ReactLiveSoldProject.Server.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Policy = "Employee")]
-    public class CustomerController : ControllerBase
+    public class VendorController : ControllerBase
     {
-        private readonly ICustomerService _customerService;
-        private readonly ILogger<CustomerController> _logger;
+        private readonly IVendorService _vendorService;
+        private readonly ILogger<VendorController> _logger;
 
-        public CustomerController(
-            ICustomerService customerService,
-            ILogger<CustomerController> logger)
+        public VendorController(
+            IVendorService vendorService,
+            ILogger<VendorController> logger)
         {
-            _customerService = customerService;
+            _vendorService = vendorService;
             _logger = logger;
         }
 
         /// <summary>
-        /// Obtiene todos los clientes de la organización del usuario autenticado
+        /// Obtiene todos los proveedores de la organización del usuario autenticado
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<List<CustomerDto>>> GetCustomers([FromQuery] string? searchTerm, [FromQuery] string? status)
+        public async Task<ActionResult<List<VendorDto>>> GetVendors([FromQuery] string? searchTerm, [FromQuery] string? status)
         {
             try
             {
@@ -34,71 +34,41 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var customers = await _customerService.GetCustomersByOrganizationAsync(organizationId.Value);
+                var vendors = await _vendorService.GetVendorsByOrganizationAsync(organizationId.Value);
 
                 // Server-side filtering
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     var lowerSearchTerm = searchTerm.ToLower();
-                    customers = customers.Where(c =>
-                        (c.FirstName != null && c.FirstName.ToLower().Contains(lowerSearchTerm)) ||
-                        (c.LastName != null && c.LastName.ToLower().Contains(lowerSearchTerm)) ||
-                        (c.Email != null && c.Email.ToLower().Contains(lowerSearchTerm)) ||
-                        (c.Phone != null && c.Phone.ToLower().Contains(lowerSearchTerm))
+                    vendors = vendors.Where(v =>
+                        (v.VendorCode != null && v.VendorCode.ToLower().Contains(lowerSearchTerm)) ||
+                        (v.Contact?.FirstName != null && v.Contact.FirstName.ToLower().Contains(lowerSearchTerm)) ||
+                        (v.Contact?.LastName != null && v.Contact.LastName.ToLower().Contains(lowerSearchTerm)) ||
+                        (v.Contact?.Email != null && v.Contact.Email.ToLower().Contains(lowerSearchTerm)) ||
+                        (v.Contact?.Company != null && v.Contact.Company.ToLower().Contains(lowerSearchTerm))
                     ).ToList();
                 }
 
                 if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")
                 {
                     var isActive = status.ToLower() == "active";
-                    customers = customers.Where(c => c.IsActive == isActive).ToList();
+                    vendors = vendors.Where(v => v.IsActive == isActive).ToList();
                 }
 
-
-                return Ok(customers);
+                return Ok(vendors);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting customers");
-                return StatusCode(500, new { message = "Error interno del servidor" });
-            }
-        }
-
-        [HttpGet("stats")]
-        public async Task<ActionResult<CustomerStatsDto>> GetCustomerStats()
-        {
-            try
-            {
-                var organizationId = GetOrganizationId();
-                if (organizationId == null)
-                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
-                
-                var customers = await _customerService.GetCustomersByOrganizationAsync(organizationId.Value);
-
-                var now = DateTime.UtcNow;
-                var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
-
-                var stats = new CustomerStatsDto
-                {
-                    TotalCustomers = customers.Count,
-                    NewCustomersThisMonth = customers.Count(c => c.CreatedAt >= firstDayOfMonth),
-                    TotalWalletSum = customers.Sum(c => c.Wallet?.Balance ?? 0)
-                };
-
-                return Ok(stats);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting customer stats");
+                _logger.LogError(ex, "Error getting vendors");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         /// <summary>
-        /// Obtiene un cliente por ID
+        /// Obtiene un proveedor por ID
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<CustomerDto>> GetCustomer(Guid id)
+        public async Task<ActionResult<VendorDto>> GetVendor(Guid id)
         {
             try
             {
@@ -106,25 +76,25 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var customer = await _customerService.GetCustomerByIdAsync(id, organizationId.Value);
+                var vendor = await _vendorService.GetVendorByIdAsync(id, organizationId.Value);
 
-                if (customer == null)
-                    return NotFound(new { message = "Cliente no encontrado" });
+                if (vendor == null)
+                    return NotFound(new { message = "Proveedor no encontrado" });
 
-                return Ok(customer);
+                return Ok(vendor);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting customer {Id}", id);
+                _logger.LogError(ex, "Error getting vendor {Id}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         /// <summary>
-        /// Busca clientes por email, nombre o teléfono
+        /// Busca proveedores por código o información del contacto
         /// </summary>
         [HttpGet("search")]
-        public async Task<ActionResult<List<CustomerDto>>> SearchCustomers([FromQuery] string q)
+        public async Task<ActionResult<List<VendorDto>>> SearchVendors([FromQuery] string q)
         {
             try
             {
@@ -135,21 +105,21 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var customers = await _customerService.SearchCustomersAsync(organizationId.Value, q);
-                return Ok(customers);
+                var vendors = await _vendorService.SearchVendorsAsync(organizationId.Value, q);
+                return Ok(vendors);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error searching customers with term: {SearchTerm}", q);
+                _logger.LogError(ex, "Error searching vendors with term: {SearchTerm}", q);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         /// <summary>
-        /// Crea un nuevo cliente
+        /// Crea un nuevo proveedor
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<CustomerDto>> CreateCustomer([FromBody] CreateCustomerDto dto)
+        public async Task<ActionResult<VendorDto>> CreateVendor([FromBody] CreateVendorDto dto)
         {
             try
             {
@@ -157,30 +127,30 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var customer = await _customerService.CreateCustomerAsync(organizationId.Value, dto);
+                var vendor = await _vendorService.CreateVendorAsync(organizationId.Value, dto);
 
                 return CreatedAtAction(
-                    nameof(GetCustomer),
-                    new { id = customer.Id },
-                    customer);
+                    nameof(GetVendor),
+                    new { id = vendor.Id },
+                    vendor);
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning("Invalid operation creating customer: {Message}", ex.Message);
+                _logger.LogWarning("Invalid operation creating vendor: {Message}", ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating customer");
+                _logger.LogError(ex, "Error creating vendor");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         /// <summary>
-        /// Actualiza un cliente existente
+        /// Actualiza un proveedor existente
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult<CustomerDto>> UpdateCustomer(Guid id, [FromBody] UpdateCustomerDto dto)
+        public async Task<ActionResult<VendorDto>> UpdateVendor(Guid id, [FromBody] UpdateVendorDto dto)
         {
             try
             {
@@ -188,32 +158,32 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var customer = await _customerService.UpdateCustomerAsync(id, organizationId.Value, dto);
-                return Ok(customer);
+                var vendor = await _vendorService.UpdateVendorAsync(id, organizationId.Value, dto);
+                return Ok(vendor);
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning("Customer not found: {Id}", id);
+                _logger.LogWarning("Vendor not found: {Id}", id);
                 return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning("Invalid operation updating customer {Id}: {Message}", id, ex.Message);
+                _logger.LogWarning("Invalid operation updating vendor {Id}: {Message}", id, ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating customer {Id}", id);
+                _logger.LogError(ex, "Error updating vendor {Id}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         /// <summary>
-        /// Elimina un cliente (solo si no tiene órdenes)
+        /// Elimina un proveedor (solo si no tiene órdenes de compra)
         /// </summary>
         [HttpDelete("{id}")]
         [Authorize(Policy = "OrgOwner")]
-        public async Task<ActionResult> DeleteCustomer(Guid id)
+        public async Task<ActionResult> DeleteVendor(Guid id)
         {
             try
             {
@@ -221,22 +191,22 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                await _customerService.DeleteCustomerAsync(id, organizationId.Value);
+                await _vendorService.DeleteVendorAsync(id, organizationId.Value);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning("Customer not found: {Id}", id);
+                _logger.LogWarning("Vendor not found: {Id}", id);
                 return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning("Cannot delete customer {Id}: {Message}", id, ex.Message);
+                _logger.LogWarning("Cannot delete vendor {Id}: {Message}", id, ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting customer {Id}", id);
+                _logger.LogError(ex, "Error deleting vendor {Id}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }

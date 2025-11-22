@@ -23,6 +23,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var wallet = await _dbContext.Wallets
                 .Include(w => w.Customer)
+                    .ThenInclude(c => c.Contact)
                 .FirstOrDefaultAsync(w => w.CustomerId == customerId && w.OrganizationId == organizationId);
 
             if (wallet == null)
@@ -32,8 +33,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 Id = wallet.Id,
                 CustomerId = wallet.CustomerId,
-                CustomerName = $"{wallet.Customer.FirstName} {wallet.Customer.LastName}".Trim(),
-                CustomerEmail = wallet.Customer.Email,
+                CustomerName = $"{wallet.Customer.Contact.FirstName} {wallet.Customer.Contact.LastName}".Trim(),
+                CustomerEmail = wallet.Customer.Contact.Email,
                 Balance = wallet.Balance,
                 UpdatedAt = wallet.UpdatedAt
             };
@@ -78,6 +79,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
                 // Obtener el customer y su wallet
                 var customer = await _dbContext.Customers
+                    .Include(c => c.Contact)
                     .Include(c => c.Wallet)
                     .FirstOrDefaultAsync(c => c.Id == dto.CustomerId && c.OrganizationId == organizationId);
 
@@ -129,6 +131,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             // Obtener el customer y su wallet
             var customer = await _dbContext.Customers
+                .Include(c => c.Contact)
                 .Include(c => c.Wallet)
                 .FirstOrDefaultAsync(c => c.Id == dto.CustomerId && c.OrganizationId == organizationId);
 
@@ -180,6 +183,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             // 1. Validations
             var customer = await _dbContext.Customers
+                .Include(c => c.Contact)
                 .FirstOrDefaultAsync(c => c.Id == dto.CustomerId && c.OrganizationId == organizationId);
 
             if (customer == null)
@@ -222,7 +226,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Id = receipt.Id,
                 OrganizationId = receipt.OrganizationId,
                 CustomerId = receipt.CustomerId,
-                CustomerName = $"{customer.FirstName} {customer.LastName}".Trim(),
+                CustomerName = $"{customer.Contact.FirstName} {customer.Contact.LastName}".Trim(),
                 WalletTransactionId = receipt.WalletTransactionId,
                 Type = receipt.Type,
                 TotalAmount = receipt.TotalAmount,
@@ -246,6 +250,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var receipts = await _dbContext.Receipts
                 .Include(r => r.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(r => r.CreatedByUser)
                 .Include(r => r.PostedByUser)
                 .Include(r => r.RejectedByUser)
@@ -259,7 +264,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Id = receipt.Id,
                 OrganizationId = receipt.OrganizationId,
                 CustomerId = receipt.CustomerId,
-                CustomerName = $"{receipt.Customer.FirstName} {receipt.Customer.LastName}".Trim(),
+                CustomerName = $"{receipt.Customer.Contact.FirstName} {receipt.Customer.Contact.LastName}".Trim(),
                 WalletTransactionId = receipt.WalletTransactionId,
                 Type = receipt.Type,
                 TotalAmount = receipt.TotalAmount,
@@ -292,7 +297,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 var receipt = await _dbContext.Receipts
                     .Include(r => r.Customer)
-                    .ThenInclude(c => c.Wallet)
+                        .ThenInclude(c => c.Contact)
+                    .Include(r => r.Customer)
+                        .ThenInclude(c => c.Wallet)
                     .Include(r => r.CreatedByUser)
                     .Include(r => r.Items)
                     .FirstOrDefaultAsync(r => r.Id == receiptId && r.OrganizationId == organizationId);
@@ -362,7 +369,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     Id = receipt.Id,
                     OrganizationId = receipt.OrganizationId,
                     CustomerId = receipt.CustomerId,
-                    CustomerName = $"{receipt.Customer.FirstName} {receipt.Customer.LastName}".Trim(),
+                    CustomerName = $"{receipt.Customer.Contact.FirstName} {receipt.Customer.Contact.LastName}".Trim(),
                     WalletTransactionId = receipt.WalletTransactionId,
                     Type = receipt.Type,
                     TotalAmount = receipt.TotalAmount,
@@ -394,6 +401,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var receipt = await _dbContext.Receipts
                 .Include(r => r.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(r => r.CreatedByUser)
                 .Include(r => r.Items)
                 .FirstOrDefaultAsync(r => r.Id == receiptId && r.OrganizationId == organizationId);
@@ -421,7 +429,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Id = receipt.Id,
                 OrganizationId = receipt.OrganizationId,
                 CustomerId = receipt.CustomerId,
-                CustomerName = $"{receipt.Customer.FirstName} {receipt.Customer.LastName}".Trim(),
+                CustomerName = $"{receipt.Customer.Contact.FirstName} {receipt.Customer.Contact.LastName}".Trim(),
                 WalletTransactionId = receipt.WalletTransactionId,
                 Type = receipt.Type,
                 TotalAmount = receipt.TotalAmount,
@@ -450,6 +458,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             var query = _dbContext.Receipts
                 .Include(r => r.Customer)
+                    .ThenInclude(c => c.Contact)
                 .Include(r => r.CreatedByUser)
                 .Include(r => r.PostedByUser)
                 .Include(r => r.RejectedByUser)
@@ -498,7 +507,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Id = receipt.Id,
                 OrganizationId = receipt.OrganizationId,
                 CustomerId = receipt.CustomerId,
-                CustomerName = $"{receipt.Customer.FirstName} {receipt.Customer.LastName}".Trim(),
+                CustomerName = $"{receipt.Customer.Contact.FirstName} {receipt.Customer.Contact.LastName}".Trim(),
                 WalletTransactionId = receipt.WalletTransactionId,
                 Type = receipt.Type,
                 TotalAmount = receipt.TotalAmount,

@@ -49,7 +49,7 @@ interface CreateAuditWizardProps {
   isLoading?: boolean;
 }
 
-const ProductSelectItem = ({ item, isSelected, onToggle }) => (
+const ProductSelectItem = ({ item, isSelected, onToggle } : any) => (
     <div
       key={item.id}
       className={`flex items-center gap-3 p-2 rounded-md transition-colors ${

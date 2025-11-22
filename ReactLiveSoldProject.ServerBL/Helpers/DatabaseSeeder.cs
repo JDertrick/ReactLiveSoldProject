@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
+using ReactLiveSoldProject.ServerBL.Models.Contacts;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 
 namespace ReactLiveSoldProject.ServerBL.Helpers
@@ -92,18 +93,33 @@ namespace ReactLiveSoldProject.ServerBL.Helpers
             _dbContext.OrganizationMembers.Add(orgMember);
 
             // 5. Crear Customer de prueba para el portal
-            var customerId = Guid.NewGuid();
-            var testCustomer = new Customer
+            // Crear Contact para el Customer de prueba
+            var contactId = Guid.NewGuid();
+            var testContact = new Contact
             {
-                Id = customerId,
+                Id = contactId,
                 OrganizationId = organizationId,
                 FirstName = "María",
                 LastName = "García",
                 Email = "maria@cliente.com",
                 Phone = "+34612345678",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.Contacts.Add(testContact);
+
+            var customerId = Guid.NewGuid();
+            var testCustomer = new Customer
+            {
+                Id = customerId,
+                OrganizationId = organizationId,
+                ContactId = contactId,
                 PasswordHash = PasswordHelper.HashPassword("Customer123!"),
                 AssignedSellerId = ownerId,
                 Notes = "Cliente de prueba para el portal",
+                IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

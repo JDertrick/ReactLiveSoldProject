@@ -98,7 +98,9 @@ builder.Services.AddCors(options =>
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();

@@ -2,12 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ReactLiveSoldProject.ServerBL.DTOs
 {
-    public class UpdateCustomerDto
+    public class CreateContactDto
     {
-        // Información del Contact
+        [Required]
         [EmailAddress]
         [MaxLength(255)]
-        public string? Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [MaxLength(100)]
         public string? FirstName { get; set; }
@@ -37,16 +37,9 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         [MaxLength(100)]
         public string? Company { get; set; }
 
-        // Información del Customer
-        [MinLength(6)]
         [MaxLength(100)]
-        public string? Password { get; set; }
+        public string? JobTitle { get; set; }
 
-        public Guid? AssignedSellerId { get; set; }
-
-        [MaxLength(1000)]
-        public string? Notes { get; set; }
-
-        public bool? IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

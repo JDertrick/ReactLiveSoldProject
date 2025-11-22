@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
+using ReactLiveSoldProject.ServerBL.Models.Contacts;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using ReactLiveSoldProject.ServerBL.Models.Notifications;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
 using ReactLiveSoldProject.ServerBL.Models.Taxes;
+using ReactLiveSoldProject.ServerBL.Models.Vendors;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -96,6 +98,21 @@ namespace ReactLiveSoldProject.ServerBL.Base
             CreateMap<CreateCategoryDto, Category>();
             CreateMap<Category, CreateCategoryDto>();
 
+            // Contacts
+            CreateMap<Contact, ContactDto>();
+            CreateMap<ContactDto, Contact>();
+            CreateMap<CreateContactDto, Contact>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Organization, opt => opt.Ignore());
+            CreateMap<UpdateContactDto, Contact>()
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Organization, opt => opt.Ignore());
+
             // Customers
             CreateMap<CustomerDto, Customer>();
             CreateMap<Customer, CustomerDto>();
@@ -103,6 +120,25 @@ namespace ReactLiveSoldProject.ServerBL.Base
             CreateMap<UpdateCustomerDto, Customer>();
             CreateMap<Customer, CreateCustomerDto>();
             CreateMap<Customer, UpdateCustomerDto>();
+
+            // Vendors
+            CreateMap<Vendor, VendorDto>();
+            CreateMap<VendorDto, Vendor>();
+            CreateMap<CreateVendorDto, Vendor>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Organization, opt => opt.Ignore())
+                .ForMember(dest => dest.Contact, opt => opt.Ignore())
+                .ForMember(dest => dest.AssignedBuyer, opt => opt.Ignore());
+            CreateMap<UpdateVendorDto, Vendor>()
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Organization, opt => opt.Ignore())
+                .ForMember(dest => dest.Contact, opt => opt.Ignore())
+                .ForMember(dest => dest.AssignedBuyer, opt => opt.Ignore());
 
             // Wallet
             CreateMap<Wallet, WalletDto>();

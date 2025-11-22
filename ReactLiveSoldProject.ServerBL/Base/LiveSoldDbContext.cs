@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Models.Audit;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
+using ReactLiveSoldProject.ServerBL.Models.Contacts;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
 using ReactLiveSoldProject.ServerBL.Models.Notifications;
 using ReactLiveSoldProject.ServerBL.Models.Taxes;
+using ReactLiveSoldProject.ServerBL.Models.Vendors;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -20,8 +22,10 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<User> Users { get; set; }
         public DbSet<OrganizationMember> OrganizationMembers { get; set; }
 
-        // BLOQUE 2: CLIENTES Y BILLETERA
+        // BLOQUE 2: CONTACTOS, CLIENTES, PROVEEDORES Y BILLETERA
+        public DbSet<Contact> Contacts { get; set; }
         public DbSet<Customer> Customers { get; set; }
+        public DbSet<Vendor> Vendors { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
         public DbSet<Receipt> Receipts { get; set; }
@@ -131,11 +135,11 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .OnDelete(DeleteBehavior.Cascade); // Como en el SQL
             });
 
-            // --- BLOQUE 2: CLIENTES Y BILLETERA ---
+            // --- BLOQUE 2: CONTACTOS, CLIENTES, PROVEEDORES Y BILLETERA ---
 
-            modelBuilder.Entity<Customer>(e =>
+            modelBuilder.Entity<Contact>(e =>
             {
-                e.ToTable("Customers");
+                e.ToTable("Contacts");
                 e.HasKey(c => c.Id);
                 e.Property(c => c.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 e.Property(c => c.OrganizationId).HasColumnName("organization_id").IsRequired();
@@ -143,9 +147,13 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(c => c.LastName).HasColumnName("last_name");
                 e.Property(c => c.Email).HasColumnName("email").IsRequired();
                 e.Property(c => c.Phone).HasColumnName("phone");
-                e.Property(c => c.PasswordHash).HasColumnName("password_hash").IsRequired();
-                e.Property(c => c.AssignedSellerId).HasColumnName("assigned_seller_id");
-                e.Property(c => c.Notes).HasColumnName("notes");
+                e.Property(c => c.Address).HasColumnName("address");
+                e.Property(c => c.City).HasColumnName("city");
+                e.Property(c => c.State).HasColumnName("state");
+                e.Property(c => c.PostalCode).HasColumnName("postal_code");
+                e.Property(c => c.Country).HasColumnName("country");
+                e.Property(c => c.Company).HasColumnName("company");
+                e.Property(c => c.JobTitle).HasColumnName("job_title");
                 e.Property(c => c.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
                 e.Property(c => c.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
                 e.Property(c => c.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
@@ -154,14 +162,76 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasIndex(c => new { c.OrganizationId, c.Phone }).IsUnique().HasFilter("\"phone\" IS NOT NULL");
 
                 e.HasOne(c => c.Organization)
+                    .WithMany()
+                    .HasForeignKey(c => c.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Customer>(e =>
+            {
+                e.ToTable("Customers");
+                e.HasKey(c => c.Id);
+                e.Property(c => c.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(c => c.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(c => c.ContactId).HasColumnName("contact_id").IsRequired();
+                e.Property(c => c.PasswordHash).HasColumnName("password_hash").IsRequired();
+                e.Property(c => c.AssignedSellerId).HasColumnName("assigned_seller_id");
+                e.Property(c => c.Notes).HasColumnName("notes");
+                e.Property(c => c.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
+                e.Property(c => c.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(c => c.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(c => c.ContactId).IsUnique();
+
+                e.HasOne(c => c.Organization)
                     .WithMany(o => o.Customers)
                     .HasForeignKey(c => c.OrganizationId)
-                    .OnDelete(DeleteBehavior.Restrict); // Como en el SQL
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(c => c.Contact)
+                    .WithMany()
+                    .HasForeignKey(c => c.ContactId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 e.HasOne(c => c.AssignedSeller)
                     .WithMany(u => u.AssignedCustomers)
                     .HasForeignKey(c => c.AssignedSellerId)
-                    .OnDelete(DeleteBehavior.SetNull); // Como en el SQL
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<Vendor>(e =>
+            {
+                e.ToTable("Vendors");
+                e.HasKey(v => v.Id);
+                e.Property(v => v.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(v => v.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(v => v.ContactId).HasColumnName("contact_id").IsRequired();
+                e.Property(v => v.AssignedBuyerId).HasColumnName("assigned_buyer_id");
+                e.Property(v => v.VendorCode).HasColumnName("vendor_code");
+                e.Property(v => v.Notes).HasColumnName("notes");
+                e.Property(v => v.PaymentTerms).HasColumnName("payment_terms");
+                e.Property(v => v.CreditLimit).HasColumnName("credit_limit").HasColumnType("decimal(10, 2)").IsRequired().HasDefaultValue(0.00m);
+                e.Property(v => v.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
+                e.Property(v => v.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(v => v.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(v => v.ContactId).IsUnique();
+                e.HasIndex(v => new { v.OrganizationId, v.VendorCode }).IsUnique().HasFilter("\"vendor_code\" IS NOT NULL");
+
+                e.HasOne(v => v.Organization)
+                    .WithMany()
+                    .HasForeignKey(v => v.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(v => v.Contact)
+                    .WithMany()
+                    .HasForeignKey(v => v.ContactId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(v => v.AssignedBuyer)
+                    .WithMany()
+                    .HasForeignKey(v => v.AssignedBuyerId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Wallet>(e =>
