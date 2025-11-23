@@ -9,6 +9,7 @@ using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic; // Added for List
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
@@ -21,6 +22,60 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             _context = context;
             _mapper = mapper;
+        }
+
+        public async Task<List<ChartOfAccountDto>> GetChartOfAccountsAsync(Guid organizationId)
+        {
+            var accounts = await _context.ChartOfAccounts
+                .Where(ca => ca.OrganizationId == organizationId)
+                .OrderBy(ca => ca.AccountCode)
+                .ToListAsync();
+
+            return _mapper.Map<List<ChartOfAccountDto>>(accounts);
+        }
+
+        public async Task<ChartOfAccountDto> CreateChartOfAccountAsync(Guid organizationId, CreateChartOfAccountDto createDto)
+        {
+            // Validación de unicidad
+            var existingAccount = await _context.ChartOfAccounts
+                .AnyAsync(ca => ca.OrganizationId == organizationId &&
+                               (ca.AccountCode == createDto.AccountCode || ca.AccountName == createDto.AccountName));
+            if (existingAccount)
+            {
+                throw new InvalidOperationException("Ya existe una cuenta con el mismo código o nombre para esta organización.");
+            }
+
+            var account = _mapper.Map<ChartOfAccount>(createDto);
+            account.OrganizationId = organizationId;
+
+            await _context.ChartOfAccounts.AddAsync(account);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<ChartOfAccountDto>(account);
+        }
+
+        public async Task<List<JournalEntryDto>> GetJournalEntriesAsync(Guid organizationId, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            var query = _context.JournalEntries
+                .Include(je => je.JournalEntryLines)
+                    .ThenInclude(jel => jel.Account) // Cargar la cuenta asociada a cada línea
+                .Where(je => je.OrganizationId == organizationId);
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(je => je.EntryDate >= fromDate.Value.Date);
+            }
+            if (toDate.HasValue)
+            {
+                query = query.Where(je => je.EntryDate <= toDate.Value.Date.AddDays(1).AddTicks(-1)); // Incluir todo el día
+            }
+
+            var journalEntries = await query
+                .OrderByDescending(je => je.EntryDate)
+                .ThenByDescending(je => je.CreatedAt)
+                .ToListAsync();
+
+            return _mapper.Map<List<JournalEntryDto>>(journalEntries);
         }
 
         public async Task<JournalEntryDto> CreateJournalEntryAsync(Guid organizationId, CreateJournalEntryDto createDto)
@@ -45,12 +100,37 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 throw new InvalidOperationException("Un asiento contable debe tener al menos dos líneas.");
             }
+            
+            // Validación 4: Verificar que las AccountId existen y pertenecen a la organización
+            var distinctAccountIds = createDto.Lines.Select(l => l.AccountId).Distinct();
+            var existingAccounts = await _context.ChartOfAccounts
+                .Where(ca => ca.OrganizationId == organizationId && distinctAccountIds.Contains(ca.Id))
+                .Select(ca => ca.Id)
+                .ToListAsync();
+
+            if (existingAccounts.Count != distinctAccountIds.Count())
+            {
+                var missingAccountIds = distinctAccountIds.Except(existingAccounts).ToList();
+                throw new KeyNotFoundException($"Una o más cuentas contables no existen o no pertenecen a esta organización: {string.Join(", ", missingAccountIds)}");
+            }
+
 
             var journalEntry = _mapper.Map<JournalEntry>(createDto);
             journalEntry.OrganizationId = organizationId;
 
             await _context.JournalEntries.AddAsync(journalEntry);
             await _context.SaveChangesAsync();
+
+            // Cargar las líneas y cuentas para el DTO de retorno
+            await _context.Entry(journalEntry)
+                .Collection(je => je.JournalEntryLines)
+                .LoadAsync();
+            foreach (var line in journalEntry.JournalEntryLines)
+            {
+                await _context.Entry(line)
+                    .Reference(jel => jel.Account)
+                    .LoadAsync();
+            }
 
             return _mapper.Map<JournalEntryDto>(journalEntry);
         }
@@ -97,7 +177,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             var saleEntryDto = new CreateJournalEntryDto
             {
-                EntryDate = salesOrder.UpdatedAt,
+                EntryDate = salesOrder.UpdatedAt, // Use CreatedAt if UpdatedAt is null
                 Description = $"Venta - Orden No. {salesOrder.Id.ToString().Substring(0, 8)}",
                 ReferenceNumber = salesOrder.Id.ToString(),
                 Lines = new System.Collections.Generic.List<CreateJournalEntryLineDto>
@@ -129,7 +209,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 var cogsEntryDto = new CreateJournalEntryDto
                 {
-                    EntryDate = salesOrder.UpdatedAt,
+                    EntryDate = salesOrder.UpdatedAt, // Use CreatedAt if UpdatedAt is null
                     Description = $"Costo de Venta - Orden No. {salesOrder.Id.ToString().Substring(0, 8)}",
                     ReferenceNumber = salesOrder.Id.ToString(),
                     Lines = new System.Collections.Generic.List<CreateJournalEntryLineDto>
