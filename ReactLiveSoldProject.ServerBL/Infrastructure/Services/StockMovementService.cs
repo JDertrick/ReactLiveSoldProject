@@ -9,10 +9,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class StockMovementService : IStockMovementService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly IAccountingService _accountingService;
 
-        public StockMovementService(LiveSoldDbContext dbContext)
+        public StockMovementService(LiveSoldDbContext dbContext, IAccountingService accountingService)
         {
             _dbContext = dbContext;
+            _accountingService = accountingService;
         }
 
         public async Task<List<StockMovementDto>> GetMovementsByVariantAsync(Guid productVariantId, Guid organizationId)
@@ -284,11 +286,26 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             await _dbContext.SaveChangesAsync();
 
+            // Contabilizar el movimiento si es una compra
+            if (movement.MovementType == StockMovementType.Purchase)
+            {
+                try
+                {
+                    await _accountingService.RegisterPurchaseAsync(organizationId, movement);
+                }
+                catch (Exception ex)
+                {
+                    // La operación de stock fue exitosa, pero la contabilidad falló.
+                    // Aquí se debería registrar el error en un sistema de logging (ej. Sentry, Serilog).
+                    // No se relanza la excepción para no revertir la transacción de stock.
+                    // Se podría añadir una notificación al usuario o a un log de auditoría.
+                    Console.WriteLine($"Error al contabilizar la compra {movement.Id}: {ex.Message}");
+                }
+            }
+
             // Recargar con relaciones
             await _dbContext.Entry(movement).Reference(m => m.ProductVariant).LoadAsync();
             await _dbContext.Entry(movement.ProductVariant).Reference(pv => pv.Product).LoadAsync();
-            await _dbContext.Entry(movement).Reference(m => m.CreatedByUser).LoadAsync();
-            await _dbContext.Entry(movement).Reference(m => m.PostedByUser).LoadAsync();
 
             return MapToDto(movement);
         }

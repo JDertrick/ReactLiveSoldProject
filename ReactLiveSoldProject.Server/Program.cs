@@ -112,6 +112,7 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITaxService, TaxService>();
 builder.Services.AddScoped<IInventoryAuditService, InventoryAuditService>();
+builder.Services.AddScoped<IAccountingService, AccountingService>();
 
 // Helpers
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();

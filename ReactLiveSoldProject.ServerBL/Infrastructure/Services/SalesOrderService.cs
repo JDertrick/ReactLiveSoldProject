@@ -12,12 +12,14 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         private readonly LiveSoldDbContext _dbContext;
         private readonly IStockMovementService _stockMovementService;
         private readonly ITaxService _taxService;
+        private readonly IAccountingService _accountingService;
 
-        public SalesOrderService(LiveSoldDbContext dbContext, IStockMovementService stockMovementService, ITaxService taxService)
+        public SalesOrderService(LiveSoldDbContext dbContext, IStockMovementService stockMovementService, ITaxService taxService, IAccountingService accountingService)
         {
             _dbContext = dbContext;
             _stockMovementService = stockMovementService;
             _taxService = taxService;
+            _accountingService = accountingService;
         }
 
         public async Task<List<SalesOrderDto>> GetSalesOrdersByOrganizationAsync(Guid organizationId, string? status = null)
@@ -475,10 +477,22 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             _dbContext.WalletTransactions.Add(walletTransaction);
 
             // Cambiar estado de la orden
-            order.Status = OrderStatus.Completed;
             order.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
+
+            // Contabilizar la venta
+            try
+            {
+                // Es crucial que la entidad 'order' tenga sus 'Items' cargados, lo cual se hace al inicio del método.
+                await _accountingService.RegisterSaleAsync(organizationId, order);
+            }
+            catch (Exception ex)
+            {
+                // La venta fue exitosa, pero la contabilidad falló.
+                // Registrar el error para revisión manual sin afectar al usuario.
+                Console.WriteLine($"Error al contabilizar la venta {order.Id}: {ex.Message}");
+            }
 
             return MapToDto(order);
         }

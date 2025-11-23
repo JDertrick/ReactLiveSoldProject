@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using ReactLiveSoldProject.ServerBL.DTOs;
+using ReactLiveSoldProject.ServerBL.DTOs.Accounting;
+using ReactLiveSoldProject.ServerBL.Models.Accounting;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.Contacts;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
@@ -196,6 +198,20 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.Organization, opt => opt.Ignore());
 
+            // Accounting Mappings
+            CreateMap<ChartOfAccount, ChartOfAccountDto>()
+                .ForMember(dest => dest.AccountType, opt => opt.MapFrom(src => src.AccountType));
+            CreateMap<CreateChartOfAccountDto, ChartOfAccount>();
+            CreateMap<UpdateChartOfAccountDto, ChartOfAccount>()
+                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<JournalEntry, JournalEntryDto>();
+            CreateMap<CreateJournalEntryDto, JournalEntry>();
+
+            CreateMap<JournalEntryLine, JournalEntryLineDto>()
+                .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.Account.AccountName))
+                .ForMember(dest => dest.AccountCode, opt => opt.MapFrom(src => src.Account.AccountCode));
+            CreateMap<CreateJournalEntryLineDto, JournalEntryLine>();
         }
     }
 }

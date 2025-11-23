@@ -1,11 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ReactLiveSoldProject.ServerBL.Models.Accounting;
 using ReactLiveSoldProject.ServerBL.Models.Audit;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.Contacts;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
-using ReactLiveSoldProject.ServerBL.Models.Sales;
 using ReactLiveSoldProject.ServerBL.Models.Notifications;
+using ReactLiveSoldProject.ServerBL.Models.Sales;
 using ReactLiveSoldProject.ServerBL.Models.Taxes;
 using ReactLiveSoldProject.ServerBL.Models.Vendors;
 
@@ -50,27 +51,21 @@ namespace ReactLiveSoldProject.ServerBL.Base
         // BLOQUE 5: IMPUESTOS
         public DbSet<TaxRate> TaxRates { get; set; }
 
-        // BLOQUE 6: AUDITORÍA
-        public DbSet<AuditLog> AuditLogs { get; set; }
+        // BLOQUE 6: CONTABILIDAD
+        public DbSet<ChartOfAccount> ChartOfAccounts { get; set; }
+        public DbSet<JournalEntry> JournalEntries { get; set; }
+        public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
 
+        // BLOQUE 7: AUDITORÍA Y NOTIFICACIONES
+        public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-
-            // Configuración para usar snake_case en la base de datos
-            // (Opcional, pero recomendado si vienes de PostgreSQL)
-            // foreach (var entity in modelBuilder.Model.GetEntityTypes())
-            // {
-            //     entity.SetTableName(entity.GetTableName().ToSnakeCase());
-            //     foreach (var property in entity.GetProperties())
-            //     {
-            //         property.SetColumnName(property.GetColumnName().ToSnakeCase());
-            //     }
-            // }
-
+            
+            // --- Configuración existente ---
+            
             // --- BLOQUE 1: PLATAFORMA SAAS Y AUTENTICACIÓN ---
 
             modelBuilder.Entity<Organization>(e =>
@@ -775,6 +770,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .OnDelete(DeleteBehavior.SetNull); // Como en el SQL
             });
 
+            // --- BLOQUE 6: NOTIFICACIONES ---
+
             modelBuilder.Entity<Notification>(e =>
             {
                 e.HasKey(al => al.Id);
@@ -795,7 +792,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // --- BLOQUE 6: IMPUESTOS ---
+            // --- BLOQUE 7: IMPUESTOS ---
 
             modelBuilder.Entity<TaxRate>(e =>
             {
@@ -820,6 +817,79 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany(o => o.TaxRates)
                     .HasForeignKey(tr => tr.OrganizationId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+            
+            // --- BLOQUE 8: CONTABILIDAD ---
+
+            modelBuilder.Entity<ChartOfAccount>(e =>
+            {
+                e.ToTable("ChartOfAccounts");
+                e.HasKey(ca => ca.Id);
+                e.Property(ca => ca.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(ca => ca.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(ca => ca.AccountCode).HasColumnName("account_code").HasMaxLength(20).IsRequired();
+                e.Property(ca => ca.AccountName).HasColumnName("account_name").HasMaxLength(255).IsRequired();
+                e.Property(ca => ca.AccountType).HasColumnName("account_type").HasConversion<string>().IsRequired();
+                e.Property(ca => ca.SystemAccountType).HasColumnName("system_account_type").HasConversion<string>();
+                e.Property(ca => ca.Description).HasColumnName("description");
+                e.Property(ca => ca.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
+                e.Property(ca => ca.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(ca => ca.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(ca => new { ca.OrganizationId, ca.AccountCode }).IsUnique();
+                e.HasIndex(ca => new { ca.OrganizationId, ca.AccountName }).IsUnique();
+                e.HasIndex(ca => new { ca.OrganizationId, ca.SystemAccountType }).IsUnique().HasFilter("\"system_account_type\" IS NOT NULL");
+
+                e.HasOne<Organization>()
+                    .WithMany()
+                    .HasForeignKey(ca => ca.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<JournalEntry>(e =>
+            {
+                e.ToTable("JournalEntries");
+                e.HasKey(je => je.Id);
+                e.Property(je => je.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(je => je.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(je => je.EntryDate).HasColumnName("entry_date").IsRequired();
+                e.Property(je => je.Description).HasColumnName("description").HasMaxLength(255).IsRequired();
+                e.Property(je => je.ReferenceNumber).HasColumnName("reference_number").HasMaxLength(100);
+                e.Property(je => je.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(je => je.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(je => je.OrganizationId);
+                e.HasIndex(je => je.EntryDate);
+
+                e.HasOne<Organization>()
+                    .WithMany()
+                    .HasForeignKey(je => je.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<JournalEntryLine>(e =>
+            {
+                e.ToTable("JournalEntryLines");
+                e.HasKey(jel => jel.Id);
+                e.Property(jel => jel.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(jel => jel.JournalEntryId).HasColumnName("journal_entry_id").IsRequired();
+                e.Property(jel => jel.AccountId).HasColumnName("account_id").IsRequired();
+                e.Property(jel => jel.Debit).HasColumnName("debit").HasColumnType("decimal(18, 2)").IsRequired().HasDefaultValue(0.00m);
+                e.Property(jel => jel.Credit).HasColumnName("credit").HasColumnType("decimal(18, 2)").IsRequired().HasDefaultValue(0.00m);
+                e.Property(jel => jel.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(jel => jel.JournalEntryId);
+                e.HasIndex(jel => jel.AccountId);
+
+                e.HasOne(jel => jel.JournalEntry)
+                    .WithMany(je => je.JournalEntryLines)
+                    .HasForeignKey(jel => jel.JournalEntryId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(jel => jel.Account)
+                    .WithMany()
+                    .HasForeignKey(jel => jel.AccountId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

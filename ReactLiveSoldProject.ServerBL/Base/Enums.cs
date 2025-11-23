@@ -268,4 +268,50 @@
         /// </summary>
         TaxExcluded
     }
+
+    /// <summary>
+    /// Tipo de cuenta contable para el plan de cuentas
+    /// </summary>
+    public enum AccountType
+    {
+        /// <summary>
+        /// Activos - Recursos económicos de la empresa
+        /// </summary>
+        Asset,
+
+        /// <summary>
+        /// Pasivos - Obligaciones financieras de la empresa
+        /// </summary>
+        Liability,
+
+        /// <summary>
+        /// Patrimonio Neto - Inversión de los propietarios en la empresa
+        /// </summary>
+        Equity,
+
+        /// <summary>
+        /// Ingresos - Incrementos en los beneficios económicos
+        /// </summary>
+        Revenue,
+
+        /// <summary>
+        /// Gastos - Disminuciones en los beneficios económicos
+        /// </summary>
+        Expense
+    }
+
+    /// <summary>
+    /// Identificadores para cuentas contables que el sistema usa internamente.
+    /// </summary>
+    public enum SystemAccountType
+    {
+        AccountsReceivable,   // Cuentas por Cobrar (Activo)
+        SalesRevenue,         // Ingresos por Ventas (Ingreso)
+        SalesTaxPayable,      // Impuestos por Pagar (Pasivo)
+        Inventory,            // Inventario (Activo)
+        CostOfGoodsSold,      // Costo de Mercancía Vendida (Gasto)
+        AccountsPayable,      // Cuentas por Pagar (Pasivo)
+        Cash,                 // Efectivo (Activo)
+        WalletBalance         // Saldo de Billetera (contrapartida de Cuentas por Cobrar)
+    }
 }
