@@ -18,6 +18,7 @@ import OrganizationsPage from "../pages/superadmin/Organizations";
 import AppDashboard from "../pages/app/Dashboard";
 import ContactsPage from "../pages/app/Contacts";
 import CustomersPage from "../pages/app/Customers";
+import VendorsPage from "../pages/app/Vendors";
 import ProductsPage from "../pages/app/Products";
 import LiveSalesPage from "../pages/app/LiveSales";
 import WalletPage from "../pages/app/Wallet";
@@ -119,6 +120,10 @@ export const router = createBrowserRouter([
       {
         path: "customers/:customerId/wallet",
         element: <CustomerWalletPage />,
+      },
+      {
+        path: "vendors",
+        element: <VendorsPage />,
       },
       {
         path: "products",

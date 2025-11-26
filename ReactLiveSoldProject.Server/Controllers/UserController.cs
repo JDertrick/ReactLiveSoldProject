@@ -2,12 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
+using System.Security.Claims;
 
 namespace ReactLiveSoldProject.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "SuperAdmin")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -18,11 +18,28 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
-        /// Retorna los usuarios de una organizacion.
+        /// Retorna los usuarios de la organización del usuario autenticado (para Employee)
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Policy = "Employee")]
+        public async Task<IActionResult> GetMyOrganizationUsers()
+        {
+            var organizationId = GetOrganizationId();
+            if (organizationId == null)
+                return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+            var users = await _userService.GetUserAsync(organizationId.Value);
+            return Ok(users);
+        }
+
+        /// <summary>
+        /// Retorna los usuarios de una organizacion específica (solo SuperAdmin)
         /// </summary>
         /// <param name="organizationId"></param>
         /// <returns></returns>
         [HttpGet("users/{organizationId}")]
+        [Authorize(Policy = "SuperAdmin")]
         public async Task<IActionResult> GetUsers(Guid organizationId)
         {
             var users = await _userService.GetUserAsync(organizationId);
@@ -35,6 +52,7 @@ namespace ReactLiveSoldProject.Server.Controllers
         /// <param name="dto"></param>
         /// <returns></returns>
         [HttpPost]
+        [Authorize(Policy = "SuperAdmin")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
             try
@@ -50,6 +68,14 @@ namespace ReactLiveSoldProject.Server.Controllers
             {
                 return StatusCode(500, new { message = "Error al crear el usuario", error = ex.Message });
             }
+        }
+
+        private Guid? GetOrganizationId()
+        {
+            var claim = User.FindFirst("OrganizationId");
+            if (claim != null && Guid.TryParse(claim.Value, out var organizationId))
+                return organizationId;
+            return null;
         }
     }
 }

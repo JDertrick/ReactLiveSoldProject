@@ -22,6 +22,169 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.ChartOfAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("AccountCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("account_code");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("account_name");
+
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("account_type");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("SystemAccountType")
+                        .HasColumnType("text")
+                        .HasColumnName("system_account_type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "AccountCode")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "AccountName")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "SystemAccountType")
+                        .IsUnique()
+                        .HasFilter("\"system_account_type\" IS NOT NULL");
+
+                    b.ToTable("ChartOfAccounts", (string)null);
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("description");
+
+                    b.Property<DateTime>("EntryDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("entry_date");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("ReferenceNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("reference_number");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntryDate");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("JournalEntries", (string)null);
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntryLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<decimal>("Credit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("credit");
+
+                    b.Property<decimal>("Debit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("debit");
+
+                    b.Property<Guid>("JournalEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("journal_entry_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("JournalEntryId");
+
+                    b.ToTable("JournalEntryLines", (string)null);
+                });
+
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Audit.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1655,6 +1818,43 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.ToTable("Vendors", (string)null);
                 });
 
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.ChartOfAccount", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntry", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntryLine", b =>
+                {
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Accounting.ChartOfAccount", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntry", "JournalEntry")
+                        .WithMany("JournalEntryLines")
+                        .HasForeignKey("JournalEntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("JournalEntry");
+                });
+
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Audit.AuditLog", b =>
                 {
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
@@ -2180,6 +2380,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("Contact");
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntry", b =>
+                {
+                    b.Navigation("JournalEntryLines");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", b =>

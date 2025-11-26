@@ -5,9 +5,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
     public interface IVendorService
     {
         /// <summary>
-        /// Obtiene todos los proveedores de una organización
+        /// Obtiene todos los proveedores de una organización con filtros opcionales
         /// </summary>
-        Task<List<VendorDto>> GetVendorsByOrganizationAsync(Guid organizationId);
+        Task<List<VendorDto>> GetVendorsByOrganizationAsync(Guid organizationId, string? searchTerm = null, string? status = null);
 
         /// <summary>
         /// Obtiene un proveedor por ID (validando que pertenezca a la organización)

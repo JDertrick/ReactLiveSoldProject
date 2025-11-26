@@ -34,26 +34,7 @@ namespace ReactLiveSoldProject.Server.Controllers
                 if (organizationId == null)
                     return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
 
-                var vendors = await _vendorService.GetVendorsByOrganizationAsync(organizationId.Value);
-
-                // Server-side filtering
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    var lowerSearchTerm = searchTerm.ToLower();
-                    vendors = vendors.Where(v =>
-                        (v.VendorCode != null && v.VendorCode.ToLower().Contains(lowerSearchTerm)) ||
-                        (v.Contact?.FirstName != null && v.Contact.FirstName.ToLower().Contains(lowerSearchTerm)) ||
-                        (v.Contact?.LastName != null && v.Contact.LastName.ToLower().Contains(lowerSearchTerm)) ||
-                        (v.Contact?.Email != null && v.Contact.Email.ToLower().Contains(lowerSearchTerm)) ||
-                        (v.Contact?.Company != null && v.Contact.Company.ToLower().Contains(lowerSearchTerm))
-                    ).ToList();
-                }
-
-                if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")
-                {
-                    var isActive = status.ToLower() == "active";
-                    vendors = vendors.Where(v => v.IsActive == isActive).ToList();
-                }
+                var vendors = await _vendorService.GetVendorsByOrganizationAsync(organizationId.Value, searchTerm, status);
 
                 return Ok(vendors);
             }

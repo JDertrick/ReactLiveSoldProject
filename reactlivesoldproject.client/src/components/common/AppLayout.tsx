@@ -36,6 +36,7 @@ import {
   Receipt,
   ClipboardCheck,
   Contact,
+  Package,
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
@@ -217,6 +218,11 @@ const AppLayout = () => {
           name: "Clientes",
           path: "/app/customers",
           icon: <Users size={20} />,
+        },
+        {
+          name: "Proveedores",
+          path: "/app/vendors",
+          icon: <Package size={20} />,
         },
         {
           name: "Contact",

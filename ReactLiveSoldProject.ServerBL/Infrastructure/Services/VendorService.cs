@@ -18,12 +18,34 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<List<VendorDto>> GetVendorsByOrganizationAsync(Guid organizationId)
+        public async Task<List<VendorDto>> GetVendorsByOrganizationAsync(Guid organizationId, string? searchTerm = null, string? status = null)
         {
-            var vendors = await _dbContext.Vendors
+            var query = _dbContext.Vendors
                 .Include(v => v.Contact)
                 .Include(v => v.AssignedBuyer)
-                .Where(v => v.OrganizationId == organizationId)
+                .Where(v => v.OrganizationId == organizationId);
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var lowerSearchTerm = searchTerm.ToLower().Trim();
+                query = query.Where(v =>
+                    (v.VendorCode != null && v.VendorCode.ToLower().Contains(lowerSearchTerm)) ||
+                    (v.Contact.FirstName != null && v.Contact.FirstName.ToLower().Contains(lowerSearchTerm)) ||
+                    (v.Contact.LastName != null && v.Contact.LastName.ToLower().Contains(lowerSearchTerm)) ||
+                    (v.Contact.Email != null && v.Contact.Email.ToLower().Contains(lowerSearchTerm)) ||
+                    (v.Contact.Company != null && v.Contact.Company.ToLower().Contains(lowerSearchTerm))
+                );
+            }
+
+            // Apply status filter
+            if (!string.IsNullOrWhiteSpace(status) && status.ToLower() != "all")
+            {
+                var isActive = status.ToLower() == "active";
+                query = query.Where(v => v.IsActive == isActive);
+            }
+
+            var vendors = await query
                 .OrderByDescending(v => v.CreatedAt)
                 .ToListAsync();
 
