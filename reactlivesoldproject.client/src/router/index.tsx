@@ -35,6 +35,7 @@ import CustomerDashboard from "../pages/portal/Dashboard";
 import CustomerOrders from "../pages/portal/Orders";
 import OrganizationUsersPage from "../pages/superadmin/OrganizationUsers";
 import AllReceiptsPage from "../pages/app/AllReceiptsPage";
+import AccountingPage from "@/pages/app/Accounting";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -164,8 +165,13 @@ export const router = createBrowserRouter([
         path: "inventory-audit/:auditId/count",
         element: <InventoryAuditCountPage />,
       },
+      {
+        path: "accounting",
+        element: <AccountingPage />,
+      },
     ],
   },
+  // ... (resto de la configuración)
   {
     path: "/portal/:orgSlug",
     element: (
