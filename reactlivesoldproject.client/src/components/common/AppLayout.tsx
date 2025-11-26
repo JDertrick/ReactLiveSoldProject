@@ -209,6 +209,11 @@ const AppLayout = () => {
           path: "/app/receipts",
           icon: <ClipboardList size={20} />,
         },
+        {
+          name: "Contabilidad",
+          path: "/app/accounting",
+          icon: <FileText size={20} />,
+        },
       ],
     },
     {
