@@ -314,4 +314,217 @@
         Cash,                 // Efectivo (Activo)
         WalletBalance         // Saldo de Billetera (contrapartida de Cuentas por Cobrar)
     }
+
+    /// <summary>
+    /// Método de costeo de inventario
+    /// </summary>
+    public enum CostMethod
+    {
+        /// <summary>
+        /// First In First Out - Primeras entradas, primeras salidas
+        /// </summary>
+        FIFO,
+
+        /// <summary>
+        /// Weighted Average Cost - Costo promedio ponderado
+        /// </summary>
+        AverageCost
+    }
+
+    /// <summary>
+    /// Estado de una orden de compra
+    /// </summary>
+    public enum PurchaseOrderStatus
+    {
+        /// <summary>
+        /// Borrador - En creación
+        /// </summary>
+        Draft,
+
+        /// <summary>
+        /// Enviada al proveedor
+        /// </summary>
+        Sent,
+
+        /// <summary>
+        /// Parcialmente recibida
+        /// </summary>
+        PartiallyReceived,
+
+        /// <summary>
+        /// Completamente recibida
+        /// </summary>
+        Received,
+
+        /// <summary>
+        /// Cerrada
+        /// </summary>
+        Closed,
+
+        /// <summary>
+        /// Cancelada
+        /// </summary>
+        Cancelled
+    }
+
+    /// <summary>
+    /// Estado de una recepción de compra
+    /// </summary>
+    public enum PurchaseReceiptStatus
+    {
+        /// <summary>
+        /// Pendiente de recibir
+        /// </summary>
+        Pending,
+
+        /// <summary>
+        /// Recibida - Inventario actualizado
+        /// </summary>
+        Received,
+
+        /// <summary>
+        /// Facturada
+        /// </summary>
+        Invoiced
+    }
+
+    /// <summary>
+    /// Estado de una factura de proveedor
+    /// </summary>
+    public enum InvoiceStatus
+    {
+        /// <summary>
+        /// Pendiente de aprobación
+        /// </summary>
+        Pending,
+
+        /// <summary>
+        /// Aprobada
+        /// </summary>
+        Approved,
+
+        /// <summary>
+        /// Pagada completamente
+        /// </summary>
+        Paid,
+
+        /// <summary>
+        /// Parcialmente pagada
+        /// </summary>
+        Partial,
+
+        /// <summary>
+        /// Cancelada
+        /// </summary>
+        Cancelled
+    }
+
+    /// <summary>
+    /// Estado de pago de una factura
+    /// </summary>
+    public enum InvoicePaymentStatus
+    {
+        /// <summary>
+        /// No pagada
+        /// </summary>
+        Unpaid,
+
+        /// <summary>
+        /// Parcialmente pagada
+        /// </summary>
+        Partial,
+
+        /// <summary>
+        /// Pagada completamente
+        /// </summary>
+        Paid,
+
+        /// <summary>
+        /// Sobrepagada
+        /// </summary>
+        Overpaid
+    }
+
+    /// <summary>
+    /// Método de pago
+    /// </summary>
+    public enum PaymentMethod
+    {
+        /// <summary>
+        /// Transferencia bancaria
+        /// </summary>
+        BankTransfer,
+
+        /// <summary>
+        /// Cheque
+        /// </summary>
+        Check,
+
+        /// <summary>
+        /// Efectivo
+        /// </summary>
+        Cash,
+
+        /// <summary>
+        /// Tarjeta de crédito
+        /// </summary>
+        CreditCard,
+
+        /// <summary>
+        /// Tarjeta de débito
+        /// </summary>
+        DebitCard,
+
+        /// <summary>
+        /// Transferencia internacional
+        /// </summary>
+        Wire
+    }
+
+    /// <summary>
+    /// Estado de un pago
+    /// </summary>
+    public enum PaymentStatus
+    {
+        /// <summary>
+        /// Registrado y contabilizado
+        /// </summary>
+        Posted,
+
+        /// <summary>
+        /// Anulado
+        /// </summary>
+        Void,
+
+        /// <summary>
+        /// Pendiente
+        /// </summary>
+        Pending
+    }
+
+    /// <summary>
+    /// Estado de aprobación
+    /// </summary>
+    public enum ApprovalStatus
+    {
+        /// <summary>
+        /// Pendiente de aprobación
+        /// </summary>
+        Pending,
+
+        /// <summary>
+        /// Aprobado
+        /// </summary>
+        Approved,
+
+        /// <summary>
+        /// Rechazado
+        /// </summary>
+        Rejected,
+
+        /// <summary>
+        /// Cancelado
+        /// </summary>
+        Cancelled
+    }
 }

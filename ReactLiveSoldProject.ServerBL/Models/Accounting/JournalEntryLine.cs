@@ -15,17 +15,24 @@ namespace ReactLiveSoldProject.ServerBL.Models.Accounting
         [ForeignKey("JournalEntryId")]
         public JournalEntry JournalEntry { get; set; }
 
+        public int LineNumber { get; set; }
+
         [Required]
         public Guid AccountId { get; set; }
 
         [ForeignKey("AccountId")]
         public ChartOfAccount Account { get; set; }
 
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal Debit { get; set; } = 0.00m;
+        [MaxLength(500)]
+        public string? Description { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal Credit { get; set; } = 0.00m;
+        public decimal DebitAmount { get; set; } = 0.00m;
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal CreditAmount { get; set; } = 0.00m;
+
+        public Guid? VendorId { get; set; } // Para trazabilidad
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

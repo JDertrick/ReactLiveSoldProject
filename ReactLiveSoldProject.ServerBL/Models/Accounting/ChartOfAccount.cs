@@ -25,6 +25,12 @@ namespace ReactLiveSoldProject.ServerBL.Models.Accounting
 
         public string Description { get; set; }
 
+        [MaxLength(3)]
+        public string Currency { get; set; } = "MXN"; // Moneda principal
+
+        public Guid? ParentAccountId { get; set; } // Para jerarquía de cuentas
+        public virtual ChartOfAccount? ParentAccount { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         [Required]
@@ -34,5 +40,8 @@ namespace ReactLiveSoldProject.ServerBL.Models.Accounting
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
+
+        // Navegación
+        public virtual ICollection<ChartOfAccount> SubAccounts { get; set; } = new List<ChartOfAccount>();
     }
 }

@@ -9,6 +9,9 @@ using ReactLiveSoldProject.ServerBL.Models.Notifications;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
 using ReactLiveSoldProject.ServerBL.Models.Taxes;
 using ReactLiveSoldProject.ServerBL.Models.Vendors;
+using ReactLiveSoldProject.ServerBL.Models.Purchases;
+using ReactLiveSoldProject.ServerBL.Models.Banking;
+using ReactLiveSoldProject.ServerBL.Models.Payments;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -56,7 +59,22 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<JournalEntry> JournalEntries { get; set; }
         public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
 
-        // BLOQUE 7: AUDITORÍA Y NOTIFICACIONES
+        // BLOQUE 7: COMPRAS Y PAGOS
+        public DbSet<PaymentTerms> PaymentTerms { get; set; }
+        public DbSet<VendorBankAccount> VendorBankAccounts { get; set; }
+        public DbSet<CompanyBankAccount> CompanyBankAccounts { get; set; }
+        public DbSet<ProductVendor> ProductVendors { get; set; }
+        public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+        public DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
+        public DbSet<PurchaseReceipt> PurchaseReceipts { get; set; }
+        public DbSet<PurchaseItem> PurchaseItems { get; set; }
+        public DbSet<VendorInvoice> VendorInvoices { get; set; }
+        public DbSet<StockBatch> StockBatches { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<PaymentApplication> PaymentApplications { get; set; }
+        public DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
+
+        // BLOQUE 8: AUDITORÍA Y NOTIFICACIONES
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
 
@@ -874,8 +892,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(jel => jel.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 e.Property(jel => jel.JournalEntryId).HasColumnName("journal_entry_id").IsRequired();
                 e.Property(jel => jel.AccountId).HasColumnName("account_id").IsRequired();
-                e.Property(jel => jel.Debit).HasColumnName("debit").HasColumnType("decimal(18, 2)").IsRequired().HasDefaultValue(0.00m);
-                e.Property(jel => jel.Credit).HasColumnName("credit").HasColumnType("decimal(18, 2)").IsRequired().HasDefaultValue(0.00m);
+                e.Property(jel => jel.DebitAmount).HasColumnName("debit").HasColumnType("decimal(18, 2)").IsRequired().HasDefaultValue(0.00m);
+                e.Property(jel => jel.CreditAmount).HasColumnName("credit").HasColumnType("decimal(18, 2)").IsRequired().HasDefaultValue(0.00m);
                 e.Property(jel => jel.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
                 e.HasIndex(jel => jel.JournalEntryId);
@@ -889,6 +907,94 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasOne(jel => jel.Account)
                     .WithMany()
                     .HasForeignKey(jel => jel.AccountId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // --- BLOQUE 9: COMPRAS (PURCHASE ORDERS) ---
+
+            modelBuilder.Entity<PurchaseOrder>(e =>
+            {
+                e.ToTable("PurchaseOrders");
+                e.HasKey(po => po.Id);
+                e.Property(po => po.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(po => po.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(po => po.PONumber).HasColumnName("po_number").HasMaxLength(50).IsRequired();
+                e.Property(po => po.VendorId).HasColumnName("vendor_id").IsRequired();
+                e.Property(po => po.OrderDate).HasColumnName("order_date").IsRequired();
+                e.Property(po => po.ExpectedDeliveryDate).HasColumnName("expected_delivery_date");
+                e.Property(po => po.Status).HasColumnName("status").HasConversion<string>().IsRequired();
+                e.Property(po => po.Subtotal).HasColumnName("subtotal").HasColumnType("decimal(18, 2)").HasDefaultValue(0);
+                e.Property(po => po.TaxAmount).HasColumnName("tax_amount").HasColumnType("decimal(18, 2)").HasDefaultValue(0);
+                e.Property(po => po.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(18, 2)").HasDefaultValue(0);
+                e.Property(po => po.Currency).HasColumnName("currency").HasMaxLength(3).HasDefaultValue("MXN");
+                e.Property(po => po.ExchangeRate).HasColumnName("exchange_rate").HasColumnType("decimal(18, 6)").HasDefaultValue(1.0m);
+                e.Property(po => po.PaymentTermsId).HasColumnName("payment_terms_id");
+                e.Property(po => po.Notes).HasColumnName("notes").HasMaxLength(2000);
+                e.Property(po => po.CreatedBy).HasColumnName("created_by").IsRequired();
+                e.Property(po => po.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(po => po.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(po => po.OrganizationId);
+                e.HasIndex(po => po.VendorId);
+                e.HasIndex(po => new { po.OrganizationId, po.PONumber }).IsUnique();
+
+                e.HasOne(po => po.Organization)
+                    .WithMany()
+                    .HasForeignKey(po => po.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(po => po.Vendor)
+                    .WithMany()
+                    .HasForeignKey(po => po.VendorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(po => po.PaymentTerms)
+                    .WithMany()
+                    .HasForeignKey(po => po.PaymentTermsId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasOne(po => po.CreatedByUser)
+                    .WithMany()
+                    .HasForeignKey(po => po.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PurchaseOrderItem>(e =>
+            {
+                e.ToTable("PurchaseOrderItems");
+                e.HasKey(poi => poi.Id);
+                e.Property(poi => poi.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                e.Property(poi => poi.PurchaseOrderId).HasColumnName("purchase_order_id").IsRequired();
+                e.Property(poi => poi.LineNumber).HasColumnName("line_number").IsRequired();
+                e.Property(poi => poi.ProductId).HasColumnName("product_id").IsRequired();
+                e.Property(poi => poi.ProductVariantId).HasColumnName("product_variant_id");
+                e.Property(poi => poi.Description).HasColumnName("description").HasMaxLength(500);
+                e.Property(poi => poi.Quantity).HasColumnName("quantity").IsRequired();
+                e.Property(poi => poi.UnitCost).HasColumnName("unit_cost").HasColumnType("decimal(18, 2)").IsRequired();
+                e.Property(poi => poi.DiscountPercentage).HasColumnName("discount_percentage").HasColumnType("decimal(5, 2)").HasDefaultValue(0);
+                e.Property(poi => poi.DiscountAmount).HasColumnName("discount_amount").HasColumnType("decimal(18, 2)").HasDefaultValue(0);
+                e.Property(poi => poi.TaxRate).HasColumnName("tax_rate").HasColumnType("decimal(5, 2)").HasDefaultValue(0);
+                e.Property(poi => poi.TaxAmount).HasColumnName("tax_amount").HasColumnType("decimal(18, 2)").HasDefaultValue(0);
+                e.Property(poi => poi.LineTotal).HasColumnName("line_total").HasColumnType("decimal(18, 2)").HasDefaultValue(0);
+                e.Property(poi => poi.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(poi => poi.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
+
+                e.HasIndex(poi => poi.PurchaseOrderId);
+                e.HasIndex(poi => new { poi.PurchaseOrderId, poi.LineNumber }).IsUnique();
+
+                e.HasOne(poi => poi.PurchaseOrder)
+                    .WithMany(po => po.Items)
+                    .HasForeignKey(poi => poi.PurchaseOrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(poi => poi.Product)
+                    .WithMany()
+                    .HasForeignKey(poi => poi.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(poi => poi.ProductVariant)
+                    .WithMany()
+                    .HasForeignKey(poi => poi.ProductVariantId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

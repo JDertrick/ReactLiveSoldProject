@@ -93,6 +93,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     account_type = table.Column<string>(type: "text", nullable: false),
                     system_account_type = table.Column<string>(type: "text", nullable: true),
                     description = table.Column<string>(type: "text", nullable: false),
+                    Currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
+                    ParentAccountId = table.Column<Guid>(type: "uuid", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
@@ -101,6 +103,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ChartOfAccounts", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_ChartOfAccounts_ChartOfAccounts_ParentAccountId",
+                        column: x => x.ParentAccountId,
+                        principalTable: "ChartOfAccounts",
+                        principalColumn: "id");
                     table.ForeignKey(
                         name: "FK_ChartOfAccounts_Organizations_organization_id",
                         column: x => x.organization_id,
@@ -150,6 +157,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     entry_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     reference_number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    DocumentType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    DocumentNumber = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    VendorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    PostedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    Currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "(now() at time zone 'utc')")
                 },
@@ -360,6 +372,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     vendor_code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     payment_terms = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    TaxId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
+                    PaymentTermsId = table.Column<Guid>(type: "uuid", nullable: true),
                     credit_limit = table.Column<decimal>(type: "numeric(10,2)", nullable: false, defaultValue: 0.00m),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
@@ -484,6 +499,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     is_published = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     category_id = table.Column<Guid>(type: "uuid", nullable: true),
                     is_tax_exempt = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    UnitOfMeasure = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    ReorderPoint = table.Column<int>(type: "integer", nullable: false),
+                    CostMethod = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     LocationId = table.Column<Guid>(type: "uuid", nullable: true)
@@ -996,6 +1014,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 columns: new[] { "organization_id", "system_account_type" },
                 unique: true,
                 filter: "\"system_account_type\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChartOfAccounts_ParentAccountId",
+                table: "ChartOfAccounts",
+                column: "ParentAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Contacts_organization_id_email",

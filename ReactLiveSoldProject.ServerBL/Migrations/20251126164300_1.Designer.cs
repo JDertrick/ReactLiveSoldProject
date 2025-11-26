@@ -12,8 +12,8 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    [Migration("20251123030338_2")]
-    partial class _2
+    [Migration("20251126164300_1")]
+    partial class _1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,6 +56,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(now() at time zone 'utc')");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text")
@@ -71,6 +76,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
 
+                    b.Property<Guid?>("ParentAccountId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("SystemAccountType")
                         .HasColumnType("text")
                         .HasColumnName("system_account_type");
@@ -82,6 +90,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentAccountId");
 
                     b.HasIndex("OrganizationId", "AccountCode")
                         .IsUnique();
@@ -110,11 +120,24 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(now() at time zone 'utc')");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("description");
+
+                    b.Property<string>("DocumentNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("DocumentType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("EntryDate")
                         .HasColumnType("timestamp with time zone")
@@ -123,6 +146,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PostedBy")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ReferenceNumber")
                         .IsRequired()
@@ -135,6 +161,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<Guid?>("VendorId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -1158,6 +1187,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("category_id");
 
+                    b.Property<int>("CostMethod")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -1204,6 +1236,14 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("text")
                         .HasDefaultValue("Simple")
                         .HasColumnName("product_type");
+
+                    b.Property<int>("ReorderPoint")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UnitOfMeasure")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -1776,6 +1816,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValue(0.00m)
                         .HasColumnName("credit_limit");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -1795,6 +1840,13 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("payment_terms");
+
+                    b.Property<Guid?>("PaymentTermsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TaxId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -1828,6 +1880,12 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("ReactLiveSoldProject.ServerBL.Models.Accounting.ChartOfAccount", "ParentAccount")
+                        .WithMany("SubAccounts")
+                        .HasForeignKey("ParentAccountId");
+
+                    b.Navigation("ParentAccount");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntry", b =>
@@ -2383,6 +2441,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("Contact");
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.ChartOfAccount", b =>
+                {
+                    b.Navigation("SubAccounts");
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntry", b =>

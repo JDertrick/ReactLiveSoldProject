@@ -31,6 +31,14 @@ namespace ReactLiveSoldProject.ServerBL.Models.Vendors
         [MaxLength(50, ErrorMessage = "Los términos de pago no pueden exceder los 50 caracteres")]
         public string? PaymentTerms { get; set; }
 
+        [MaxLength(50, ErrorMessage = "El RFC/NIT/Tax ID no puede exceder los 50 caracteres")]
+        public string? TaxId { get; set; } // RFC (México), NIT (Colombia), etc.
+
+        [MaxLength(3, ErrorMessage = "La moneda debe ser un código de 3 caracteres")]
+        public string Currency { get; set; } = "MXN"; // USD, MXN, COP, etc.
+
+        public Guid? PaymentTermsId { get; set; } // FK a PaymentTerms
+
         public decimal CreditLimit { get; set; } = 0;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

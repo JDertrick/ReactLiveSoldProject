@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.DTOs.Accounting;
+using ReactLiveSoldProject.ServerBL.DTOs.Purchases;
+using ReactLiveSoldProject.ServerBL.DTOs.Banking;
+using ReactLiveSoldProject.ServerBL.DTOs.Vendors;
 using ReactLiveSoldProject.ServerBL.Models.Accounting;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.Contacts;
@@ -10,6 +13,8 @@ using ReactLiveSoldProject.ServerBL.Models.Notifications;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
 using ReactLiveSoldProject.ServerBL.Models.Taxes;
 using ReactLiveSoldProject.ServerBL.Models.Vendors;
+using ReactLiveSoldProject.ServerBL.Models.Purchases;
+using ReactLiveSoldProject.ServerBL.Models.Banking;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -212,6 +217,79 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.Account.AccountName))
                 .ForMember(dest => dest.AccountCode, opt => opt.MapFrom(src => src.Account.AccountCode));
             CreateMap<CreateJournalEntryLineDto, JournalEntryLine>();
+
+            // Purchase Order Mappings
+            CreateMap<PurchaseOrder, PurchaseOrderDto>()
+                .ForMember(dest => dest.VendorName, opt => opt.MapFrom(src =>
+                    src.Vendor != null && src.Vendor.Contact != null
+                        ? (src.Vendor.Contact.Company ?? $"{src.Vendor.Contact.FirstName} {src.Vendor.Contact.LastName}".Trim())
+                        : null))
+                .ForMember(dest => dest.CreatedByName, opt => opt.MapFrom(src =>
+                    src.CreatedByUser != null
+                        ? $"{src.CreatedByUser.FirstName} {src.CreatedByUser.LastName}".Trim()
+                        : null))
+                .ForMember(dest => dest.PaymentTermsDescription, opt => opt.MapFrom(src =>
+                    src.PaymentTerms != null ? src.PaymentTerms.Description : null));
+            CreateMap<CreatePurchaseOrderDto, PurchaseOrder>();
+
+            // Purchase Order Item Mappings
+            CreateMap<PurchaseOrderItem, PurchaseOrderItemDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : null))
+                .ForMember(dest => dest.VariantName, opt => opt.MapFrom(src => src.ProductVariant != null ? src.ProductVariant.Sku : null));
+            CreateMap<CreatePurchaseOrderItemDto, PurchaseOrderItem>();
+
+            // Vendor Invoice Mappings
+            CreateMap<VendorInvoice, VendorInvoiceDto>()
+                .ForMember(dest => dest.VendorName, opt => opt.MapFrom(src =>
+                    src.Vendor != null && src.Vendor.Contact != null
+                        ? (src.Vendor.Contact.Company ?? $"{src.Vendor.Contact.FirstName} {src.Vendor.Contact.LastName}".Trim())
+                        : null))
+                .ForMember(dest => dest.PurchaseReceiptNumber, opt => opt.MapFrom(src => src.PurchaseReceipt != null ? src.PurchaseReceipt.ReceiptNumber : null));
+            CreateMap<CreateVendorInvoiceDto, VendorInvoice>();
+
+            // Payment Terms Mappings
+            CreateMap<PaymentTerms, PaymentTermsDto>();
+            CreateMap<CreatePaymentTermsDto, PaymentTerms>();
+
+            // Company Bank Account Mappings
+            CreateMap<CompanyBankAccount, CompanyBankAccountDto>()
+                .ForMember(dest => dest.GLAccountName, opt => opt.MapFrom(src => src.GLAccount != null ? src.GLAccount.AccountName : null));
+            CreateMap<CreateCompanyBankAccountDto, CompanyBankAccount>();
+
+            // Vendor Bank Account Mappings
+            CreateMap<VendorBankAccount, VendorBankAccountDto>();
+            CreateMap<CreateVendorBankAccountDto, VendorBankAccount>();
+
+            // Purchase Receipt Mappings
+            CreateMap<PurchaseReceipt, PurchaseReceiptDto>()
+                .ForMember(dest => dest.PurchaseOrderNumber, opt => opt.MapFrom(src => src.PurchaseOrder != null ? src.PurchaseOrder.PONumber : null))
+                .ForMember(dest => dest.VendorName, opt => opt.MapFrom(src =>
+                    src.Vendor != null && src.Vendor.Contact != null
+                        ? (src.Vendor.Contact.Company ?? $"{src.Vendor.Contact.FirstName} {src.Vendor.Contact.LastName}".Trim())
+                        : null))
+                .ForMember(dest => dest.WarehouseLocationName, opt => opt.MapFrom(src => src.WarehouseLocation != null ? src.WarehouseLocation.Name : null))
+                .ForMember(dest => dest.ReceivedByName, opt => opt.MapFrom(src =>
+                    src.ReceivedByUser != null
+                        ? $"{src.ReceivedByUser.FirstName} {src.ReceivedByUser.LastName}".Trim()
+                        : null));
+            CreateMap<CreatePurchaseReceiptDto, PurchaseReceipt>();
+
+            // Purchase Item Mappings
+            CreateMap<PurchaseItem, PurchaseItemDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : null))
+                .ForMember(dest => dest.VariantName, opt => opt.MapFrom(src => src.ProductVariant != null ? src.ProductVariant.Sku : null));
+            CreateMap<CreatePurchaseItemDto, PurchaseItem>();
+
+            // ProductVendor Mappings
+            CreateMap<ProductVendor, ProductVendorDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : null))
+                .ForMember(dest => dest.VendorName, opt => opt.MapFrom(src =>
+                    src.Vendor != null && src.Vendor.Contact != null
+                        ? (src.Vendor.Contact.Company ?? $"{src.Vendor.Contact.FirstName} {src.Vendor.Contact.LastName}".Trim())
+                        : null));
+            CreateMap<CreateProductVendorDto, ProductVendor>();
+            CreateMap<UpdateProductVendorDto, ProductVendor>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }

@@ -113,6 +113,14 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITaxService, TaxService>();
 builder.Services.AddScoped<IInventoryAuditService, InventoryAuditService>();
 builder.Services.AddScoped<IAccountingService, AccountingService>();
+builder.Services.AddScoped<IPurchaseReceiptService, PurchaseReceiptService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IVendorInvoiceService, VendorInvoiceService>();
+builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+builder.Services.AddScoped<IPaymentTermsService, PaymentTermsService>();
+builder.Services.AddScoped<ICompanyBankAccountService, CompanyBankAccountService>();
+builder.Services.AddScoped<IVendorBankAccountService, VendorBankAccountService>();
+builder.Services.AddScoped<IProductVendorService, ProductVendorService>();
 
 // Helpers
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();

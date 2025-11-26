@@ -45,13 +45,20 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
         /// </summary>
         public bool IsTaxExempt { get; set; } = false;
 
+        [MaxLength(20, ErrorMessage = "La unidad de medida no puede exceder los 20 caracteres")]
+        public string UnitOfMeasure { get; set; } = "UND"; // UN, KG, LT, BOX, etc.
+
+        public int ReorderPoint { get; set; } = 0; // Punto de reorden
+
+        public CostMethod CostMethod { get; set; } = CostMethod.FIFO; // FIFO o AVG
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Propiedades de navegación
         public virtual ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
-        
+
         public virtual ICollection<ProductTag> TagLinks { get; set; } = new List<ProductTag>();
     }
 }

@@ -15,5 +15,15 @@ namespace ReactLiveSoldProject.Server.Controllers.Base
             }
             return null;
         }
+
+        protected Guid? GetUserId()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdClaim, out var userId))
+            {
+                return userId;
+            }
+            return null;
+        }
     }
 }
