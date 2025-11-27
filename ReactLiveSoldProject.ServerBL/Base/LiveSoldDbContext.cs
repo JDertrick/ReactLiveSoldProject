@@ -1019,6 +1019,115 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .HasConstraintName("FK_PurchaseReceipts_Users_ReceivedByUserId")
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
+            // CompanyBankAccount - Configurar relación con ChartOfAccount
+            modelBuilder.Entity<CompanyBankAccount>(e =>
+            {
+                e.ToTable("company_bank_accounts");
+                e.Property(cba => cba.Id).HasColumnName("id");
+                e.Property(cba => cba.OrganizationId).HasColumnName("organization_id");
+                e.Property(cba => cba.BankName).HasColumnName("bank_name");
+                e.Property(cba => cba.AccountNumber).HasColumnName("account_number");
+                e.Property(cba => cba.Currency).HasColumnName("currency");
+                e.Property(cba => cba.CurrentBalance).HasColumnName("current_balance");
+                e.Property(cba => cba.GLAccountId).HasColumnName("gl_account_id");
+                e.Property(cba => cba.IsActive).HasColumnName("is_active");
+                e.Property(cba => cba.CreatedAt).HasColumnName("created_at");
+                e.Property(cba => cba.UpdatedAt).HasColumnName("updated_at");
+
+                e.HasOne(cba => cba.GLAccount)
+                    .WithMany()
+                    .HasForeignKey(cba => cba.GLAccountId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // VendorBankAccount - Configurar relación con Vendor
+            modelBuilder.Entity<VendorBankAccount>(e =>
+            {
+                e.ToTable("vendor_bank_accounts");
+                e.Property(vba => vba.Id).HasColumnName("id");
+                e.Property(vba => vba.VendorId).HasColumnName("vendor_id");
+                e.Property(vba => vba.BankName).HasColumnName("bank_name");
+                e.Property(vba => vba.AccountNumber).HasColumnName("account_number");
+                e.Property(vba => vba.AccountHolderName).HasColumnName("account_holder_name");
+                e.Property(vba => vba.CLABE_IBAN).HasColumnName("clabe_iban");
+                e.Property(vba => vba.AccountType).HasColumnName("account_type");
+                e.Property(vba => vba.IsPrimary).HasColumnName("is_primary");
+                e.Property(vba => vba.IsActive).HasColumnName("is_active");
+                e.Property(vba => vba.CreatedAt).HasColumnName("created_at");
+                e.Property(vba => vba.UpdatedAt).HasColumnName("updated_at");
+
+                e.HasOne(vba => vba.Vendor)
+                    .WithMany(v => v.BankAccounts)
+                    .HasForeignKey(vba => vba.VendorId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Payment - Configurar relaciones
+            modelBuilder.Entity<Payment>(e =>
+            {
+                e.ToTable("payments");
+                e.Property(p => p.Id).HasColumnName("id");
+                e.Property(p => p.OrganizationId).HasColumnName("organization_id");
+                e.Property(p => p.PaymentNumber).HasColumnName("payment_number");
+                e.Property(p => p.PaymentDate).HasColumnName("payment_date");
+                e.Property(p => p.VendorId).HasColumnName("vendor_id");
+                e.Property(p => p.PaymentMethod).HasColumnName("payment_method").HasConversion<string>();
+                e.Property(p => p.CompanyBankAccountId).HasColumnName("company_bank_account_id");
+                e.Property(p => p.VendorBankAccountId).HasColumnName("vendor_bank_account_id");
+                e.Property(p => p.AmountPaid).HasColumnName("amount_paid");
+                e.Property(p => p.Currency).HasColumnName("currency");
+                e.Property(p => p.ExchangeRate).HasColumnName("exchange_rate");
+                e.Property(p => p.ReferenceNumber).HasColumnName("reference_number");
+                e.Property(p => p.Notes).HasColumnName("notes");
+                e.Property(p => p.Status).HasColumnName("status").HasConversion<string>();
+                e.Property(p => p.PaymentJournalEntryId).HasColumnName("payment_journal_entry_id");
+                e.Property(p => p.CreatedBy).HasColumnName("created_by_user_id");
+                e.Property(p => p.CreatedAt).HasColumnName("created_at");
+                e.Property(p => p.UpdatedAt).HasColumnName("updated_at");
+
+                e.HasOne(p => p.Vendor)
+                    .WithMany()
+                    .HasForeignKey(p => p.VendorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(p => p.CompanyBankAccount)
+                    .WithMany()
+                    .HasForeignKey(p => p.CompanyBankAccountId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(p => p.VendorBankAccount)
+                    .WithMany()
+                    .HasForeignKey(p => p.VendorBankAccountId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(p => p.CreatedByUser)
+                    .WithMany()
+                    .HasForeignKey(p => p.CreatedBy)
+                    .HasConstraintName("FK_Payments_Users_CreatedByUserId")
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // PaymentApplication - Configurar relaciones
+            modelBuilder.Entity<PaymentApplication>(e =>
+            {
+                e.ToTable("payment_applications");
+                e.Property(pa => pa.Id).HasColumnName("id");
+                e.Property(pa => pa.PaymentId).HasColumnName("payment_id");
+                e.Property(pa => pa.VendorInvoiceId).HasColumnName("vendor_invoice_id");
+                e.Property(pa => pa.AmountApplied).HasColumnName("amount_applied");
+                e.Property(pa => pa.CreatedAt).HasColumnName("created_at");
+
+                e.HasOne(pa => pa.Payment)
+                    .WithMany(p => p.Applications)
+                    .HasForeignKey(pa => pa.PaymentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(pa => pa.VendorInvoice)
+                    .WithMany()
+                    .HasForeignKey(pa => pa.VendorInvoiceId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

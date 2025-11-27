@@ -12,7 +12,7 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    [Migration("20251127173016_6")]
+    [Migration("20251127175053_6")]
     partial class _6
     {
         /// <inheritdoc />
@@ -546,40 +546,50 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("AccountNumber")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("account_number");
 
                     b.Property<string>("BankName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("bank_name");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency");
 
                     b.Property<decimal>("CurrentBalance")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("current_balance");
 
                     b.Property<Guid>("GLAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("gl_account_id");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<Guid>("OrganizationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
@@ -587,7 +597,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("OrganizationId");
 
-                    b.ToTable("CompanyBankAccounts");
+                    b.ToTable("company_bank_accounts", (string)null);
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Contacts.Contact", b =>
@@ -1744,73 +1754,90 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<decimal>("AmountPaid")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount_paid");
 
                     b.Property<Guid>("CompanyBankAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_bank_account_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CreatedByUserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency");
 
                     b.Property<decimal>("ExchangeRate")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("exchange_rate");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
 
                     b.Property<Guid>("OrganizationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
 
                     b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("payment_date");
 
                     b.Property<Guid?>("PaymentJournalEntryId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_journal_entry_id");
 
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("integer");
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("payment_method");
 
                     b.Property<string>("PaymentNumber")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("payment_number");
 
                     b.Property<string>("ReferenceNumber")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("reference_number");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<Guid?>("VendorBankAccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("vendor_bank_account_id");
 
                     b.Property<Guid>("VendorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("vendor_id");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyBankAccountId");
 
-                    b.HasIndex("CreatedByUserId");
+                    b.HasIndex("CreatedBy");
 
                     b.HasIndex("OrganizationId");
 
@@ -1820,32 +1847,37 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("VendorId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("payments", (string)null);
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Payments.PaymentApplication", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<decimal>("AmountApplied")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount_applied");
 
                     b.Property<DateTime>("ApplicationDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<decimal>("DiscountTaken")
                         .HasColumnType("numeric");
 
                     b.Property<Guid>("PaymentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_id");
 
                     b.Property<Guid>("VendorInvoiceId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("vendor_invoice_id");
 
                     b.HasKey("Id");
 
@@ -1853,7 +1885,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("VendorInvoiceId");
 
-                    b.ToTable("PaymentApplications");
+                    b.ToTable("payment_applications", (string)null);
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Purchases.PaymentTerms", b =>
@@ -2655,50 +2687,61 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("AccountHolderName")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("account_holder_name");
 
                     b.Property<string>("AccountNumber")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("account_number");
 
                     b.Property<string>("AccountType")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("account_type");
 
                     b.Property<string>("BankName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("bank_name");
 
                     b.Property<string>("CLABE_IBAN")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("clabe_iban");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<bool>("IsPrimary")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_primary");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<Guid>("VendorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("vendor_id");
 
                     b.HasKey("Id");
 
                     b.HasIndex("VendorId");
 
-                    b.ToTable("VendorBankAccounts");
+                    b.ToTable("vendor_bank_accounts", (string)null);
                 });
 
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Accounting.ChartOfAccount", b =>
@@ -2810,7 +2853,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Accounting.ChartOfAccount", "GLAccount")
                         .WithMany()
                         .HasForeignKey("GLAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
@@ -3252,14 +3295,15 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Banking.CompanyBankAccount", "CompanyBankAccount")
                         .WithMany()
                         .HasForeignKey("CompanyBankAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "CreatedByUser")
                         .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_Payments_Users_CreatedByUserId");
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
                         .WithMany()
@@ -3273,12 +3317,13 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Vendors.VendorBankAccount", "VendorBankAccount")
                         .WithMany()
-                        .HasForeignKey("VendorBankAccountId");
+                        .HasForeignKey("VendorBankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Vendors.Vendor", "Vendor")
                         .WithMany()
                         .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CompanyBankAccount");
@@ -3305,7 +3350,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Purchases.VendorInvoice", "VendorInvoice")
                         .WithMany()
                         .HasForeignKey("VendorInvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Payment");
@@ -3606,7 +3651,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
             modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Vendors.VendorBankAccount", b =>
                 {
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Vendors.Vendor", "Vendor")
-                        .WithMany()
+                        .WithMany("BankAccounts")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -3736,6 +3781,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Navigation("Items");
 
                     b.Navigation("WalletTransactions");
+                });
+
+            modelBuilder.Entity("ReactLiveSoldProject.ServerBL.Models.Vendors.Vendor", b =>
+                {
+                    b.Navigation("BankAccounts");
                 });
 #pragma warning restore 612, 618
         }

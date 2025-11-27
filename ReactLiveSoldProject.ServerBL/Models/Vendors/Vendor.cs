@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.Contacts;
+using ReactLiveSoldProject.ServerBL.Models.Banking;
 
 namespace ReactLiveSoldProject.ServerBL.Models.Vendors
 {
@@ -46,5 +47,8 @@ namespace ReactLiveSoldProject.ServerBL.Models.Vendors
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public bool IsActive { get; set; } = true;
+
+        // Navegación
+        public virtual ICollection<VendorBankAccount> BankAccounts { get; set; } = new List<VendorBankAccount>();
     }
 }
