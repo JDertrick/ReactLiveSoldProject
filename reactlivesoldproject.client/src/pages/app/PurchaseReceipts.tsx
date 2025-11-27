@@ -76,12 +76,13 @@ const PurchaseReceiptsPage = () => {
       { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }
     > = {
       Draft: { variant: 'outline', label: 'Borrador' },
+      Pending: { variant: 'outline', label: 'Pendiente' },
       Received: { variant: 'secondary', label: 'Recibida' },
       Posted: { variant: 'default', label: 'Contabilizada' },
       Cancelled: { variant: 'destructive', label: 'Cancelada' },
     };
     const config = variants[status];
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <Badge variant={config?.variant || 'outline'}>{config?.label || status}</Badge>;
   };
 
   return (

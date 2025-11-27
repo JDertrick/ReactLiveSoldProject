@@ -87,94 +87,103 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             Guid userId,
             CreatePurchaseOrderDto dto)
         {
-            // Validar que el proveedor existe
-            var vendor = await _context.Vendors
-                .FirstOrDefaultAsync(v => v.Id == dto.VendorId && v.OrganizationId == organizationId);
-
-            if (vendor == null)
-                throw new Exception($"Proveedor con ID {dto.VendorId} no encontrado");
-
-            // Validar que los productos existen
-            var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
-            var products = await _context.Products
-                .Where(p => productIds.Contains(p.Id) && p.OrganizationId == organizationId)
-                .ToListAsync();
-
-            if (products.Count != productIds.Count)
-                throw new Exception("Uno o más productos no existen");
-
-            // Generar número de orden
-            var poNumber = await GeneratePONumberAsync(organizationId);
-
-            var order = new PurchaseOrder
+            try
             {
-                Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
-                PONumber = poNumber,
-                VendorId = dto.VendorId,
-                OrderDate = dto.OrderDate,
-                ExpectedDeliveryDate = dto.ExpectedDeliveryDate,
-                Status = PurchaseOrderStatus.Draft,
-                Subtotal = 0,
-                TaxAmount = 0,
-                TotalAmount = 0,
-                Currency = dto.Currency,
-                ExchangeRate = dto.ExchangeRate,
-                PaymentTermsId = dto.PaymentTermsId,
-                Notes = dto.Notes,
-                CreatedBy = userId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                 // Validar que el proveedor existe
+                var vendor = await _context.Vendors
+                    .FirstOrDefaultAsync(v => v.Id == dto.VendorId && v.OrganizationId == organizationId);
 
-            // Crear items de la orden
-            decimal subtotal = 0;
-            decimal totalTaxAmount = 0;
-            int lineNumber = 1;
+                if (vendor == null)
+                    throw new Exception($"Proveedor con ID {dto.VendorId} no encontrado");
 
-            foreach (var itemDto in dto.Items)
-            {
-                // Calcular totales de la línea
-                var lineSubtotal = itemDto.Quantity * itemDto.UnitCost;
-                var discountAmount = lineSubtotal * (itemDto.DiscountPercentage / 100);
-                var lineAfterDiscount = lineSubtotal - discountAmount;
-                var lineTaxAmount = lineAfterDiscount * (itemDto.TaxRate / 100);
-                var lineTotal = lineAfterDiscount + lineTaxAmount;
+                // Validar que los productos existen
+                var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
+                var products = await _context.Products
+                    .Where(p => productIds.Contains(p.Id) && p.OrganizationId == organizationId)
+                    .ToListAsync();
 
-                var item = new PurchaseOrderItem
+                if (products.Count != productIds.Count)
+                    throw new Exception("Uno o más productos no existen");
+
+                // Generar número de orden
+                var poNumber = await GeneratePONumberAsync(organizationId);
+
+                var order = new PurchaseOrder
                 {
                     Id = Guid.NewGuid(),
-                    PurchaseOrderId = order.Id,
-                    LineNumber = lineNumber++,
-                    ProductId = itemDto.ProductId,
-                    ProductVariantId = itemDto.ProductVariantId,
-                    Description = itemDto.Description,
-                    Quantity = itemDto.Quantity,
-                    UnitCost = itemDto.UnitCost,
-                    DiscountPercentage = itemDto.DiscountPercentage,
-                    DiscountAmount = discountAmount,
-                    TaxRate = itemDto.TaxRate,
-                    TaxAmount = lineTaxAmount,
-                    LineTotal = lineTotal,
+                    OrganizationId = organizationId,
+                    PONumber = poNumber,
+                    VendorId = dto.VendorId,
+                    OrderDate = DateTime.SpecifyKind(dto.OrderDate, DateTimeKind.Utc),
+                    ExpectedDeliveryDate = dto.ExpectedDeliveryDate.HasValue
+                        ? DateTime.SpecifyKind(dto.ExpectedDeliveryDate.Value, DateTimeKind.Utc)
+                        : (DateTime?)null,
+                    Status = PurchaseOrderStatus.Draft,
+                    Subtotal = 0,
+                    TaxAmount = 0,
+                    TotalAmount = 0,
+                    Currency = dto.Currency,
+                    ExchangeRate = dto.ExchangeRate,
+                    PaymentTermsId = dto.PaymentTermsId,
+                    Notes = dto.Notes,
+                    CreatedBy = userId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                order.Items.Add(item);
-                subtotal += lineAfterDiscount;
-                totalTaxAmount += lineTaxAmount;
+                // Crear items de la orden
+                decimal subtotal = 0;
+                decimal totalTaxAmount = 0;
+                int lineNumber = 1;
+
+                foreach (var itemDto in dto.Items)
+                {
+                    // Calcular totales de la línea
+                    var lineSubtotal = itemDto.Quantity * itemDto.UnitCost;
+                    var discountAmount = lineSubtotal * (itemDto.DiscountPercentage / 100);
+                    var lineAfterDiscount = lineSubtotal - discountAmount;
+                    var lineTaxAmount = lineAfterDiscount * (itemDto.TaxRate / 100);
+                    var lineTotal = lineAfterDiscount + lineTaxAmount;
+
+                    var item = new PurchaseOrderItem
+                    {
+                        Id = Guid.NewGuid(),
+                        PurchaseOrderId = order.Id,
+                        LineNumber = lineNumber++,
+                        ProductId = itemDto.ProductId,
+                        ProductVariantId = itemDto.ProductVariantId,
+                        Description = itemDto.Description,
+                        Quantity = itemDto.Quantity,
+                        UnitCost = itemDto.UnitCost,
+                        DiscountPercentage = itemDto.DiscountPercentage,
+                        DiscountAmount = discountAmount,
+                        TaxRate = itemDto.TaxRate,
+                        TaxAmount = lineTaxAmount,
+                        LineTotal = lineTotal,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    order.Items.Add(item);
+                    subtotal += lineAfterDiscount;
+                    totalTaxAmount += lineTaxAmount;
+                }
+
+                // Actualizar totales de la orden
+                order.Subtotal = subtotal;
+                order.TaxAmount = totalTaxAmount;
+                order.TotalAmount = subtotal + totalTaxAmount;
+
+                _context.PurchaseOrders.Add(order);
+                await _context.SaveChangesAsync();
+
+                return await GetPurchaseOrderByIdAsync(order.Id, organizationId)
+                    ?? throw new Exception("Error al recuperar la orden de compra creada");
             }
-
-            // Actualizar totales de la orden
-            order.Subtotal = subtotal;
-            order.TaxAmount = totalTaxAmount;
-            order.TotalAmount = subtotal + totalTaxAmount;
-
-            _context.PurchaseOrders.Add(order);
-            await _context.SaveChangesAsync();
-
-            return await GetPurchaseOrderByIdAsync(order.Id, organizationId)
-                ?? throw new Exception("Error al recuperar la orden de compra creada");
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         /// <summary>

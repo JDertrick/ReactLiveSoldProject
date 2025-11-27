@@ -117,65 +117,72 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             Guid userId,
             CreatePaymentDto dto)
         {
-            // 1. Validar que el vendor existe
-            var vendor = await ValidateVendorExists(dto.VendorId, organizationId);
-
-            // 2. Validar que la cuenta bancaria de la empresa existe
-            var companyBankAccount = await ValidateCompanyBankAccount(dto.CompanyBankAccountId, organizationId);
-
-            // 3. Validar que hay suficiente saldo en la cuenta bancaria
-            ValidateBankAccountBalance(companyBankAccount, dto.AmountPaid);
-
-            // 4. Validar las aplicaciones de pago a facturas
-            await ValidatePaymentApplications(dto.InvoiceApplications, dto.VendorId, dto.AmountPaid, organizationId);
-
-            // 5. Generar número de pago
-            var paymentNumber = await GeneratePaymentNumberAsync(organizationId);
-
-            // 6. Crear el registro Payment
-            var payment = new Payment
+            try
             {
-                Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
-                PaymentNumber = paymentNumber,
-                PaymentDate = dto.PaymentDate,
-                VendorId = dto.VendorId,
-                PaymentMethod = dto.PaymentMethod,
-                CompanyBankAccountId = dto.CompanyBankAccountId,
-                VendorBankAccountId = dto.VendorBankAccountId,
-                AmountPaid = dto.AmountPaid,
-                Currency = dto.Currency,
-                ExchangeRate = dto.ExchangeRate,
-                ReferenceNumber = dto.ReferenceNumber,
-                Notes = dto.Notes,
-                Status = PaymentStatus.Posted,
-                CreatedBy = userId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                // 1. Validar que el vendor existe
+                var vendor = await ValidateVendorExists(dto.VendorId, organizationId);
 
-            _context.Payments.Add(payment);
+                // 2. Validar que la cuenta bancaria de la empresa existe
+                var companyBankAccount = await ValidateCompanyBankAccount(dto.CompanyBankAccountId, organizationId);
 
-            // 7. Aplicar el pago a las facturas
-            await ApplyPaymentToInvoices(payment.Id, dto.InvoiceApplications);
+                // 3. Validar que hay suficiente saldo en la cuenta bancaria
+                ValidateBankAccountBalance(companyBankAccount, dto.AmountPaid);
 
-            // 8. Actualizar saldo de cuenta bancaria
-            await UpdateCompanyBankAccountBalance(dto.CompanyBankAccountId, -dto.AmountPaid);
+                // 4. Validar las aplicaciones de pago a facturas
+                await ValidatePaymentApplications(dto.InvoiceApplications, dto.VendorId, dto.AmountPaid, organizationId);
 
-            // 9. Generar asiento contable automático
-            var journalEntry = await GeneratePaymentJournalEntry(
-                payment,
-                organizationId,
-                userId,
-                dto.GLAccountsPayableId);
+                // 5. Generar número de pago
+                var paymentNumber = await GeneratePaymentNumberAsync(organizationId);
 
-            // 10. Vincular el asiento contable al pago
-            payment.PaymentJournalEntryId = journalEntry.Id;
+                // 6. Crear el registro Payment
+                var payment = new Payment
+                {
+                    Id = Guid.NewGuid(),
+                    OrganizationId = organizationId,
+                    PaymentNumber = paymentNumber,
+                    PaymentDate = DateTime.SpecifyKind(dto.PaymentDate, DateTimeKind.Utc),
+                    VendorId = dto.VendorId,
+                    PaymentMethod = dto.PaymentMethod,
+                    CompanyBankAccountId = dto.CompanyBankAccountId,
+                    VendorBankAccountId = dto.VendorBankAccountId,
+                    AmountPaid = dto.AmountPaid,
+                    Currency = dto.Currency,
+                    ExchangeRate = dto.ExchangeRate,
+                    ReferenceNumber = dto.ReferenceNumber,
+                    Notes = dto.Notes,
+                    Status = PaymentStatus.Posted,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
-            await _context.SaveChangesAsync();
+                _context.Payments.Add(payment);
 
-            return await GetPaymentByIdAsync(payment.Id, organizationId)
-                ?? throw new Exception("Error al recuperar el pago creado");
+                // 7. Aplicar el pago a las facturas
+                await ApplyPaymentToInvoices(payment.Id, dto.InvoiceApplications);
+
+                // 8. Actualizar saldo de cuenta bancaria
+                await UpdateCompanyBankAccountBalance(dto.CompanyBankAccountId, -dto.AmountPaid);
+
+                // 9. Generar asiento contable automático
+                var journalEntry = await GeneratePaymentJournalEntry(
+                    payment,
+                    organizationId,
+                    userId,
+                    dto.GLAccountsPayableId);
+
+                // 10. Vincular el asiento contable al pago
+                payment.PaymentJournalEntryId = journalEntry.Id;
+
+                await _context.SaveChangesAsync();
+
+                return await GetPaymentByIdAsync(payment.Id, organizationId)
+                    ?? throw new Exception("Error al recuperar el pago creado");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         #endregion

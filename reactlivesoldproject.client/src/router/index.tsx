@@ -33,9 +33,17 @@ import InventoryAuditCountPage from "../pages/app/InventoryAuditCount";
 
 // Purchase Pages
 import PurchaseOrdersPage from "../pages/app/PurchaseOrders";
+import PurchaseOrderForm from "../pages/app/PurchaseOrderForm";
 import PurchaseReceiptsPage from "../pages/app/PurchaseReceipts";
+import PurchaseReceiptForm from "../pages/app/PurchaseReceiptForm";
+import PurchaseReceiptDetail from "../pages/app/PurchaseReceiptDetail";
 import VendorInvoicesPage from "../pages/app/VendorInvoices";
+import VendorInvoiceForm from "../pages/app/VendorInvoiceForm";
 import PaymentsPage from "../pages/app/Payments";
+import PaymentForm from "../pages/app/PaymentForm";
+import CompanyBankAccountsPage from "../pages/app/CompanyBankAccounts";
+import PaymentTermsPage from "../pages/app/PaymentTerms";
+import ProductVendorsPage from "../pages/app/ProductVendors";
 
 // Portal Pages (Customer)
 import CustomerDashboard from "../pages/portal/Dashboard";
@@ -186,16 +194,68 @@ export const router = createBrowserRouter([
         element: <PurchaseOrdersPage />,
       },
       {
+        path: "purchase-orders/new",
+        element: <PurchaseOrderForm />,
+      },
+      {
+        path: "purchase-orders/:id",
+        element: <PurchaseOrderForm />,
+      },
+      {
+        path: "purchase-orders/:id/edit",
+        element: <PurchaseOrderForm />,
+      },
+      {
         path: "purchase-receipts",
         element: <PurchaseReceiptsPage />,
+      },
+      {
+        path: "purchase-receipts/new",
+        element: <PurchaseReceiptForm />,
+      },
+      {
+        path: "purchase-receipts/:id",
+        element: <PurchaseReceiptDetail />,
+      },
+      {
+        path: "purchase-receipts/:id/edit",
+        element: <PurchaseReceiptForm />,
       },
       {
         path: "vendor-invoices",
         element: <VendorInvoicesPage />,
       },
       {
+        path: "vendor-invoices/new",
+        element: <VendorInvoiceForm />,
+      },
+      {
+        path: "vendor-invoices/:id",
+        element: <VendorInvoiceForm />,
+      },
+      {
         path: "payments",
         element: <PaymentsPage />,
+      },
+      {
+        path: "payments/new",
+        element: <PaymentForm />,
+      },
+      {
+        path: "payments/:id",
+        element: <PaymentForm />,
+      },
+      {
+        path: "company-bank-accounts",
+        element: <CompanyBankAccountsPage />,
+      },
+      {
+        path: "payment-terms",
+        element: <PaymentTermsPage />,
+      },
+      {
+        path: "product-vendors",
+        element: <ProductVendorsPage />,
       },
     ],
   },

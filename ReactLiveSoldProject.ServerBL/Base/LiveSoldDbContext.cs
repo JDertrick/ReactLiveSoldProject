@@ -997,6 +997,28 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .HasForeignKey(poi => poi.ProductVariantId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
+            // --- CONFIGURACIÓN MÓDULO DE COMPRAS ---
+
+            // PurchaseOrder - Configurar la FK para CreatedBy -> CreatedByUserId
+            modelBuilder.Entity<PurchaseOrder>(e =>
+            {
+                e.HasOne(po => po.CreatedByUser)
+                    .WithMany()
+                    .HasForeignKey(po => po.CreatedBy)
+                    .HasConstraintName("FK_PurchaseOrders_Users_CreatedByUserId")
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // PurchaseReceipt - Configurar la FK para ReceivedBy -> ReceivedByUserId
+            modelBuilder.Entity<PurchaseReceipt>(e =>
+            {
+                e.HasOne(pr => pr.ReceivedByUser)
+                    .WithMany()
+                    .HasForeignKey(pr => pr.ReceivedBy)
+                    .HasConstraintName("FK_PurchaseReceipts_Users_ReceivedByUserId")
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

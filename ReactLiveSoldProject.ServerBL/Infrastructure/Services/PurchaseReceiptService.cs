@@ -93,64 +93,71 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             Guid userId,
             CreatePurchaseReceiptDto dto)
         {
-            // Validar que el proveedor exista y pertenezca a la organización
-            var vendor = await _context.Set<Vendor>()
-                .FirstOrDefaultAsync(v => v.Id == dto.VendorId && v.OrganizationId == organizationId);
-
-            if (vendor == null)
-                throw new InvalidOperationException("El proveedor no existe o no pertenece a esta organización");
-
-            // Generar número de recepción
-            var receiptNumber = await GenerateReceiptNumberAsync(organizationId);
-
-            // Crear recepción
-            var receipt = new PurchaseReceipt
+            try
             {
-                Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
-                ReceiptNumber = receiptNumber,
-                PurchaseOrderId = dto.PurchaseOrderId,
-                VendorId = dto.VendorId,
-                ReceiptDate = dto.ReceiptDate,
-                Status = PurchaseReceiptStatus.Pending,
-                WarehouseLocationId = dto.WarehouseLocationId,
-                ReceivedBy = userId,
-                Notes = dto.Notes,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                // Validar que el proveedor exista y pertenezca a la organización
+                var vendor = await _context.Set<Vendor>()
+                    .FirstOrDefaultAsync(v => v.Id == dto.VendorId && v.OrganizationId == organizationId);
 
-            _context.Set<PurchaseReceipt>().Add(receipt);
+                if (vendor == null)
+                    throw new InvalidOperationException("El proveedor no existe o no pertenece a esta organización");
 
-            // Crear items de recepción
-            foreach (var itemDto in dto.Items)
-            {
-                var item = new PurchaseItem
+                // Generar número de recepción
+                var receiptNumber = await GenerateReceiptNumberAsync(organizationId);
+
+                // Crear recepción
+                var receipt = new PurchaseReceipt
                 {
                     Id = Guid.NewGuid(),
-                    LineNumber = itemDto.LineNumber,
-                    PurchaseReceiptId = receipt.Id,
-                    ProductId = itemDto.ProductId,
-                    ProductVariantId = itemDto.ProductVariantId,
-                    Description = itemDto.Description,
-                    QuantityReceived = itemDto.QuantityReceived,
-                    UnitCost = itemDto.UnitCost,
-                    DiscountPercentage = itemDto.DiscountPercentage,
-                    TaxRate = itemDto.TaxRate,
-                    GLInventoryAccountId = itemDto.GLInventoryAccountId,
-                    CreatedAt = DateTime.UtcNow
+                    OrganizationId = organizationId,
+                    ReceiptNumber = receiptNumber,
+                    PurchaseOrderId = dto.PurchaseOrderId,
+                    VendorId = dto.VendorId,
+                    ReceiptDate = DateTime.SpecifyKind(dto.ReceiptDate, DateTimeKind.Utc),
+                    Status = PurchaseReceiptStatus.Pending,
+                    WarehouseLocationId = dto.WarehouseLocationId,
+                    ReceivedBy = userId,
+                    Notes = dto.Notes,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
 
-                // Calcular montos
-                CalculateItemAmounts(item);
+                _context.Set<PurchaseReceipt>().Add(receipt);
 
-                _context.Set<PurchaseItem>().Add(item);
+                // Crear items de recepción
+                foreach (var itemDto in dto.Items)
+                {
+                    var item = new PurchaseItem
+                    {
+                        Id = Guid.NewGuid(),
+                        LineNumber = itemDto.LineNumber,
+                        PurchaseReceiptId = receipt.Id,
+                        ProductId = itemDto.ProductId,
+                        ProductVariantId = itemDto.ProductVariantId,
+                        Description = itemDto.Description,
+                        QuantityReceived = itemDto.QuantityReceived,
+                        UnitCost = itemDto.UnitCost,
+                        DiscountPercentage = itemDto.DiscountPercentage,
+                        TaxRate = itemDto.TaxRate,
+                        GLInventoryAccountId = itemDto.GLInventoryAccountId,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    // Calcular montos
+                    CalculateItemAmounts(item);
+
+                    _context.Set<PurchaseItem>().Add(item);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return await GetPurchaseReceiptByIdAsync(receipt.Id, organizationId)
+                    ?? throw new InvalidOperationException("Error al crear la recepción");
             }
-
-            await _context.SaveChangesAsync();
-
-            return await GetPurchaseReceiptByIdAsync(receipt.Id, organizationId)
-                ?? throw new InvalidOperationException("Error al crear la recepción");
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         /// <summary>

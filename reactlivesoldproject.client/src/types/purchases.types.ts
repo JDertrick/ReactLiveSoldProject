@@ -10,6 +10,7 @@ export enum PurchaseOrderStatus {
 
 export enum PurchaseReceiptStatus {
   Draft = 'Draft',
+  Pending = 'Pending',
   Received = 'Received',
   Posted = 'Posted',
   Cancelled = 'Cancelled'

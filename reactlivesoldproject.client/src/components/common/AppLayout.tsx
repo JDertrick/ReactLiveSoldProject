@@ -39,6 +39,9 @@ import {
   Package,
   Truck,
   DollarSign,
+  CreditCard,
+  Calendar,
+  Link as LinkIcon,
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
@@ -240,6 +243,26 @@ const AppLayout = () => {
           name: "Pagos",
           path: "/app/payments",
           icon: <DollarSign size={20} />,
+        },
+      ],
+    },
+    {
+      group: "CONFIG. COMPRAS",
+      items: [
+        {
+          name: "Cuentas Bancarias",
+          path: "/app/company-bank-accounts",
+          icon: <CreditCard size={20} />,
+        },
+        {
+          name: "Términos de Pago",
+          path: "/app/payment-terms",
+          icon: <Calendar size={20} />,
+        },
+        {
+          name: "Producto-Proveedor",
+          path: "/app/product-vendors",
+          icon: <LinkIcon size={20} />,
         },
       ],
     },

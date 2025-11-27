@@ -113,8 +113,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 VendorInvoiceReference = dto.VendorInvoiceReference,
                 PurchaseReceiptId = dto.PurchaseReceiptId,
                 VendorId = dto.VendorId,
-                InvoiceDate = dto.InvoiceDate,
-                DueDate = dto.DueDate,
+                InvoiceDate = DateTime.SpecifyKind(dto.InvoiceDate, DateTimeKind.Utc),
+                DueDate = DateTime.SpecifyKind(dto.DueDate, DateTimeKind.Utc),
                 Subtotal = dto.Subtotal,
                 TaxAmount = dto.TaxAmount,
                 TotalAmount = dto.TotalAmount,
@@ -152,8 +152,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 throw new Exception("No se puede actualizar una factura que ya está pagada");
 
             invoice.VendorInvoiceReference = dto.VendorInvoiceReference;
-            invoice.InvoiceDate = dto.InvoiceDate;
-            invoice.DueDate = dto.DueDate;
+            invoice.InvoiceDate = DateTime.SpecifyKind(dto.InvoiceDate, DateTimeKind.Utc);
+            invoice.DueDate = DateTime.SpecifyKind(dto.DueDate, DateTimeKind.Utc);
             invoice.Subtotal = dto.Subtotal;
             invoice.TaxAmount = dto.TaxAmount;
             invoice.TotalAmount = dto.TotalAmount;

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReactLiveSoldProject.ServerBL.Base;
@@ -11,9 +12,11 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    partial class LiveSoldDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251127165113_4")]
+    partial class _4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2237,6 +2240,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Property<Guid>("ReceivedBy")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("ReceivedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("ReceivingJournalEntryId")
                         .HasColumnType("uuid");
 
@@ -2258,7 +2264,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasIndex("PurchaseOrderId");
 
-                    b.HasIndex("ReceivedBy");
+                    b.HasIndex("ReceivedByUserId");
 
                     b.HasIndex("ReceivingJournalEntryId");
 
@@ -3377,8 +3383,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .WithMany()
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_PurchaseOrders_Users_CreatedByUserId");
+                        .IsRequired();
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.Organization", "Organization")
                         .WithMany()
@@ -3446,10 +3451,9 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Authentication.User", "ReceivedByUser")
                         .WithMany()
-                        .HasForeignKey("ReceivedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_PurchaseReceipts_Users_ReceivedByUserId");
+                        .HasForeignKey("ReceivedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ReactLiveSoldProject.ServerBL.Models.Accounting.JournalEntry", "ReceivingJournalEntry")
                         .WithMany()
