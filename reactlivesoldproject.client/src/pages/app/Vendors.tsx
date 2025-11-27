@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useGetVendors,
   useDeleteVendor,
@@ -28,6 +29,10 @@ import {
   Edit,
   Trash2,
   Building2,
+  ShoppingCart,
+  FileText,
+  DollarSign,
+  Truck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,6 +46,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import VendorForm from "@/components/vendors/VendorForm";
@@ -61,6 +67,7 @@ import {
 const columnHelper = createColumnHelper<Vendor>();
 
 const VendorsPage = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'active', 'inactive'
 
@@ -192,6 +199,36 @@ const VendorsPage = () => {
               >
                 <Edit className="mr-2 h-4 w-4" /> Editar Proveedor
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(`/app/purchase-orders?vendorId=${info.row.original.id}`)
+                }
+              >
+                <ShoppingCart className="mr-2 h-4 w-4" /> Ver Órdenes de Compra
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(`/app/purchase-receipts?vendorId=${info.row.original.id}`)
+                }
+              >
+                <Truck className="mr-2 h-4 w-4" /> Ver Recepciones
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(`/app/vendor-invoices?vendorId=${info.row.original.id}`)
+                }
+              >
+                <FileText className="mr-2 h-4 w-4" /> Ver Facturas
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(`/app/payments?vendorId=${info.row.original.id}`)
+                }
+              >
+                <DollarSign className="mr-2 h-4 w-4" /> Ver Pagos
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => handleDeleteClick(info.row.original)}
                 className="text-red-600"

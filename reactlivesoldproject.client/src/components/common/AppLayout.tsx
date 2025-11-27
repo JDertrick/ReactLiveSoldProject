@@ -37,6 +37,8 @@ import {
   ClipboardCheck,
   Contact,
   Package,
+  Truck,
+  DollarSign,
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
@@ -213,6 +215,31 @@ const AppLayout = () => {
           name: "Contabilidad",
           path: "/app/accounting",
           icon: <FileText size={20} />,
+        },
+      ],
+    },
+    {
+      group: "COMPRAS",
+      items: [
+        {
+          name: "Órdenes de Compra",
+          path: "/app/purchase-orders",
+          icon: <ShoppingCart size={20} />,
+        },
+        {
+          name: "Recepciones",
+          path: "/app/purchase-receipts",
+          icon: <Truck size={20} />,
+        },
+        {
+          name: "Facturas Proveedor",
+          path: "/app/vendor-invoices",
+          icon: <FileText size={20} />,
+        },
+        {
+          name: "Pagos",
+          path: "/app/payments",
+          icon: <DollarSign size={20} />,
         },
       ],
     },

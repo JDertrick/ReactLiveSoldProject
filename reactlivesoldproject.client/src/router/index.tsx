@@ -31,6 +31,12 @@ import InventoryAuditPage from "../pages/app/InventoryAudit";
 import InventoryAuditDetailPage from "../pages/app/InventoryAuditDetail";
 import InventoryAuditCountPage from "../pages/app/InventoryAuditCount";
 
+// Purchase Pages
+import PurchaseOrdersPage from "../pages/app/PurchaseOrders";
+import PurchaseReceiptsPage from "../pages/app/PurchaseReceipts";
+import VendorInvoicesPage from "../pages/app/VendorInvoices";
+import PaymentsPage from "../pages/app/Payments";
+
 // Portal Pages (Customer)
 import CustomerDashboard from "../pages/portal/Dashboard";
 import CustomerOrders from "../pages/portal/Orders";
@@ -173,6 +179,23 @@ export const router = createBrowserRouter([
       {
         path: "accounting",
         element: <AccountingPage />,
+      },
+      // Purchase Module Routes
+      {
+        path: "purchase-orders",
+        element: <PurchaseOrdersPage />,
+      },
+      {
+        path: "purchase-receipts",
+        element: <PurchaseReceiptsPage />,
+      },
+      {
+        path: "vendor-invoices",
+        element: <VendorInvoicesPage />,
+      },
+      {
+        path: "payments",
+        element: <PaymentsPage />,
       },
     ],
   },
