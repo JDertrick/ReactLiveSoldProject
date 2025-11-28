@@ -71,10 +71,10 @@ const AccountConfigurationPage = () => {
     e.preventDefault();
 
     try {
-      // Filtrar campos vacíos para no enviar strings vacíos
+      // Filtrar campos vacíos y 'none' para no enviar valores inválidos
       const cleanData: any = {};
       Object.entries(formData).forEach(([key, value]) => {
-        if (value && value !== '') {
+        if (value && value !== '' && value !== 'none') {
           cleanData[key] = value;
         }
       });
@@ -90,8 +90,8 @@ const AccountConfigurationPage = () => {
     Asset: chartOfAccounts.filter((acc) => acc.accountType === 'Asset'),
     Liability: chartOfAccounts.filter((acc) => acc.accountType === 'Liability'),
     Equity: chartOfAccounts.filter((acc) => acc.accountType === 'Equity'),
-    Income: chartOfAccounts.filter((acc) => acc.accountType === 'Income'),
-    Expense: chartOfAccounts.filter((acc) => acc.accountType === 'Expense'),
+    Income: chartOfAccounts.filter((acc) => acc.accountType === 'Revenue'),
+    Expense: chartOfAccounts.filter((acc) => acc.accountType === 'Expense' || acc.accountType === 'CostOfGoodsSold'),
   };
 
   if (loading || loadingAccounts) {

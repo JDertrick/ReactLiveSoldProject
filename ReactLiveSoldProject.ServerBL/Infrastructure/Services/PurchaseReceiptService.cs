@@ -198,33 +198,40 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             Guid userId,
             ReceivePurchaseDto dto)
         {
-            // 1. Obtener la recepción con todos sus datos
-            var receipt = await GetReceiptForProcessing(dto.PurchaseReceiptId, organizationId);
+            try
+            {
+                // 1. Obtener la recepción con todos sus datos
+                var receipt = await GetReceiptForProcessing(dto.PurchaseReceiptId, organizationId);
 
-            // 2. Validar que se puede recibir
-            ValidateReceiptCanBeReceived(receipt);
+                // 2. Validar que se puede recibir
+                ValidateReceiptCanBeReceived(receipt);
 
-            // 3. Procesar cada item: StockMovement + StockBatch + Actualizar inventario
-            await ProcessReceiptItems(receipt, userId);
+                // 3. Procesar cada item: StockMovement + StockBatch + Actualizar inventario
+                await ProcessReceiptItems(receipt, userId);
 
-            // 4. Generar asiento contable automático
-            var journalEntry = await GenerateReceivingJournalEntry(
-                receipt,
-                organizationId,
-                userId,
-                dto.DefaultGLInventoryAccountId,
-                dto.DefaultGLAccountsPayableId,
-                dto.DefaultGLTaxAccountId);
+                // 4. Generar asiento contable automático
+                var journalEntry = await GenerateReceivingJournalEntry(
+                    receipt,
+                    organizationId,
+                    userId,
+                    dto.DefaultGLInventoryAccountId,
+                    dto.DefaultGLAccountsPayableId,
+                    dto.DefaultGLTaxAccountId);
 
-            // 5. Actualizar estado de la recepción
-            receipt.Status = PurchaseReceiptStatus.Received;
-            receipt.ReceivingJournalEntryId = journalEntry.Id;
-            receipt.UpdatedAt = DateTime.UtcNow;
+                // 5. Actualizar estado de la recepción
+                receipt.Status = PurchaseReceiptStatus.Received;
+                receipt.ReceivingJournalEntryId = journalEntry.Id;
+                receipt.UpdatedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            return await GetPurchaseReceiptByIdAsync(receipt.Id, organizationId)
-                ?? throw new InvalidOperationException("Error al procesar la recepción");
+                return await GetPurchaseReceiptByIdAsync(receipt.Id, organizationId)
+                    ?? throw new InvalidOperationException("Error al procesar la recepción");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         #endregion
@@ -285,11 +292,41 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         /// </summary>
         private async Task CreateStockMovement(PurchaseReceipt receipt, PurchaseItem item, Guid userId)
         {
+            // Obtener el ProductVariantId correcto
+            Guid productVariantId;
+            if (item.ProductVariantId.HasValue)
+            {
+                productVariantId = item.ProductVariantId.Value;
+            }
+            else
+            {
+                // Para productos sin variante especificada, buscar la variante por defecto
+                // Primero intentar buscar la variante primaria
+                var defaultVariant = await _context.Set<ProductVariant>()
+                    .FirstOrDefaultAsync(pv => pv.ProductId == item.ProductId && pv.IsPrimary);
+
+                // Si no hay variante primaria, buscar la primera variante disponible
+                if (defaultVariant == null)
+                {
+                    defaultVariant = await _context.Set<ProductVariant>()
+                        .FirstOrDefaultAsync(pv => pv.ProductId == item.ProductId);
+                }
+
+                if (defaultVariant == null)
+                {
+                    throw new InvalidOperationException(
+                        $"No se encontró ninguna variante para el producto {item.Product?.Name ?? item.ProductId.ToString()}. " +
+                        "El producto debe tener al menos una variante.");
+                }
+
+                productVariantId = defaultVariant.Id;
+            }
+
             var movement = new StockMovement
             {
                 Id = Guid.NewGuid(),
                 OrganizationId = receipt.OrganizationId,
-                ProductVariantId = item.ProductVariantId ?? Guid.Empty,
+                ProductVariantId = productVariantId,
                 MovementType = StockMovementType.Purchase,
                 Quantity = item.QuantityReceived,
                 StockBefore = 0, // Se actualizará con el stock actual antes del movimiento
@@ -314,11 +351,34 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         /// </summary>
         private async Task CreateStockBatch(PurchaseReceipt receipt, PurchaseItem item)
         {
+            // Obtener el ProductVariantId correcto
+            Guid? productVariantId = item.ProductVariantId;
+
+            if (!productVariantId.HasValue)
+            {
+                // Para productos sin variante especificada, buscar la variante por defecto
+                // Primero intentar buscar la variante primaria
+                var defaultVariant = await _context.Set<ProductVariant>()
+                    .FirstOrDefaultAsync(pv => pv.ProductId == item.ProductId && pv.IsPrimary);
+
+                // Si no hay variante primaria, buscar la primera variante disponible
+                if (defaultVariant == null)
+                {
+                    defaultVariant = await _context.Set<ProductVariant>()
+                        .FirstOrDefaultAsync(pv => pv.ProductId == item.ProductId);
+                }
+
+                if (defaultVariant != null)
+                {
+                    productVariantId = defaultVariant.Id;
+                }
+            }
+
             var batch = new StockBatch
             {
                 Id = Guid.NewGuid(),
                 ProductId = item.ProductId,
-                ProductVariantId = item.ProductVariantId,
+                ProductVariantId = productVariantId,
                 PurchaseReceiptId = receipt.Id,
                 QuantityRemaining = item.QuantityReceived,
                 UnitCost = item.UnitCost,
@@ -338,29 +398,38 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         /// </summary>
         private async Task UpdateProductStock(Guid productId, Guid? variantId, int quantity)
         {
+            ProductVariant? variant = null;
+
             if (variantId.HasValue)
             {
-                // Actualizar stock de la variante
-                var variant = await _context.Set<ProductVariant>()
+                // Actualizar stock de la variante específica
+                variant = await _context.Set<ProductVariant>()
                     .FirstOrDefaultAsync(pv => pv.Id == variantId.Value);
-
-                if (variant != null)
-                {
-                    variant.StockQuantity += quantity;
-                    variant.UpdatedAt = DateTime.UtcNow;
-                }
             }
             else
             {
-                // Actualizar stock del producto
-                var product = await _context.Set<Product>()
-                    .FirstOrDefaultAsync(p => p.Id == productId);
+                // Para productos sin variante especificada, buscar la variante por defecto
+                // Primero intentar buscar la variante primaria
+                variant = await _context.Set<ProductVariant>()
+                    .FirstOrDefaultAsync(pv => pv.ProductId == productId && pv.IsPrimary);
 
-                if (product != null)
+                // Si no hay variante primaria, buscar la primera variante disponible
+                if (variant == null)
                 {
-                    // Nota: Product no tiene StockQuantity directo, se maneja por variantes
-                    // Si tu modelo de Product tiene stock directo, agrégalo aquí
+                    variant = await _context.Set<ProductVariant>()
+                        .FirstOrDefaultAsync(pv => pv.ProductId == productId);
                 }
+            }
+
+            if (variant != null)
+            {
+                variant.StockQuantity += quantity;
+                variant.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"No se encontró ninguna variante del producto para actualizar el stock. ProductId: {productId}, VariantId: {variantId}");
             }
         }
 
@@ -384,11 +453,15 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 var taxAmount = receipt.PurchaseItems.Sum(i => i.TaxAmount);
                 var total = subtotal + taxAmount;
 
+                // Generar el número de asiento contable
+                var entryNumber = await GenerateJournalEntryNumberAsync(organizationId);
+
                 // Crear el Journal Entry
                 var journalEntry = new JournalEntry
                 {
                     Id = Guid.NewGuid(),
                     OrganizationId = organizationId,
+                    EntryNumber = entryNumber,
                     EntryDate = receipt.ReceiptDate,
                     Description = $"Recepción de compra {receipt.ReceiptNumber} - Proveedor: {receipt.Vendor?.Contact?.Company ?? "N/A"}",
                     ReferenceNumber = receipt.ReceiptNumber,
@@ -396,6 +469,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     DocumentNumber = receipt.ReceiptNumber,
                     VendorId = receipt.VendorId,
                     PostedBy = userId,
+                    PostedDate = DateTime.UtcNow,
+                    CreatedBy = userId,
                     Currency = "MXN",
                     CreatedAt = DateTime.UtcNow
                 };
@@ -564,6 +639,33 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             }
 
             return $"RCV-{nextNumber:D5}";
+        }
+
+        /// <summary>
+        /// Genera un número de asiento contable único en formato JE-YYYY-000001
+        /// </summary>
+        private async Task<string> GenerateJournalEntryNumberAsync(Guid organizationId)
+        {
+            var currentYear = DateTime.UtcNow.Year;
+            var prefix = $"JE-{currentYear}-";
+
+            var lastEntry = await _context.Set<JournalEntry>()
+                .Where(je => je.OrganizationId == organizationId && je.EntryNumber.StartsWith(prefix))
+                .OrderByDescending(je => je.EntryNumber)
+                .FirstOrDefaultAsync();
+
+            int nextNumber = 1;
+            if (lastEntry != null)
+            {
+                // Extraer el número de la parte final (JE-2025-000001 -> 000001)
+                var numberPart = lastEntry.EntryNumber.Substring(prefix.Length);
+                if (int.TryParse(numberPart, out int lastNumber))
+                {
+                    nextNumber = lastNumber + 1;
+                }
+            }
+
+            return $"{prefix}{nextNumber:D6}";
         }
 
         /// <summary>
