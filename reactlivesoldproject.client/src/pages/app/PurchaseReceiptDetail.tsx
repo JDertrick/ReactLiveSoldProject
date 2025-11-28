@@ -1,38 +1,63 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePurchaseReceipts } from '../../hooks/usePurchaseReceipts';
-import { PurchaseReceiptDto, PurchaseReceiptStatus } from '../../types/purchases.types';
+import { PurchaseReceiptDto, PurchaseReceiptStatus, ReceivePurchaseDto } from '../../types/purchases.types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Package, FileText, MapPin, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Package, FileText, MapPin, Calendar, User, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 const PurchaseReceiptDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { getPurchaseReceiptById } = usePurchaseReceipts();
+  const { getPurchaseReceiptById, receivePurchase } = usePurchaseReceipts();
 
   const [receipt, setReceipt] = useState<PurchaseReceiptDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [receiving, setReceiving] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      setLoading(true);
-      getPurchaseReceiptById(id)
-        .then((data) => {
-          setReceipt(data);
-        })
-        .catch((error) => {
-          console.error('Error al cargar recepción:', error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+    loadReceipt();
+  }, [id]);
+
+  const loadReceipt = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const data = await getPurchaseReceiptById(id);
+      setReceipt(data);
+    } catch (error) {
+      console.error('Error al cargar recepción:', error);
+      toast.error('Error al cargar la recepción');
+    } finally {
+      setLoading(false);
     }
-  }, [id, getPurchaseReceiptById]);
+  };
+
+  const handleReceivePurchase = async () => {
+    if (!id || !receipt) return;
+
+    setReceiving(true);
+    try {
+      const receiveData: ReceivePurchaseDto = {
+        purchaseReceiptId: id,
+      };
+
+      await receivePurchase(id, receiveData);
+      toast.success('Mercancía recibida exitosamente. El inventario ha sido actualizado.');
+
+      // Reload receipt to show updated status
+      await loadReceipt();
+    } catch (error: any) {
+      toast.error(error.message || 'Error al recibir la mercancía');
+    } finally {
+      setReceiving(false);
+    }
+  };
 
   const getStatusBadge = (status: PurchaseReceiptStatus) => {
     const variants: Record<
@@ -83,11 +108,33 @@ const PurchaseReceiptDetail = () => {
         </div>
         <div className="flex gap-2">
           {receipt.status === PurchaseReceiptStatus.Pending && (
-            <Button variant="outline" onClick={() => navigate(`/app/purchase-receipts/${id}/edit`)}>
-              Editar
-            </Button>
+            <>
+              <Button
+                variant="default"
+                onClick={handleReceivePurchase}
+                disabled={receiving}
+                className="gap-2"
+              >
+                {receiving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    Recibir Mercancía
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => navigate(`/app/purchase-receipts/${id}/edit`)}>
+                Editar
+              </Button>
+            </>
           )}
-          <Button onClick={() => navigate('/app/purchase-receipts')}>Volver</Button>
+          <Button variant="outline" onClick={() => navigate('/app/purchase-receipts')}>
+            Volver
+          </Button>
         </div>
       </div>
 

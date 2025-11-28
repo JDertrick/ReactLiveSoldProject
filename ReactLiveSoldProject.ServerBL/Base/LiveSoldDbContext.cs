@@ -58,6 +58,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<ChartOfAccount> ChartOfAccounts { get; set; }
         public DbSet<JournalEntry> JournalEntries { get; set; }
         public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
+        public DbSet<OrganizationAccountConfiguration> OrganizationAccountConfigurations { get; set; }
 
         // BLOQUE 7: COMPRAS Y PAGOS
         public DbSet<PaymentTerms> PaymentTerms { get; set; }

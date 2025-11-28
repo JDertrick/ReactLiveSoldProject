@@ -42,6 +42,7 @@ import {
   CreditCard,
   Calendar,
   Link as LinkIcon,
+  Settings2,
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
@@ -223,6 +224,11 @@ const AppLayout = () => {
           name: "Catálogo de Cuentas",
           path: "/app/chart-of-accounts",
           icon: <BookCopy size={20} />,
+        },
+        {
+          name: "Configuración Contable",
+          path: "/app/account-configuration",
+          icon: <Settings2 size={20} />,
         },
       ],
     },

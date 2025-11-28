@@ -113,6 +113,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITaxService, TaxService>();
 builder.Services.AddScoped<IInventoryAuditService, InventoryAuditService>();
 builder.Services.AddScoped<IAccountingService, AccountingService>();
+builder.Services.AddScoped<IOrganizationAccountConfigurationService, OrganizationAccountConfigurationService>();
 builder.Services.AddScoped<IPurchaseReceiptService, PurchaseReceiptService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IVendorInvoiceService, VendorInvoiceService>();

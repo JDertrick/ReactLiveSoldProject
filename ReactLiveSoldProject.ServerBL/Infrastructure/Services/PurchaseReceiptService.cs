@@ -377,74 +377,81 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             Guid? defaultPayableAccountId,
             Guid? defaultTaxAccountId)
         {
-            // Calcular totales
-            var subtotal = receipt.PurchaseItems.Sum(i => i.QuantityReceived * i.UnitCost * (1 - i.DiscountPercentage / 100));
-            var taxAmount = receipt.PurchaseItems.Sum(i => i.TaxAmount);
-            var total = subtotal + taxAmount;
-
-            // Crear el Journal Entry
-            var journalEntry = new JournalEntry
+            try
             {
-                Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
-                EntryDate = receipt.ReceiptDate,
-                Description = $"Recepción de compra {receipt.ReceiptNumber} - Proveedor: {receipt.Vendor?.Contact?.Company ?? "N/A"}",
-                ReferenceNumber = receipt.ReceiptNumber,
-                DocumentType = "RECEIPT",
-                DocumentNumber = receipt.ReceiptNumber,
-                VendorId = receipt.VendorId,
-                PostedBy = userId,
-                Currency = "MXN",
-                CreatedAt = DateTime.UtcNow
-            };
+                // Calcular totales
+                var subtotal = receipt.PurchaseItems.Sum(i => i.QuantityReceived * i.UnitCost * (1 - i.DiscountPercentage / 100));
+                var taxAmount = receipt.PurchaseItems.Sum(i => i.TaxAmount);
+                var total = subtotal + taxAmount;
 
-            _context.Set<JournalEntry>().Add(journalEntry);
+                // Crear el Journal Entry
+                var journalEntry = new JournalEntry
+                {
+                    Id = Guid.NewGuid(),
+                    OrganizationId = organizationId,
+                    EntryDate = receipt.ReceiptDate,
+                    Description = $"Recepción de compra {receipt.ReceiptNumber} - Proveedor: {receipt.Vendor?.Contact?.Company ?? "N/A"}",
+                    ReferenceNumber = receipt.ReceiptNumber,
+                    DocumentType = "RECEIPT",
+                    DocumentNumber = receipt.ReceiptNumber,
+                    VendorId = receipt.VendorId,
+                    PostedBy = userId,
+                    Currency = "MXN",
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            // Obtener las cuentas contables
-            var inventoryAccount = await GetOrCreateInventoryAccount(organizationId, defaultInventoryAccountId);
-            var payableAccount = await GetOrCreatePayableAccount(organizationId, defaultPayableAccountId);
-            var taxAccount = taxAmount > 0 ? await GetOrCreateTaxAccount(organizationId, defaultTaxAccountId) : null;
+                _context.Set<JournalEntry>().Add(journalEntry);
 
-            // Línea 1: DEBE - Inventario
-            var line1 = new JournalEntryLine
-            {
-                Id = Guid.NewGuid(),
-                JournalEntryId = journalEntry.Id,
-                AccountId = inventoryAccount.Id,
-                DebitAmount = subtotal,
-                CreditAmount = 0,
-                Description = $"Inventario recibido - {receipt.ReceiptNumber}"
-            };
-            _context.Set<JournalEntryLine>().Add(line1);
+                // Obtener las cuentas contables
+                var inventoryAccount = await GetOrCreateInventoryAccount(organizationId, defaultInventoryAccountId);
+                var payableAccount = await GetOrCreatePayableAccount(organizationId, defaultPayableAccountId);
+                var taxAccount = taxAmount > 0 ? await GetOrCreateTaxAccount(organizationId, defaultTaxAccountId) : null;
 
-            // Línea 2: DEBE - IVA Acreditable (si aplica)
-            if (taxAmount > 0 && taxAccount != null)
-            {
-                var line2 = new JournalEntryLine
+                // Línea 1: DEBE - Inventario
+                var line1 = new JournalEntryLine
                 {
                     Id = Guid.NewGuid(),
                     JournalEntryId = journalEntry.Id,
-                    AccountId = taxAccount.Id,
-                    DebitAmount = taxAmount,
+                    AccountId = inventoryAccount.Id,
+                    DebitAmount = subtotal,
                     CreditAmount = 0,
-                    Description = "IVA Acreditable"
+                    Description = $"Inventario recibido - {receipt.ReceiptNumber}"
                 };
-                _context.Set<JournalEntryLine>().Add(line2);
+                _context.Set<JournalEntryLine>().Add(line1);
+
+                // Línea 2: DEBE - IVA Acreditable (si aplica)
+                if (taxAmount > 0 && taxAccount != null)
+                {
+                    var line2 = new JournalEntryLine
+                    {
+                        Id = Guid.NewGuid(),
+                        JournalEntryId = journalEntry.Id,
+                        AccountId = taxAccount.Id,
+                        DebitAmount = taxAmount,
+                        CreditAmount = 0,
+                        Description = "IVA Acreditable"
+                    };
+                    _context.Set<JournalEntryLine>().Add(line2);
+                }
+
+                // Línea 3: HABER - Cuentas por Pagar
+                var line3 = new JournalEntryLine
+                {
+                    Id = Guid.NewGuid(),
+                    JournalEntryId = journalEntry.Id,
+                    AccountId = payableAccount.Id,
+                    DebitAmount = 0,
+                    CreditAmount = total,
+                    Description = $"CxP Proveedor: {receipt.Vendor?.Contact?.Company ?? "N/A"}"
+                };
+                _context.Set<JournalEntryLine>().Add(line3);
+
+                return journalEntry;
             }
-
-            // Línea 3: HABER - Cuentas por Pagar
-            var line3 = new JournalEntryLine
+            catch (Exception ex)
             {
-                Id = Guid.NewGuid(),
-                JournalEntryId = journalEntry.Id,
-                AccountId = payableAccount.Id,
-                DebitAmount = 0,
-                CreditAmount = total,
-                Description = $"CxP Proveedor: {receipt.Vendor?.Contact?.Company ?? "N/A"}"
-            };
-            _context.Set<JournalEntryLine>().Add(line3);
-
-            return journalEntry;
+                throw ex;
+            }
         }
 
         /// <summary>
@@ -459,13 +466,22 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (account != null) return account;
             }
 
-            // Buscar cuenta por SystemAccountType
+            // Buscar en la configuración de la organización
+            var config = await _context.OrganizationAccountConfigurations
+                .Include(c => c.InventoryAccount)
+                .FirstOrDefaultAsync(c => c.OrganizationId == organizationId);
+
+            if (config?.InventoryAccount != null)
+                return config.InventoryAccount;
+
+            // Buscar cuenta por SystemAccountType como fallback
             var inventoryAccount = await _context.Set<ChartOfAccount>()
                 .FirstOrDefaultAsync(c => c.OrganizationId == organizationId &&
                                          c.SystemAccountType == SystemAccountType.Inventory);
 
             if (inventoryAccount == null)
-                throw new InvalidOperationException("No se encontró la cuenta contable de Inventario. Configure el plan de cuentas.");
+                throw new InvalidOperationException("No se encontró la cuenta contable de Inventario. " +
+                    "Por favor, configure las cuentas contables en 'Configuración Contable'.");
 
             return inventoryAccount;
         }
@@ -482,12 +498,22 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (account != null) return account;
             }
 
+            // Buscar en la configuración de la organización
+            var config = await _context.OrganizationAccountConfigurations
+                .Include(c => c.AccountsPayableAccount)
+                .FirstOrDefaultAsync(c => c.OrganizationId == organizationId);
+
+            if (config?.AccountsPayableAccount != null)
+                return config.AccountsPayableAccount;
+
+            // Buscar cuenta por SystemAccountType como fallback
             var payableAccount = await _context.Set<ChartOfAccount>()
                 .FirstOrDefaultAsync(c => c.OrganizationId == organizationId &&
                                          c.SystemAccountType == SystemAccountType.AccountsPayable);
 
             if (payableAccount == null)
-                throw new InvalidOperationException("No se encontró la cuenta contable de Cuentas por Pagar. Configure el plan de cuentas.");
+                throw new InvalidOperationException("No se encontró la cuenta contable de Cuentas por Pagar. " +
+                    "Por favor, configure las cuentas contables en 'Configuración Contable'.");
 
             return payableAccount;
         }
@@ -503,7 +529,15 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .FirstOrDefaultAsync(c => c.Id == accountId.Value && c.OrganizationId == organizationId);
             }
 
-            // Buscar cuenta de impuestos por código o nombre
+            // Buscar en la configuración de la organización
+            var config = await _context.OrganizationAccountConfigurations
+                .Include(c => c.TaxReceivableAccount)
+                .FirstOrDefaultAsync(c => c.OrganizationId == organizationId);
+
+            if (config?.TaxReceivableAccount != null)
+                return config.TaxReceivableAccount;
+
+            // Buscar cuenta de impuestos por código o nombre como fallback
             return await _context.Set<ChartOfAccount>()
                 .FirstOrDefaultAsync(c => c.OrganizationId == organizationId &&
                                          (c.AccountCode.Contains("1105") || c.AccountName.Contains("IVA Acreditable")));

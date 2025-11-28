@@ -11,12 +11,12 @@ export const usePurchaseReceipts = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPurchaseReceipts = useCallback(async (vendorId?: string, status?: string) => {
+  const fetchPurchaseReceipts = useCallback(async (searchTerm?: string, status?: string) => {
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
-      if (vendorId) params.append('vendorId', vendorId);
+      if (searchTerm) params.append('searchTerm', searchTerm);
       if (status) params.append('status', status);
 
       const response = await api.get<PurchaseReceiptDto[]>(
@@ -64,17 +64,20 @@ export const usePurchaseReceipts = () => {
     }
   }, []);
 
-  const receivePurchase = useCallback(async (data: ReceivePurchaseDto) => {
+  const receivePurchase = useCallback(async (id: string, data: ReceivePurchaseDto) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post<PurchaseReceiptDto>('/PurchaseReceipt/receive', data);
-      setPurchaseReceipts((prev) =>
-        prev.map((pr) => (pr.id === data.purchaseReceiptId ? response.data : pr))
+      const response = await api.post<{ message: string; receipt: PurchaseReceiptDto }>(
+        `/PurchaseReceipt/${id}/receive`,
+        data
       );
-      return response.data;
+      setPurchaseReceipts((prev) =>
+        prev.map((pr) => (pr.id === id ? response.data.receipt : pr))
+      );
+      return response.data.receipt;
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Error al recibir compra';
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Error al recibir compra';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {

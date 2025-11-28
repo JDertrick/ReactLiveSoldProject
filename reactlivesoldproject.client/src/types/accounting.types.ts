@@ -1,34 +1,36 @@
-export interface ChartOfAccountDto {
-    id: string;
-    accountCode: string;
-    accountName: string;
-    accountType: "Asset" | "Liability" | "Equity" | "Revenue" | "Expense";
-    systemAccountType?: string;
-    description: string;
-    isActive: boolean;
+export interface OrganizationAccountConfigurationDto {
+  id: string;
+  organizationId: string;
+  inventoryAccountId?: string;
+  inventoryAccountName?: string;
+  accountsPayableAccountId?: string;
+  accountsPayableAccountName?: string;
+  accountsReceivableAccountId?: string;
+  accountsReceivableAccountName?: string;
+  salesRevenueAccountId?: string;
+  salesRevenueAccountName?: string;
+  costOfGoodsSoldAccountId?: string;
+  costOfGoodsSoldAccountName?: string;
+  taxPayableAccountId?: string;
+  taxPayableAccountName?: string;
+  taxReceivableAccountId?: string;
+  taxReceivableAccountName?: string;
+  cashAccountId?: string;
+  cashAccountName?: string;
+  defaultBankAccountId?: string;
+  defaultBankAccountName?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
-export interface CreateChartOfAccountDto {
-    accountCode: string;
-    accountName: string;
-
-    accountType: "Asset" | "Liability" | "Equity" | "Revenue" | "Expense";
-    description?: string;
-}
-
-export interface JournalEntryLineDto {
-    id: string;
-    accountId: string;
-    accountName: string;
-    accountCode: string;
-    debit: number;
-    credit: number;
-}
-
-export interface JournalEntryDto {
-    id: string;
-    entryDate: string;
-    description: string;
-    referenceNumber: string;
-    lines: JournalEntryLineDto[];
+export interface UpdateOrganizationAccountConfigurationDto {
+  inventoryAccountId?: string;
+  accountsPayableAccountId?: string;
+  accountsReceivableAccountId?: string;
+  salesRevenueAccountId?: string;
+  costOfGoodsSoldAccountId?: string;
+  taxPayableAccountId?: string;
+  taxReceivableAccountId?: string;
+  cashAccountId?: string;
+  defaultBankAccountId?: string;
 }

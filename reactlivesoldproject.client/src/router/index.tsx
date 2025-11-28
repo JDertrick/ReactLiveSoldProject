@@ -55,6 +55,7 @@ import OrganizationUsersPage from "../pages/superadmin/OrganizationUsers";
 import AllReceiptsPage from "../pages/app/AllReceiptsPage";
 import AccountingPage from "@/pages/app/Accounting";
 import ChartOfAccountsPage from "../pages/app/ChartOfAccounts";
+import AccountConfigurationPage from "../pages/app/AccountConfigurationPage";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -195,6 +196,10 @@ export const router = createBrowserRouter([
       {
         path: "chart-of-accounts",
         element: <ChartOfAccountsPage />,
+      },
+      {
+        path: "account-configuration",
+        element: <AccountConfigurationPage />,
       },
       // Purchase Module Routes
       {
