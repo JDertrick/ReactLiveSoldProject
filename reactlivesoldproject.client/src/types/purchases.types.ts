@@ -224,13 +224,14 @@ export interface PaymentDto {
   vendorName?: string;
   paymentDate: string;
   paymentMethod: PaymentMethod;
-  referenceNumber?: string;
-  amount: number;
-  currency: string;
-  exchangeRate: number;
-  companyBankAccountId?: string;
+  companyBankAccountId: string;
   companyBankAccountName?: string;
   vendorBankAccountId?: string;
+  vendorBankAccountName?: string;
+  amountPaid: number;
+  currency: string;
+  exchangeRate: number;
+  referenceNumber?: string;
   notes?: string;
   status: PaymentStatus;
   approvedBy?: string;
@@ -244,24 +245,43 @@ export interface PaymentDto {
   postedByName?: string;
   postedAt?: string;
   paymentJournalEntryId?: string;
+  journalEntryNumber?: string;
   createdBy: string;
   createdByName?: string;
+  createdByUserName?: string;
+  postedByUserName?: string;
   createdAt: string;
   updatedAt: string;
+  applications?: PaymentApplicationDto[];
+}
+
+export interface PaymentApplicationDto {
+  id: string;
+  paymentId: string;
+  vendorInvoiceId: string;
+  vendorInvoiceNumber?: string;
+  invoiceNumber?: string;
+  vendorInvoiceReference?: string;
+  amountApplied: number;
+  discountTaken: number;
+  applicationDate: string;
+  invoiceTotalAmount: number;
+  invoiceAmountPaid: number;
 }
 
 export interface CreatePaymentDto {
   vendorId: string;
   paymentDate: string;
   paymentMethod: PaymentMethod;
-  referenceNumber?: string;
-  amount: number;
+  companyBankAccountId: string;
+  vendorBankAccountId?: string;
+  amountPaid: number;
   currency?: string;
   exchangeRate?: number;
-  companyBankAccountId?: string;
-  vendorBankAccountId?: string;
+  referenceNumber?: string;
   notes?: string;
   invoiceApplications: PaymentInvoiceApplicationDto[];
+  glAccountsPayableId?: string;
 }
 
 export interface PaymentInvoiceApplicationDto {

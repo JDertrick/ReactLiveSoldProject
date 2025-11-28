@@ -27,6 +27,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import api from '../../services/api';
 
 const CompanyBankAccountsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,6 +38,7 @@ const CompanyBankAccountsPage = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<CompanyBankAccountDto | null>(null);
+  const [glAccounts, setGlAccounts] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     bankName: '',
@@ -54,7 +56,21 @@ const CompanyBankAccountsPage = () => {
 
   useEffect(() => {
     fetchCompanyBankAccounts();
+    fetchGLAccounts();
   }, [fetchCompanyBankAccounts]);
+
+  const fetchGLAccounts = async () => {
+    try {
+      const response = await api.get('/Accounting/accounts');
+      // Filtrar solo cuentas de tipo Asset (Bank)
+      const bankAccounts = response.data.filter((acc: any) =>
+        acc.accountType === 'Asset' && (acc.accountName.toLowerCase().includes('banco') || acc.accountName.toLowerCase().includes('bank'))
+      );
+      setGlAccounts(bankAccounts.length > 0 ? bankAccounts : response.data.filter((acc: any) => acc.accountType === 'Asset'));
+    } catch (error) {
+      console.error('Error al cargar cuentas contables:', error);
+    }
+  };
 
   const filteredAccounts = companyBankAccounts.filter((account) => {
     if (!debouncedSearchTerm) return true;
@@ -96,6 +112,11 @@ const CompanyBankAccountsPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.glAccountId) {
+      toast.error('Debe seleccionar una cuenta contable');
+      return;
+    }
 
     try {
       if (editingAccount) {
@@ -287,13 +308,22 @@ const CompanyBankAccountsPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="glAccountId">ID Cuenta Contable (Opcional)</Label>
-                <Input
-                  id="glAccountId"
+                <Label htmlFor="glAccountId">Cuenta Contable *</Label>
+                <Select
                   value={formData.glAccountId}
-                  onChange={(e) => setFormData({ ...formData, glAccountId: e.target.value })}
-                  placeholder="ID de la cuenta en el sistema contable"
-                />
+                  onValueChange={(value) => setFormData({ ...formData, glAccountId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione una cuenta contable" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {glAccounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.accountCode} - {account.accountName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

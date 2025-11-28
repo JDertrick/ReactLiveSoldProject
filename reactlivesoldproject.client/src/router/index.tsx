@@ -34,13 +34,16 @@ import InventoryAuditCountPage from "../pages/app/InventoryAuditCount";
 // Purchase Pages
 import PurchaseOrdersPage from "../pages/app/PurchaseOrders";
 import PurchaseOrderForm from "../pages/app/PurchaseOrderForm";
+import PurchaseOrderDetail from "../pages/app/PurchaseOrderDetail";
 import PurchaseReceiptsPage from "../pages/app/PurchaseReceipts";
 import PurchaseReceiptForm from "../pages/app/PurchaseReceiptForm";
 import PurchaseReceiptDetail from "../pages/app/PurchaseReceiptDetail";
 import VendorInvoicesPage from "../pages/app/VendorInvoices";
 import VendorInvoiceForm from "../pages/app/VendorInvoiceForm";
+import VendorInvoiceDetail from "../pages/app/VendorInvoiceDetail";
 import PaymentsPage from "../pages/app/Payments";
 import PaymentForm from "../pages/app/PaymentForm";
+import PaymentDetail from "../pages/app/PaymentDetail";
 import CompanyBankAccountsPage from "../pages/app/CompanyBankAccounts";
 import PaymentTermsPage from "../pages/app/PaymentTerms";
 import ProductVendorsPage from "../pages/app/ProductVendors";
@@ -51,6 +54,7 @@ import CustomerOrders from "../pages/portal/Orders";
 import OrganizationUsersPage from "../pages/superadmin/OrganizationUsers";
 import AllReceiptsPage from "../pages/app/AllReceiptsPage";
 import AccountingPage from "@/pages/app/Accounting";
+import ChartOfAccountsPage from "../pages/app/ChartOfAccounts";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -188,6 +192,10 @@ export const router = createBrowserRouter([
         path: "accounting",
         element: <AccountingPage />,
       },
+      {
+        path: "chart-of-accounts",
+        element: <ChartOfAccountsPage />,
+      },
       // Purchase Module Routes
       {
         path: "purchase-orders",
@@ -199,7 +207,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "purchase-orders/:id",
-        element: <PurchaseOrderForm />,
+        element: <PurchaseOrderDetail />,
       },
       {
         path: "purchase-orders/:id/edit",
@@ -231,6 +239,10 @@ export const router = createBrowserRouter([
       },
       {
         path: "vendor-invoices/:id",
+        element: <VendorInvoiceDetail />,
+      },
+      {
+        path: "vendor-invoices/:id/edit",
         element: <VendorInvoiceForm />,
       },
       {
@@ -243,6 +255,10 @@ export const router = createBrowserRouter([
       },
       {
         path: "payments/:id",
+        element: <PaymentDetail />,
+      },
+      {
+        path: "payments/:id/edit",
         element: <PaymentForm />,
       },
       {

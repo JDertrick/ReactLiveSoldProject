@@ -3,6 +3,8 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { usePayments } from '../../hooks/usePayments';
 import { useVendorInvoices } from '../../hooks/useVendorInvoices';
 import { useGetVendors } from '../../hooks/useVendors';
+import { useCompanyBankAccounts } from '../../hooks/useCompanyBankAccounts';
+import { useVendorBankAccounts } from '../../hooks/useVendorBankAccounts';
 import { CreatePaymentDto, PaymentMethod } from '../../types/purchases.types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,23 +25,28 @@ const PaymentForm = () => {
   const { createPayment } = usePayments();
   const { vendorInvoices, fetchVendorInvoices } = useVendorInvoices();
   const { data: vendors } = useGetVendors();
+  const { companyBankAccounts, fetchCompanyBankAccounts } = useCompanyBankAccounts();
+  const { vendorBankAccounts, fetchVendorBankAccounts } = useVendorBankAccounts();
 
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | undefined>(invoiceIdFromUrl || undefined);
 
   const [formData, setFormData] = useState<CreatePaymentDto>({
     vendorId: '',
     paymentDate: new Date().toISOString().split('T')[0],
-    amount: 0,
+    amountPaid: 0,
     paymentMethod: PaymentMethod.BankTransfer,
+    companyBankAccountId: '',
+    vendorBankAccountId: '',
     referenceNumber: '',
     notes: '',
     invoiceApplications: [],
   });
 
   useEffect(() => {
-    // Fetch unpaid vendor invoices
+    // Fetch unpaid vendor invoices and company bank accounts
     fetchVendorInvoices(undefined, 'Unpaid');
-  }, [fetchVendorInvoices]);
+    fetchCompanyBankAccounts();
+  }, [fetchVendorInvoices, fetchCompanyBankAccounts]);
 
   // If invoice is preselected, get vendor and amount
   useEffect(() => {
@@ -49,11 +56,18 @@ const PaymentForm = () => {
         setFormData((prev) => ({
           ...prev,
           vendorId: invoice.vendorId || '',
-          amount: invoice.amountDue,
+          amountPaid: invoice.amountDue,
         }));
       }
     }
   }, [selectedInvoiceId, vendorInvoices]);
+
+  // Fetch vendor bank accounts when vendor is selected
+  useEffect(() => {
+    if (formData.vendorId) {
+      fetchVendorBankAccounts(formData.vendorId);
+    }
+  }, [formData.vendorId, fetchVendorBankAccounts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,25 +77,44 @@ const PaymentForm = () => {
       return;
     }
 
-    if (formData.amount <= 0) {
+    if (!formData.companyBankAccountId) {
+      toast.error('Seleccione la cuenta bancaria de su empresa');
+      return;
+    }
+
+    if (formData.amountPaid <= 0) {
       toast.error('El monto debe ser mayor a 0');
       return;
     }
 
     // Prepare invoice applications
     const invoiceApplications = selectedInvoiceId
-      ? [{ vendorInvoiceId: selectedInvoiceId, amountApplied: formData.amount }]
+      ? [{ vendorInvoiceId: selectedInvoiceId, amountApplied: formData.amountPaid }]
       : [];
 
+    // Prepare payment data, removing empty strings for optional GUIDs
+    const paymentData: CreatePaymentDto = {
+      vendorId: formData.vendorId,
+      paymentDate: formData.paymentDate,
+      paymentMethod: formData.paymentMethod,
+      companyBankAccountId: formData.companyBankAccountId,
+      vendorBankAccountId: formData.vendorBankAccountId && formData.vendorBankAccountId !== ''
+        ? formData.vendorBankAccountId
+        : undefined,
+      amountPaid: formData.amountPaid,
+      currency: formData.currency || 'MXN',
+      exchangeRate: formData.exchangeRate || 1.0,
+      referenceNumber: formData.referenceNumber || undefined,
+      notes: formData.notes || undefined,
+      invoiceApplications,
+    };
+
     try {
-      await createPayment({
-        ...formData,
-        invoiceApplications,
-      });
+      await createPayment(paymentData);
       toast.success('Pago creado exitosamente');
       navigate('/app/payments');
     } catch (error: any) {
-      toast.error(error.message || 'Error al crear el pago');
+      toast.error(error.response?.data?.message || error.message || 'Error al crear el pago');
     }
   };
 
@@ -172,15 +205,15 @@ const PaymentForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Monto *</Label>
+                  <Label htmlFor="amountPaid">Monto *</Label>
                   <Input
-                    id="amount"
+                    id="amountPaid"
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.amount}
+                    value={formData.amountPaid}
                     onChange={(e) =>
-                      setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                      setFormData({ ...formData, amountPaid: parseFloat(e.target.value) || 0 })
                     }
                     required
                   />
@@ -205,6 +238,57 @@ const PaymentForm = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="companyBankAccountId">Cuenta Bancaria de la Empresa *</Label>
+                  <Select
+                    value={formData.companyBankAccountId}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, companyBankAccountId: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione cuenta bancaria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companyBankAccounts.map((account) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          {account.bankName} - {account.accountNumber} ({account.currency})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Cuenta desde la cual se realizará el pago
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vendorBankAccountId">Cuenta Bancaria del Proveedor (Opcional)</Label>
+                  <Select
+                    value={formData.vendorBankAccountId || 'none'}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, vendorBankAccountId: value === 'none' ? '' : value })
+                    }
+                    disabled={!formData.vendorId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione cuenta del proveedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin especificar</SelectItem>
+                      {vendorBankAccounts.map((account) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          {account.bankName} - {account.accountNumber}
+                          {account.isPrimary && ' (Principal)'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Cuenta destino donde se depositará el pago
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -263,10 +347,10 @@ const PaymentForm = () => {
                       <div>
                         <p className="text-sm text-muted-foreground">Monto a Pagar</p>
                         <p className="font-bold text-lg text-primary">
-                          ${formData.amount.toFixed(2)}
+                          ${formData.amountPaid.toFixed(2)}
                         </p>
                       </div>
-                      {formData.amount > invoice.amountDue && (
+                      {formData.amountPaid > invoice.amountDue && (
                         <div className="col-span-2">
                           <p className="text-sm text-amber-600">
                             ⚠️ El monto a pagar excede el monto pendiente de la factura

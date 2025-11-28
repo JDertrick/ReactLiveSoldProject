@@ -54,6 +54,78 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             return _mapper.Map<ChartOfAccountDto>(account);
         }
 
+        public async Task<ChartOfAccountDto> UpdateChartOfAccountAsync(Guid organizationId, Guid accountId, UpdateChartOfAccountDto updateDto)
+        {
+            var account = await _context.ChartOfAccounts
+                .FirstOrDefaultAsync(ca => ca.Id == accountId && ca.OrganizationId == organizationId);
+
+            if (account == null)
+            {
+                throw new KeyNotFoundException("La cuenta contable no existe o no pertenece a su organización.");
+            }
+
+            // Validar si el nuevo nombre ya existe en otra cuenta
+            if (!string.IsNullOrEmpty(updateDto.AccountName) && updateDto.AccountName != account.AccountName)
+            {
+                var nameExists = await _context.ChartOfAccounts
+                    .AnyAsync(ca => ca.OrganizationId == organizationId &&
+                                   ca.AccountName == updateDto.AccountName &&
+                                   ca.Id != accountId);
+                if (nameExists)
+                {
+                    throw new InvalidOperationException("Ya existe otra cuenta con ese nombre.");
+                }
+                account.AccountName = updateDto.AccountName;
+            }
+
+            if (updateDto.AccountType.HasValue)
+            {
+                account.AccountType = updateDto.AccountType.Value;
+            }
+
+            if (updateDto.Description != null)
+            {
+                account.Description = updateDto.Description;
+            }
+
+            account.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<ChartOfAccountDto>(account);
+        }
+
+        public async Task DeleteChartOfAccountAsync(Guid organizationId, Guid accountId)
+        {
+            var account = await _context.ChartOfAccounts
+                .FirstOrDefaultAsync(ca => ca.Id == accountId && ca.OrganizationId == organizationId);
+
+            if (account == null)
+            {
+                throw new KeyNotFoundException("La cuenta contable no existe o no pertenece a su organización.");
+            }
+
+            // Verificar si la cuenta está siendo utilizada en asientos contables
+            var isUsedInJournalEntries = await _context.JournalEntryLines
+                .AnyAsync(jel => jel.AccountId == accountId);
+
+            if (isUsedInJournalEntries)
+            {
+                throw new InvalidOperationException("No se puede eliminar la cuenta porque está siendo utilizada en asientos contables.");
+            }
+
+            // Verificar si tiene cuentas hijas
+            var hasChildAccounts = await _context.ChartOfAccounts
+                .AnyAsync(ca => ca.ParentAccountId == accountId);
+
+            if (hasChildAccounts)
+            {
+                throw new InvalidOperationException("No se puede eliminar la cuenta porque tiene cuentas hijas asociadas.");
+            }
+
+            _context.ChartOfAccounts.Remove(account);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<List<JournalEntryDto>> GetJournalEntriesAsync(Guid organizationId, DateTime? fromDate = null, DateTime? toDate = null)
         {
             var query = _context.JournalEntries

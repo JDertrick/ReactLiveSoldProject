@@ -62,9 +62,13 @@ namespace ReactLiveSoldProject.ServerBL.DTOs.Payments
         public Guid PaymentId { get; set; }
         public Guid VendorInvoiceId { get; set; }
         public string? VendorInvoiceNumber { get; set; }
+        public string? InvoiceNumber { get; set; }
+        public string? VendorInvoiceReference { get; set; }
         public decimal AmountApplied { get; set; }
         public decimal DiscountTaken { get; set; }
         public DateTime ApplicationDate { get; set; }
+        public decimal InvoiceTotalAmount { get; set; }
+        public decimal InvoiceAmountPaid { get; set; }
     }
 
     public class VoidPaymentDto

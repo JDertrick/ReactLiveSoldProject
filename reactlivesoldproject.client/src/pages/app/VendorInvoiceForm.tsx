@@ -18,9 +18,10 @@ const VendorInvoiceForm = () => {
   const { id } = useParams();
   const isEditing = !!id;
 
-  const { createVendorInvoice } = useVendorInvoices();
+  const { createVendorInvoice, getVendorInvoiceById } = useVendorInvoices();
   const { purchaseReceipts, fetchPurchaseReceipts } = usePurchaseReceipts();
   const { data: vendors } = useGetVendors();
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<CreateVendorInvoiceDto>({
     vendorId: '',
@@ -38,6 +39,30 @@ const VendorInvoiceForm = () => {
     // Fetch posted purchase receipts
     fetchPurchaseReceipts(undefined, 'Posted');
   }, [fetchPurchaseReceipts]);
+
+  // Load invoice data when editing
+  useEffect(() => {
+    if (isEditing && id) {
+      setLoading(true);
+      getVendorInvoiceById(id)
+        .then((invoice) => {
+          if (invoice) {
+            setFormData({
+              vendorId: invoice.vendorId || '',
+              purchaseReceiptId: invoice.purchaseReceiptId || undefined,
+              vendorInvoiceReference: invoice.vendorInvoiceReference || '',
+              invoiceDate: invoice.invoiceDate.split('T')[0],
+              dueDate: invoice.dueDate.split('T')[0],
+              subtotal: invoice.subtotal,
+              taxAmount: invoice.taxAmount,
+              totalAmount: invoice.totalAmount,
+              notes: invoice.notes || '',
+            });
+          }
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [isEditing, id, getVendorInvoiceById]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +98,14 @@ const VendorInvoiceForm = () => {
       setFormData((prev) => ({ ...prev, totalAmount: total }));
     }
   }, [formData.subtotal, formData.taxAmount]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

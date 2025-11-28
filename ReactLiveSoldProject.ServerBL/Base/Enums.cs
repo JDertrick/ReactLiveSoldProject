@@ -487,19 +487,29 @@
     public enum PaymentStatus
     {
         /// <summary>
-        /// Registrado y contabilizado
+        /// Pendiente de aprobación
+        /// </summary>
+        Pending,
+
+        /// <summary>
+        /// Aprobado, listo para contabilizar
+        /// </summary>
+        Approved,
+
+        /// <summary>
+        /// Rechazado
+        /// </summary>
+        Rejected,
+
+        /// <summary>
+        /// Contabilizado
         /// </summary>
         Posted,
 
         /// <summary>
         /// Anulado
         /// </summary>
-        Void,
-
-        /// <summary>
-        /// Pendiente
-        /// </summary>
-        Pending
+        Void
     }
 
     /// <summary>

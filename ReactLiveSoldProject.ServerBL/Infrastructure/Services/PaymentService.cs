@@ -134,7 +134,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 // 5. Generar número de pago
                 var paymentNumber = await GeneratePaymentNumberAsync(organizationId);
 
-                // 6. Crear el registro Payment
+                // 6. Crear el registro Payment con estado Pending
                 var payment = new Payment
                 {
                     Id = Guid.NewGuid(),
@@ -150,7 +150,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     ExchangeRate = dto.ExchangeRate,
                     ReferenceNumber = dto.ReferenceNumber,
                     Notes = dto.Notes,
-                    Status = PaymentStatus.Posted,
+                    Status = PaymentStatus.Pending, // ⚠️ CAMBIO: Se crea como Pending
                     CreatedBy = userId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -158,26 +158,157 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
                 _context.Payments.Add(payment);
 
-                // 7. Aplicar el pago a las facturas
-                await ApplyPaymentToInvoices(payment.Id, dto.InvoiceApplications);
-
-                // 8. Actualizar saldo de cuenta bancaria
-                await UpdateCompanyBankAccountBalance(dto.CompanyBankAccountId, -dto.AmountPaid);
-
-                // 9. Generar asiento contable automático
-                var journalEntry = await GeneratePaymentJournalEntry(
-                    payment,
-                    organizationId,
-                    userId,
-                    dto.GLAccountsPayableId);
-
-                // 10. Vincular el asiento contable al pago
-                payment.PaymentJournalEntryId = journalEntry.Id;
+                // 7. Crear PaymentApplications (sin aplicar aún a facturas)
+                foreach (var app in dto.InvoiceApplications)
+                {
+                    var paymentApplication = new PaymentApplication
+                    {
+                        Id = Guid.NewGuid(),
+                        PaymentId = payment.Id,
+                        VendorInvoiceId = app.VendorInvoiceId,
+                        AmountApplied = app.AmountApplied,
+                        DiscountTaken = app.DiscountTaken,
+                        ApplicationDate = DateTime.UtcNow
+                    };
+                    _context.PaymentApplications.Add(paymentApplication);
+                }
 
                 await _context.SaveChangesAsync();
 
                 return await GetPaymentByIdAsync(payment.Id, organizationId)
                     ?? throw new Exception("Error al recuperar el pago creado");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// ⚡ Aprueba un pago (Pending → Approved)
+        /// </summary>
+        public async Task<PaymentDto> ApprovePaymentAsync(
+            Guid paymentId,
+            Guid organizationId,
+            Guid userId)
+        {
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.Id == paymentId && p.OrganizationId == organizationId);
+
+            if (payment == null)
+                throw new Exception("Pago no encontrado");
+
+            if (payment.Status != PaymentStatus.Pending)
+                throw new Exception($"El pago debe estar en estado Pending para ser aprobado. Estado actual: {payment.Status}");
+
+            payment.Status = PaymentStatus.Approved;
+            payment.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return await GetPaymentByIdAsync(paymentId, organizationId)
+                ?? throw new Exception("Error al recuperar el pago aprobado");
+        }
+
+        /// <summary>
+        /// ⚡ Rechaza un pago (Pending → Rejected)
+        /// </summary>
+        public async Task<PaymentDto> RejectPaymentAsync(
+            Guid paymentId,
+            Guid organizationId,
+            Guid userId,
+            string reason)
+        {
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.Id == paymentId && p.OrganizationId == organizationId);
+
+            if (payment == null)
+                throw new Exception("Pago no encontrado");
+
+            if (payment.Status != PaymentStatus.Pending)
+                throw new Exception($"El pago debe estar en estado Pending para ser rechazado. Estado actual: {payment.Status}");
+
+            payment.Status = PaymentStatus.Rejected;
+            payment.Notes = string.IsNullOrEmpty(payment.Notes)
+                ? $"Rechazado: {reason}"
+                : $"{payment.Notes}\n\nRechazado: {reason}";
+            payment.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return await GetPaymentByIdAsync(paymentId, organizationId)
+                ?? throw new Exception("Error al recuperar el pago rechazado");
+        }
+
+        /// <summary>
+        /// ⚡ MÉTODO CRÍTICO: Contabiliza un pago (Approved → Posted)
+        ///
+        /// PROCESO:
+        /// 1. Aplica el pago a las facturas (actualiza AmountPaid y PaymentStatus)
+        /// 2. Actualiza saldo de CompanyBankAccount
+        /// 3. Genera asiento contable: DEBE Cuentas por Pagar / HABER Banco
+        /// </summary>
+        public async Task<PaymentDto> PostPaymentAsync(
+            Guid paymentId,
+            Guid organizationId,
+            Guid userId)
+        {
+            try
+            {
+                // 1. Obtener el pago con todas sus aplicaciones
+                var payment = await _context.Payments
+                    .Include(p => p.Applications)
+                        .ThenInclude(pa => pa.VendorInvoice)
+                    .Include(p => p.CompanyBankAccount)
+                    .FirstOrDefaultAsync(p => p.Id == paymentId && p.OrganizationId == organizationId);
+
+                if (payment == null)
+                    throw new Exception("Pago no encontrado");
+
+                if (payment.Status != PaymentStatus.Approved)
+                    throw new Exception($"El pago debe estar en estado Approved para ser contabilizado. Estado actual: {payment.Status}");
+
+                // 2. Aplicar el pago a las facturas
+                foreach (var app in payment.Applications)
+                {
+                    await UpdateVendorInvoicePaymentStatus(
+                        app.VendorInvoiceId,
+                        app.AmountApplied + app.DiscountTaken);
+                }
+
+                // 3. Actualizar saldo de cuenta bancaria
+                await UpdateCompanyBankAccountBalance(payment.CompanyBankAccountId, -payment.AmountPaid);
+
+                // 4. Generar asiento contable automático
+                // Buscar cuenta de Cuentas por Pagar (Accounts Payable)
+                var glAccountsPayable = await _context.ChartOfAccounts
+                    .FirstOrDefaultAsync(coa =>
+                        coa.OrganizationId == organizationId &&
+                        coa.AccountType == AccountType.Liability &&
+                        (coa.AccountName.Contains("Cuentas por Pagar") ||
+                         coa.AccountName.Contains("Accounts Payable") ||
+                         coa.AccountName.Contains("Proveedores") ||
+                         coa.AccountCode.StartsWith("2")));
+
+                if (glAccountsPayable == null)
+                    throw new Exception("No se encontró una cuenta contable de Cuentas por Pagar (Pasivo). " +
+                        "Por favor, cree una cuenta de tipo 'Pasivo' con el nombre 'Cuentas por Pagar' o que su código comience con '2'.");
+
+                var journalEntry = await GeneratePaymentJournalEntry(
+                    payment,
+                    organizationId,
+                    userId,
+                    glAccountsPayable.Id);
+
+                // 5. Vincular el asiento contable al pago
+                payment.PaymentJournalEntryId = journalEntry.Id;
+                payment.Status = PaymentStatus.Posted;
+                payment.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                return await GetPaymentByIdAsync(paymentId, organizationId)
+                    ?? throw new Exception("Error al recuperar el pago contabilizado");
             }
             catch (Exception ex)
             {
@@ -703,9 +834,13 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     PaymentId = pa.PaymentId,
                     VendorInvoiceId = pa.VendorInvoiceId,
                     VendorInvoiceNumber = pa.VendorInvoice?.InvoiceNumber,
+                    InvoiceNumber = pa.VendorInvoice?.InvoiceNumber,
+                    VendorInvoiceReference = pa.VendorInvoice?.VendorInvoiceReference,
                     AmountApplied = pa.AmountApplied,
                     DiscountTaken = pa.DiscountTaken,
-                    ApplicationDate = pa.ApplicationDate
+                    ApplicationDate = pa.ApplicationDate,
+                    InvoiceTotalAmount = pa.VendorInvoice?.TotalAmount ?? 0,
+                    InvoiceAmountPaid = pa.VendorInvoice?.AmountPaid ?? 0
                 }).ToList()
             };
         }

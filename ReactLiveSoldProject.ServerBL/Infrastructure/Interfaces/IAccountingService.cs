@@ -14,6 +14,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         Task<JournalEntryDto> CreateJournalEntryAsync(Guid organizationId, CreateJournalEntryDto createDto);
         Task<List<ChartOfAccountDto>> GetChartOfAccountsAsync(Guid organizationId);
         Task<ChartOfAccountDto> CreateChartOfAccountAsync(Guid organizationId, CreateChartOfAccountDto createDto);
+        Task<ChartOfAccountDto> UpdateChartOfAccountAsync(Guid organizationId, Guid accountId, UpdateChartOfAccountDto updateDto);
+        Task DeleteChartOfAccountAsync(Guid organizationId, Guid accountId);
         Task<List<JournalEntryDto>> GetJournalEntriesAsync(Guid organizationId, DateTime? fromDate = null, DateTime? toDate = null);
 
         Task RegisterPurchaseAsync(Guid organizationId, StockMovement stockMovement);

@@ -199,7 +199,7 @@ const PaymentsPage = () => {
                     <TableCell>{payment.referenceNumber || '-'}</TableCell>
                     <TableCell>{getStatusBadge(payment.status)}</TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(payment.amount, payment.currency)}
+                      {formatCurrency(payment.amountPaid, payment.currency)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

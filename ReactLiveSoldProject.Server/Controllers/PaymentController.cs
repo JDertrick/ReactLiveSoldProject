@@ -115,6 +115,105 @@ namespace ReactLiveSoldProject.Server.Controllers
         }
 
         /// <summary>
+        /// ⚡ Aprueba un pago (Pending → Approved)
+        /// </summary>
+        [HttpPost("{id}/approve")]
+        public async Task<IActionResult> ApprovePayment(Guid id)
+        {
+            var organizationId = GetOrganizationId();
+            var userId = GetUserId();
+
+            if (organizationId == null || userId == null)
+                return Unauthorized(new { message = "OrganizationId o UserId no encontrado en el token" });
+
+            try
+            {
+                var payment = await _paymentService.ApprovePaymentAsync(
+                    id,
+                    organizationId.Value,
+                    userId.Value);
+
+                return Ok(new
+                {
+                    message = "Pago aprobado exitosamente",
+                    payment
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al aprobar pago", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// ⚡ Rechaza un pago (Pending → Rejected)
+        /// </summary>
+        [HttpPost("{id}/reject")]
+        public async Task<IActionResult> RejectPayment(Guid id, [FromBody] RejectPaymentDto dto)
+        {
+            var organizationId = GetOrganizationId();
+            var userId = GetUserId();
+
+            if (organizationId == null || userId == null)
+                return Unauthorized(new { message = "OrganizationId o UserId no encontrado en el token" });
+
+            try
+            {
+                var payment = await _paymentService.RejectPaymentAsync(
+                    id,
+                    organizationId.Value,
+                    userId.Value,
+                    dto.Reason ?? "No se especificó razón");
+
+                return Ok(new
+                {
+                    message = "Pago rechazado",
+                    payment
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al rechazar pago", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// ⚡ ACCIÓN CRÍTICA: Contabiliza un pago (Approved → Posted)
+        ///
+        /// Ejecuta automáticamente:
+        /// - Aplica el pago a las facturas (actualiza AmountPaid y PaymentStatus)
+        /// - Actualiza CurrentBalance de CompanyBankAccount
+        /// - Genera JournalEntry: DEBE Cuentas por Pagar / HABER Banco
+        /// </summary>
+        [HttpPost("{id}/post")]
+        public async Task<IActionResult> PostPayment(Guid id)
+        {
+            var organizationId = GetOrganizationId();
+            var userId = GetUserId();
+
+            if (organizationId == null || userId == null)
+                return Unauthorized(new { message = "OrganizationId o UserId no encontrado en el token" });
+
+            try
+            {
+                var payment = await _paymentService.PostPaymentAsync(
+                    id,
+                    organizationId.Value,
+                    userId.Value);
+
+                return Ok(new
+                {
+                    message = "Pago contabilizado exitosamente",
+                    payment
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al contabilizar pago", error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// ⚡ ACCIÓN CRÍTICA: Anula un pago
         ///
         /// Revierte automáticamente:
@@ -151,5 +250,10 @@ namespace ReactLiveSoldProject.Server.Controllers
                 return BadRequest(new { message = "Error al anular pago", error = ex.Message });
             }
         }
+    }
+
+    public class RejectPaymentDto
+    {
+        public string? Reason { get; set; }
     }
 }

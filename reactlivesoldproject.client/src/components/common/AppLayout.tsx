@@ -219,6 +219,11 @@ const AppLayout = () => {
           path: "/app/accounting",
           icon: <FileText size={20} />,
         },
+        {
+          name: "Catálogo de Cuentas",
+          path: "/app/chart-of-accounts",
+          icon: <BookCopy size={20} />,
+        },
       ],
     },
     {
