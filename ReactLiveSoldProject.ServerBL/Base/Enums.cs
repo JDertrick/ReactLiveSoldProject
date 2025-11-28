@@ -297,7 +297,12 @@
         /// <summary>
         /// Gastos - Disminuciones en los beneficios económicos
         /// </summary>
-        Expense
+        Expense,
+
+        /// <summary>
+        /// Costo de ventas - Comercio al por mayor y menor
+        /// </summary>
+        CostOfGoodsSold
     }
 
     /// <summary>

@@ -75,6 +75,13 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             _dbContext.Organizations.Add(organization);
             await _dbContext.SaveChangesAsync();
 
+            // Crear catálogo de cuentas por defecto
+            var seeder = new DefaultChartOfAccountsSeeder(_dbContext);
+            await seeder.SeedDefaultChartOfAccountsAsync(organization.Id);
+
+            // Crear configuración de cuentas por defecto
+            await seeder.CreateDefaultAccountConfigurationAsync(organization.Id);
+
             return MapToDto(organization);
         }
 

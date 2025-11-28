@@ -66,60 +66,6 @@ namespace ReactLiveSoldProject.Server.Controllers
             }
         }
 
-        [HttpPut("accounts/{id}")]
-        public async Task<IActionResult> UpdateChartOfAccount(Guid id, [FromBody] UpdateChartOfAccountDto updateDto)
-        {
-            try
-            {
-                var organizationId = GetOrganizationId();
-                if (organizationId == null)
-                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
-
-                var account = await _accountingService.UpdateChartOfAccountAsync(organizationId.Value, id, updateDto);
-                return Ok(account);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                return StatusCode(500, "Ocurrió un error interno al actualizar la cuenta contable.");
-            }
-        }
-
-        [HttpDelete("accounts/{id}")]
-        public async Task<IActionResult> DeleteChartOfAccount(Guid id)
-        {
-            try
-            {
-                var organizationId = GetOrganizationId();
-                if (organizationId == null)
-                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
-
-                await _accountingService.DeleteChartOfAccountAsync(organizationId.Value, id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                return StatusCode(500, "Ocurrió un error interno al eliminar la cuenta contable.");
-            }
-        }
-
         // --- Journal Entries Endpoints ---
 
         [HttpGet("journalentries")]
