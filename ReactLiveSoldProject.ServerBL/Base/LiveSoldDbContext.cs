@@ -12,6 +12,7 @@ using ReactLiveSoldProject.ServerBL.Models.Vendors;
 using ReactLiveSoldProject.ServerBL.Models.Purchases;
 using ReactLiveSoldProject.ServerBL.Models.Banking;
 using ReactLiveSoldProject.ServerBL.Models.Payments;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -79,12 +80,16 @@ namespace ReactLiveSoldProject.ServerBL.Base
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
 
+        // BLOQUE 9: SERIE NO - SETUP
+        public DbSet<NoSerie> NoSeries { get; set; }
+        public DbSet<NoSerieLine> NoSerieLines { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
+
             // --- Configuración existente ---
-            
+
             // --- BLOQUE 1: PLATAFORMA SAAS Y AUTENTICACIÓN ---
 
             modelBuilder.Entity<Organization>(e =>
@@ -570,7 +575,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany()
                     .HasForeignKey(sm => sm.CreatedByUserId)
                     .OnDelete(DeleteBehavior.Restrict);
-                
+
                 e.HasOne(sm => sm.PostedByUser)
                     .WithMany()
                     .HasForeignKey(sm => sm.PostedByUserId)
@@ -837,7 +842,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .HasForeignKey(tr => tr.OrganizationId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
-            
+
             // --- BLOQUE 8: CONTABILIDAD ---
 
             modelBuilder.Entity<ChartOfAccount>(e =>
@@ -1128,6 +1133,37 @@ namespace ReactLiveSoldProject.ServerBL.Base
                     .WithMany()
                     .HasForeignKey(pa => pa.VendorInvoiceId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // SerieNo
+            modelBuilder.Entity<NoSerie>(e =>
+            {
+                e.ToTable("no_series");
+                e.Property(n => n.Id).HasColumnName("id").IsRequired();
+                e.Property(n => n.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(n => n.Code).HasColumnName("code").IsRequired();
+                e.Property(n => n.Description).HasColumnName("description").IsRequired();
+                e.Property(n => n.DefaultNos).HasColumnName("default_nos").IsRequired();
+                e.Property(n => n.ManualNos).HasColumnName("manual_nos").IsRequired();
+                e.Property(n => n.DateOrder).HasColumnName("date_order").IsRequired();
+            });
+
+            modelBuilder.Entity<NoSerieLine>(e =>
+            {
+                e.ToTable("no_series");
+                e.Property(n => n.Id).HasColumnName("id").IsRequired();
+                e.Property(n => n.StartingDate).HasColumnName("starting_date").IsRequired();
+                e.Property(n => n.StartingNo).HasColumnName("starting_no").IsRequired();
+                e.Property(n => n.EndingNo).HasColumnName("ending_no").IsRequired();
+                e.Property(n => n.LastNoUsed).HasColumnName("last_no_used").IsRequired();
+                e.Property(n => n.IncrementBy).HasColumnName("manual_nos").IsRequired().HasDefaultValue(1);
+                e.Property(n => n.WarningNo).HasColumnName("warning_no");
+                e.Property(n => n.Open).HasColumnName("open");
+
+                e.HasOne(n => n.NoSerie)
+                .WithMany(nl => nl.NoSerieLines)
+                .HasForeignKey(n => n.NoSerieId)
+                .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }
