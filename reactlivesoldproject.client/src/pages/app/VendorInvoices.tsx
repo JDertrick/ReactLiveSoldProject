@@ -25,6 +25,8 @@ import { toast } from 'sonner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DollarSign, Edit, Eye, MoreHorizontal } from 'lucide-react';
 
 const VendorInvoicesPage = () => {
   const navigate = useNavigate();
@@ -80,7 +82,7 @@ const VendorInvoicesPage = () => {
       { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }
     > = {
       Unpaid: { variant: 'destructive', label: 'Pendiente' },
-      PartiallyPaid: { variant: 'secondary', label: 'Parcial' },
+      Partial: { variant: 'secondary', label: 'Parcial' },
       Paid: { variant: 'default', label: 'Pagada' },
       Overdue: { variant: 'destructive', label: 'Vencida' },
     };
@@ -191,7 +193,34 @@ const VendorInvoicesPage = () => {
                       {formatCurrency(inv.amountDue)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => navigate(`/app/vendor-invoices/${inv.id}`)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" /> Ver
+                            </DropdownMenuItem>
+                            {inv.paymentStatus === InvoicePaymentStatus.Unpaid && (
+                              <div>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => navigate(`/app/payments/new?invoiceId=${inv.id}`)}
+                                >
+                                  <DollarSign className="mr-2 h-4 w-4" /> Pagar
+                                </DropdownMenuItem>
+                              </div>
+                            )}
+                            <DropdownMenuItem></DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      {/* <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -208,7 +237,7 @@ const VendorInvoicesPage = () => {
                             Pagar
                           </Button>
                         )}
-                      </div>
+                      </div> */}
                     </TableCell>
                   </TableRow>
                 ))}

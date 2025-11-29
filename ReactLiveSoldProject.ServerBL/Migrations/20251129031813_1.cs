@@ -28,6 +28,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     tax_display_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     tax_application_mode = table.Column<string>(type: "text", nullable: false, defaultValue: "TaxIncluded"),
                     default_tax_rate_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    CostMethod = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },

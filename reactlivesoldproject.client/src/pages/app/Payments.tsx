@@ -21,6 +21,8 @@ import { toast } from 'sonner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Calculator, Eye, MoreHorizontal, Vote } from 'lucide-react';
 
 const PaymentsPage = () => {
   const navigate = useNavigate();
@@ -202,7 +204,43 @@ const PaymentsPage = () => {
                       {formatCurrency(payment.amountPaid, payment.currency)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => navigate(`/app/payments/${payment.id}`)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" /> Ver
+                            </DropdownMenuItem>
+                            {payment.status === PaymentStatus.Pending && (
+                              <div>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleApprove(payment.id)}
+                                >
+                                  <Vote className="mr-2 h-4 w-4" /> Aprobar
+                                </DropdownMenuItem>
+                              </div>
+                            )}
+                            {payment.status === PaymentStatus.Approved && (
+                              <div>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleApprove(payment.id)}
+                                >
+                                  <Calculator className="mr-2 h-4 w-4" /> Contabilizar
+                                </DropdownMenuItem>
+                              </div>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      {/* <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -228,7 +266,7 @@ const PaymentsPage = () => {
                             Contabilizar
                           </Button>
                         )}
-                      </div>
+                      </div> */}
                     </TableCell>
                   </TableRow>
                 ))}

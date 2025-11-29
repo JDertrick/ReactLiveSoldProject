@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import api from '../../services/api';
+import { formatCurrency } from '@/utils/currencyHelper';
 
 const CompanyBankAccountsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -149,13 +150,6 @@ const CompanyBankAccountsPage = () => {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'CO') => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center pb-6">
@@ -216,7 +210,7 @@ const CompanyBankAccountsPage = () => {
                       <Badge variant="outline">{account.currency}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatCurrency(account.currentBalance, account.currency)}
+                      {formatCurrency(account.currentBalance || 0)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

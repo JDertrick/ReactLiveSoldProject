@@ -25,7 +25,7 @@ export enum InvoiceStatus {
 
 export enum InvoicePaymentStatus {
   Unpaid = 'Unpaid',
-  PartiallyPaid = 'PartiallyPaid',
+  Partial = 'Partial',
   Paid = 'Paid',
   Overdue = 'Overdue'
 }
