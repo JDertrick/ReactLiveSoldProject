@@ -3,6 +3,7 @@ import {
   useGetProducts,
   useCreateProduct,
   useUpdateProduct,
+  useGetStockByLocation,
 } from "../../hooks/useProducts";
 import {
   CreateProductDto,
@@ -24,12 +25,100 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { getImageUrl } from "../../utils/imageHelper";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
+import { MapPin, ChevronDown, Package } from "lucide-react";
+
+// Componente para mostrar stock con detalles por ubicación
+const StockDisplay = ({ stock, sku, variantId }: { stock: number; sku?: string; variantId?: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Obtener stock por ubicación del backend
+  const { data: stockByLocation, isLoading } = useGetStockByLocation(variantId, isOpen);
+
+  const hasMultipleLocations = stock > 0 && stockByLocation && stockByLocation.length > 0;
+
+  if (!hasMultipleLocations) {
+    return (
+      <div className="flex items-center gap-2">
+        <Badge
+          variant={stock > 10 ? "default" : stock > 0 ? "secondary" : "destructive"}
+          className="font-mono"
+        >
+          {stock}
+        </Badge>
+      </div>
+    );
+  }
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={stock > 10 ? "default" : stock > 0 ? "secondary" : "destructive"}
+              className="font-mono"
+            >
+              {stock}
+            </Badge>
+            <ChevronDown className="h-3 w-3 text-muted-foreground" />
+          </div>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="start">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-sm">Stock por Ubicación</h4>
+            <Badge variant="outline" className="font-mono">
+              Total: {stock}
+            </Badge>
+          </div>
+          <div className="space-y-2">
+            {isLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : stockByLocation && stockByLocation.length > 0 ? (
+              stockByLocation.map((location) => (
+                <div
+                  key={location.locationId}
+                  className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{location.locationName}</span>
+                  </div>
+                  <Badge variant="secondary" className="font-mono">
+                    {location.quantity}
+                  </Badge>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-muted-foreground text-center p-4">
+                No hay stock distribuido en ubicaciones
+              </div>
+            )}
+          </div>
+          {sku && (
+            <div className="pt-2 border-t text-xs text-muted-foreground">
+              SKU: {sku}
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 const ProductsPage = () => {
   const [page, setPage] = useState(1);
@@ -232,7 +321,11 @@ const ProductsPage = () => {
                           {hasNoVariants ? (
                             <span className="text-gray-400 text-sm">-</span>
                           ) : (
-                            variant.stock
+                            <StockDisplay
+                              stock={variant.stockQuantity}
+                              sku={variant.sku}
+                              variantId={variant.id}
+                            />
                           )}
                         </TableCell>
                         <TableCell>

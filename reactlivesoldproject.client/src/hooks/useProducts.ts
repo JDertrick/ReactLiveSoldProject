@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../services/api';
-import { PagedResult, Product, Tag, CreateProductDto, UpdateProductDto, CreateProductVariantDto, VariantProductDto, ProductVariantDto } from '../types';
+import { PagedResult, Product, Tag, CreateProductDto, UpdateProductDto, CreateProductVariantDto, VariantProductDto, ProductVariantDto, StockByLocation } from '../types';
 
 // Get All Products (Paginated)
 export const useGetProducts = (page: number, pageSize: number, status: string, searchTerm: string) => {
@@ -200,5 +200,18 @@ export const useDeleteVariant = () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product'] });
     },
+  });
+};
+
+// Get Stock by Location for a Variant
+export const useGetStockByLocation = (variantId: string | undefined, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ['stockByLocation', variantId],
+    queryFn: async (): Promise<StockByLocation[]> => {
+      if (!variantId) throw new Error('Variant ID is required');
+      const response = await apiClient.get(`/product/variants/${variantId}/stock-by-location`);
+      return response.data;
+    },
+    enabled: enabled && !!variantId,
   });
 };

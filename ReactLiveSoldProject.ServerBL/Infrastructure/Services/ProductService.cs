@@ -586,6 +586,36 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         }
 
         /// <summary>
+        /// Obtiene el stock por ubicación para una variante de producto
+        /// </summary>
+        public async Task<List<StockByLocationDto>> GetStockByLocationAsync(Guid variantId, Guid organizationId)
+        {
+            // Verificar que la variante pertenece a la organización
+            var variant = await _dbContext.ProductVariants
+                .FirstOrDefaultAsync(v => v.Id == variantId && v.OrganizationId == organizationId);
+
+            if (variant == null)
+            {
+                throw new KeyNotFoundException("La variante de producto no existe o no pertenece a su organización.");
+            }
+
+            // Obtener el stock agrupado por ubicación desde StockBatches
+            var stockByLocation = await _dbContext.StockBatches
+                .Where(sb => sb.ProductVariantId == variantId && sb.IsActive && sb.QuantityRemaining > 0)
+                .GroupBy(sb => new { sb.LocationId, sb.Location.Name })
+                .Select(g => new StockByLocationDto
+                {
+                    LocationId = g.Key.LocationId ?? Guid.Empty,
+                    LocationName = g.Key.Name ?? "Sin ubicación",
+                    Quantity = g.Sum(sb => sb.QuantityRemaining)
+                })
+                .OrderByDescending(s => s.Quantity)
+                .ToListAsync();
+
+            return stockByLocation;
+        }
+
+        /// <summary>
         /// Helper method para parsear attributes JSON y asignar Size y Color
         /// </summary>
         private static void ParseVariantAttributes(ProductVariant variant)

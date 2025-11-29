@@ -431,6 +431,33 @@ namespace ReactLiveSoldProject.Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtiene el stock por ubicación para una variante
+        /// </summary>
+        [HttpGet("variants/{variantId}/stock-by-location")]
+        public async Task<ActionResult<List<StockByLocationDto>>> GetStockByLocation(Guid variantId)
+        {
+            try
+            {
+                var organizationId = GetOrganizationId();
+                if (organizationId == null)
+                    return Unauthorized(new { message = "OrganizationId no encontrado en el token" });
+
+                var stockByLocation = await _productService.GetStockByLocationAsync(variantId, organizationId.Value);
+                return Ok(stockByLocation);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Variant not found: {VariantId}", variantId);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting stock by location for variant {VariantId}", variantId);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
         private Guid? GetOrganizationId()
         {
             var claim = User.FindFirst("OrganizationId");

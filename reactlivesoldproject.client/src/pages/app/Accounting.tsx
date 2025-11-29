@@ -67,7 +67,10 @@ const StatCard = ({ title, value, icon }: { title: string, value: string | numbe
 // Componente para una fila de Asiento Contable expandible
 const JournalEntryRow = ({ entry }: { entry: JournalEntryDto }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const totalDebit = useMemo(() => entry.lines.reduce((sum, line) => sum + line.debit, 0), [entry.lines]);
+    const totalDebit = useMemo(() => {
+        if (!entry.lines || entry.lines.length === 0) return 0;
+        return entry.lines.reduce((sum, line) => sum + (line.debit || 0), 0);
+    }, [entry.lines]);
 
     return (
         <>

@@ -149,8 +149,8 @@ const CompanyBankAccountsPage = () => {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'MXN') => {
-    return new Intl.NumberFormat('es-MX', {
+  const formatCurrency = (amount: number, currency: string = 'CO') => {
+    return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: currency,
     }).format(amount);
@@ -286,9 +286,9 @@ const CompanyBankAccountsPage = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="MXN">MXN - Peso Mexicano</SelectItem>
-                    <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    <SelectItem value="CO">CO - Peso Colombiano</SelectItem>
+                    {/* <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro</SelectItem> */}
                   </SelectContent>
                 </Select>
               </div>

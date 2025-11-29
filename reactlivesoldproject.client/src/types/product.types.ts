@@ -146,3 +146,10 @@ export interface VariantFormInput {
   imageUrl?: string;
   isPrimary?: boolean;
 }
+
+// Stock by location
+export interface StockByLocation {
+  locationId: string;
+  locationName: string;
+  quantity: number;
+}

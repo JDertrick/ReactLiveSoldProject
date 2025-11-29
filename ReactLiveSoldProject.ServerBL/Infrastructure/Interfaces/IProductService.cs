@@ -70,5 +70,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces
         /// Elimina una variante (solo si no tiene items en órdenes)
         /// </summary>
         Task DeleteVariantAsync(Guid variantId, Guid organizationId);
+
+        /// <summary>
+        /// Obtiene el stock por ubicación para una variante de producto
+        /// </summary>
+        Task<List<StockByLocationDto>> GetStockByLocationAsync(Guid variantId, Guid organizationId);
     }
 }

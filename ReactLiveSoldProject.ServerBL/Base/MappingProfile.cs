@@ -210,13 +210,19 @@ namespace ReactLiveSoldProject.ServerBL.Base
             CreateMap<UpdateChartOfAccountDto, ChartOfAccount>()
                  .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-            CreateMap<JournalEntry, JournalEntryDto>();
-            CreateMap<CreateJournalEntryDto, JournalEntry>();
+            CreateMap<JournalEntry, JournalEntryDto>()
+                .ForMember(dest => dest.Lines, opt => opt.MapFrom(src => src.JournalEntryLines));
+            CreateMap<CreateJournalEntryDto, JournalEntry>()
+                .ForMember(dest => dest.JournalEntryLines, opt => opt.MapFrom(src => src.Lines));
 
             CreateMap<JournalEntryLine, JournalEntryLineDto>()
                 .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.Account.AccountName))
-                .ForMember(dest => dest.AccountCode, opt => opt.MapFrom(src => src.Account.AccountCode));
-            CreateMap<CreateJournalEntryLineDto, JournalEntryLine>();
+                .ForMember(dest => dest.AccountCode, opt => opt.MapFrom(src => src.Account.AccountCode))
+                .ForMember(dest => dest.Debit, opt => opt.MapFrom(src => src.DebitAmount))
+                .ForMember(dest => dest.Credit, opt => opt.MapFrom(src => src.CreditAmount));
+            CreateMap<CreateJournalEntryLineDto, JournalEntryLine>()
+                .ForMember(dest => dest.DebitAmount, opt => opt.MapFrom(src => src.Debit))
+                .ForMember(dest => dest.CreditAmount, opt => opt.MapFrom(src => src.Credit));
 
             // Purchase Order Mappings
             CreateMap<PurchaseOrder, PurchaseOrderDto>()

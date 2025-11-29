@@ -472,6 +472,7 @@ const StockMovementsPage = () => {
                   <TableHead>PRODUCTO / SKU</TableHead>
                   <TableHead>ESTADO</TableHead>
                   <TableHead>TIPO</TableHead>
+                  <TableHead>UBICACIÓN</TableHead>
                   <TableHead>FECHA & USUARIO</TableHead>
                   <TableHead className="text-right">CANTIDAD</TableHead>
                   <TableHead className="text-right">COSTO</TableHead>
@@ -526,6 +527,27 @@ const StockMovementsPage = () => {
                       </TableCell>
                       <TableCell>
                         {getMovementTypeDisplay(movement.movementType)}
+                      </TableCell>
+                      <TableCell>
+                        {movement.movementType === "Transfer" ? (
+                          <div className="text-sm">
+                            <div className="flex items-center gap-1">
+                              <span className="text-muted-foreground">
+                                {movement.sourceLocation?.name || "Sin ubicación"}
+                              </span>
+                              <span className="text-muted-foreground">→</span>
+                              <span className="font-medium">
+                                {movement.destinationLocation?.name || "Sin ubicación"}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-sm">
+                            {movement.destinationLocation?.name ||
+                             movement.sourceLocation?.name ||
+                             <span className="text-muted-foreground">-</span>}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">
@@ -606,7 +628,7 @@ const StockMovementsPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={8} className="h-24 text-center">
                       No se encontraron movimientos.
                     </TableCell>
                   </TableRow>
