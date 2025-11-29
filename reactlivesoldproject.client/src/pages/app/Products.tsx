@@ -37,6 +37,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
 import { MapPin, ChevronDown, Package } from "lucide-react";
+import { formatCurrency } from "@/utils/currencyHelper";
 
 // Componente para mostrar stock con detalles por ubicación
 const StockDisplay = ({ stock, sku, variantId }: { stock: number; sku?: string; variantId?: string }) => {
@@ -255,6 +256,7 @@ const ProductsPage = () => {
                   <TableHead>Estado</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Precios</TableHead>
+                  <TableHead>Costo</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -330,13 +332,20 @@ const ProductsPage = () => {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            <div>Detal: ${(variant.price || 0).toFixed(2)}</div>
+                            <div>Detal: ${formatCurrency(variant.price || 0)}</div>
                             {variant.wholesalePrice && variant.wholesalePrice > 0 && (
                               <div className="text-gray-600">
-                                Mayor: ${variant.wholesalePrice.toFixed(2)}
+                                Mayor: {formatCurrency(variant.wholesalePrice || 0)}
                               </div>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {variant.averageCost && variant.averageCost > 0 && (
+                            <div className="text-gray-800">
+                              {formatCurrency(variant.averageCost || 0)}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">

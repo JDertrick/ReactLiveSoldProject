@@ -132,6 +132,7 @@ export interface VariantProductDto {
   isPrimary?: boolean;
   isPublished?: boolean;
   product: Product;
+  averageCost?: number;
 }
 
 // Form input type for variant (string values for number inputs)

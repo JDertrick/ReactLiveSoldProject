@@ -7,7 +7,6 @@ import {
   useRejectStockMovement,
 } from "../../hooks/useStockMovements";
 import { useGetProducts } from "../../hooks/useProducts";
-import { useLocations } from "../../hooks/useLocations";
 import {
   CreateStockMovementDto,
   StockMovementDto,

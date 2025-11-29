@@ -12,6 +12,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string PlanType { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public string? CustomizationSettings { get; set; }
+        public string CostMethod { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
 }

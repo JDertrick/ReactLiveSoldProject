@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ReactLiveSoldProject.ServerBL.Base;
 
 namespace ReactLiveSoldProject.ServerBL.DTOs
 {
@@ -21,5 +22,10 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public string PrimaryContactEmail { get; set; } = string.Empty;
 
         public string? CustomizationSettings { get; set; }
+
+        /// <summary>
+        /// Método de costeo de inventario (FIFO o AverageCost)
+        /// </summary>
+        public CostMethod? CostMethod { get; set; }
     }
 }

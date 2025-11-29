@@ -142,6 +142,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 organization.CustomizationSettings = dto.CustomizationSettings;
             }
 
+            // Actualizar CostMethod si se proporciona
+            if (dto.CostMethod.HasValue)
+            {
+                organization.CostMethod = dto.CostMethod.Value;
+            }
+
             organization.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
@@ -190,6 +196,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 PlanType = organization.PlanType.ToString(),
                 IsActive = organization.IsActive,
                 CustomizationSettings = organization.CustomizationSettings,
+                CostMethod = organization.CostMethod.ToString(),
                 CreatedAt = organization.CreatedAt
             };
         }

@@ -9,6 +9,11 @@ export interface CustomizationSettings {
   sidebarActiveText?: string;
 }
 
+export enum CostMethod {
+  FIFO = 'FIFO',
+  AverageCost = 'AverageCost'
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -18,6 +23,7 @@ export interface Organization {
   planType: string;
   isActive: boolean;
   customizationSettings?: string; // JSON string
+  costMethod: string; // 'FIFO' | 'AverageCost'
   createdAt: string;
 }
 
@@ -46,4 +52,5 @@ export interface UpdateOrganizationSettingsDto {
   logoUrl?: string;
   primaryContactEmail: string;
   customizationSettings?: string;
+  costMethod?: CostMethod;
 }

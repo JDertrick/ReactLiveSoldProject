@@ -13,9 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Palette, Mail } from "lucide-react";
-import { CustomizationSettings } from "../../types/organization.types";
+import { Building2, Palette, Mail, DollarSign } from "lucide-react";
+import { CustomizationSettings, CostMethod } from "../../types/organization.types";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface OrganizationSettingsModalProps {
   open: boolean;
@@ -49,6 +50,7 @@ export const OrganizationSettingsModal = ({
   });
 
   const [customization, setCustomization] = useState<CustomizationSettings>(defaultColors);
+  const [costMethod, setCostMethod] = useState<CostMethod>(CostMethod.FIFO);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -58,6 +60,9 @@ export const OrganizationSettingsModal = ({
         logoUrl: organization.logoUrl || "",
         primaryContactEmail: organization.primaryContactEmail,
       });
+
+      // Set cost method
+      setCostMethod(organization.costMethod === 'AverageCost' ? CostMethod.AverageCost : CostMethod.FIFO);
 
       // Parse customization settings if exists
       if (organization.customizationSettings) {
@@ -96,6 +101,7 @@ export const OrganizationSettingsModal = ({
         logoUrl: updatedLogoUrl || undefined,
         primaryContactEmail: formData.primaryContactEmail,
         customizationSettings: JSON.stringify(customization),
+        costMethod: costMethod,
       };
 
       await updateOrganization.mutateAsync(dataToSend);
@@ -150,10 +156,14 @@ export const OrganizationSettingsModal = ({
         </DialogHeader>
 
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="general" className="gap-2">
               <Building2 className="w-4 h-4" />
               General
+            </TabsTrigger>
+            <TabsTrigger value="costs" className="gap-2">
+              <DollarSign className="w-4 h-4" />
+              Costos
             </TabsTrigger>
             <TabsTrigger value="appearance" className="gap-2">
               <Palette className="w-4 h-4" />
@@ -212,6 +222,70 @@ export const OrganizationSettingsModal = ({
                 placeholder="contacto@empresa.com"
                 className="h-12"
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="costs" className="space-y-4 mt-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-blue-800 font-semibold mb-2">
+                📊 Configuración de Método de Costeo
+              </p>
+              <p className="text-sm text-blue-700">
+                Selecciona el método que deseas usar para calcular el costo de tus productos.
+                <strong className="block mt-2">
+                  Importante: Ambos métodos se calculan SIEMPRE en segundo plano,
+                </strong>
+                pero solo el seleccionado se usará en reportes y cálculos de rentabilidad.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-base font-semibold">
+                Método de Costeo de Inventario
+              </Label>
+
+              <RadioGroup value={costMethod} onValueChange={(value) => setCostMethod(value as CostMethod)}>
+                <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <RadioGroupItem value={CostMethod.FIFO} id="fifo" className="mt-1" />
+                  <Label htmlFor="fifo" className="flex-1 cursor-pointer">
+                    <div className="font-semibold text-base mb-1">FIFO (First In, First Out)</div>
+                    <p className="text-sm text-gray-600">
+                      Las primeras unidades que entran al inventario son las primeras en salir.
+                      Útil cuando los productos tienen fecha de vencimiento o se prefiere
+                      mantener el inventario rotando.
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500">
+                      ✓ Refleja mejor el flujo físico del inventario<br/>
+                      ✓ Reduce riesgo de obsolescencia<br/>
+                      ✓ Recomendado para productos perecederos
+                    </div>
+                  </Label>
+                </div>
+
+                <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <RadioGroupItem value={CostMethod.AverageCost} id="average" className="mt-1" />
+                  <Label htmlFor="average" className="flex-1 cursor-pointer">
+                    <div className="font-semibold text-base mb-1">Costo Promedio Ponderado</div>
+                    <p className="text-sm text-gray-600">
+                      Calcula el costo promedio de todas las unidades disponibles.
+                      Suaviza las fluctuaciones de precio y simplifica la contabilidad.
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500">
+                      ✓ Suaviza variaciones de precio<br/>
+                      ✓ Más simple de calcular<br/>
+                      ✓ Recomendado para productos homogéneos
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>💡 Nota:</strong> Puedes cambiar el método en cualquier momento.
+                  Los cálculos históricos no se modifican, pero los nuevos reportes usarán el método seleccionado.
+                  Los lotes FIFO siempre se mantienen para garantizar trazabilidad.
+                </p>
+              </div>
             </div>
           </TabsContent>
 

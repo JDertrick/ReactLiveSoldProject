@@ -69,6 +69,15 @@ namespace ReactLiveSoldProject.ServerBL.Models.Authentication
         /// </summary>
         public Guid? DefaultTaxRateId { get; set; }
 
+        // ==================== CONFIGURACIÓN DE COSTOS ====================
+
+        /// <summary>
+        /// Método de costeo de inventario a utilizar para cálculos y reportes
+        /// FIFO (First In First Out) o AverageCost (Costo Promedio Ponderado)
+        /// Nota: Ambos métodos se calculan siempre, pero este determina cuál se usa en reportes
+        /// </summary>
+        public CostMethod CostMethod { get; set; } = CostMethod.FIFO;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
