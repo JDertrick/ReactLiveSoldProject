@@ -15,6 +15,9 @@ using ReactLiveSoldProject.ServerBL.Models.Taxes;
 using ReactLiveSoldProject.ServerBL.Models.Vendors;
 using ReactLiveSoldProject.ServerBL.Models.Purchases;
 using ReactLiveSoldProject.ServerBL.Models.Banking;
+using ReactLiveSoldProject.ServerBL.Infrastructure.Services;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
+using ReactLiveSoldProject.ServerBL.DTOs.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Base
 {
@@ -296,6 +299,13 @@ namespace ReactLiveSoldProject.ServerBL.Base
             CreateMap<CreateProductVendorDto, ProductVendor>();
             CreateMap<UpdateProductVendorDto, ProductVendor>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<NoSerie, NoSerieDto>()
+                .ForMember(dest => dest.NoSerieLines, opt => opt.MapFrom(src => src.NoSerieLines));
+            CreateMap<NoSerieDto, NoSerie>()
+                .ForMember(dest => dest.NoSerieLines, opt => opt.MapFrom(src => src.NoSerieLines));
+            CreateMap<NoSerieLine, NoSerieLineDto>();
+            CreateMap<NoSerieLineDto, NoSerieLine>();
         }
     }
 }
