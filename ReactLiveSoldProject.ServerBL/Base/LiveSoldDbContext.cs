@@ -1150,7 +1150,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
 
             modelBuilder.Entity<NoSerieLine>(e =>
             {
-                e.ToTable("no_series");
+                e.ToTable("no_serie_lines");
                 e.Property(n => n.Id).HasColumnName("id").IsRequired();
                 e.Property(n => n.StartingDate).HasColumnName("starting_date").IsRequired();
                 e.Property(n => n.StartingNo).HasColumnName("starting_no").IsRequired();
@@ -1161,9 +1161,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(n => n.Open).HasColumnName("open");
 
                 e.HasOne(n => n.NoSerie)
-                .WithMany(nl => nl.NoSerieLines)
-                .HasForeignKey(n => n.NoSerieId)
-                .OnDelete(DeleteBehavior.Restrict);
+                    .WithMany(nl => nl.NoSerieLines)
+                    .HasForeignKey(n => n.NoSerieId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }
