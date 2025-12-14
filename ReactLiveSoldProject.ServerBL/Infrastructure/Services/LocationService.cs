@@ -1,6 +1,5 @@
-﻿
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -12,12 +11,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class LocationService : ILocationService
     {
         private readonly LiveSoldDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public LocationService(LiveSoldDbContext dbContext, IMapper mapper)
+        public LocationService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<List<LocationDto>> GetLocationsAsync(Guid organizationId)
@@ -27,7 +24,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 var locationsDto = await _dbContext.Locations
                     .Where(l => l.OrganizationId == organizationId)
                     .OrderBy(l => l.Name)
-                    .ProjectTo<LocationDto>(_mapper.ConfigurationProvider)
+                    .ProjectToType<LocationDto>()
                     .ToListAsync();
 
                 return locationsDto;
@@ -44,7 +41,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 var locationDto = await _dbContext.Locations
                     .Where(l => l.OrganizationId == organizationId && l.Id == id)
-                    .ProjectTo<LocationDto>(_mapper.ConfigurationProvider)
+                    .ProjectToType<LocationDto>()
                     .FirstOrDefaultAsync();
 
                 return locationDto ?? new();
@@ -59,7 +56,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             try
             {
-                var location = _mapper.Map<Location>(dto);
+                var location = dto.Adapt<Location>();
                 location.OrganizationId = organizationId;
 
                 _dbContext.Locations.Add(location);
@@ -80,7 +77,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (location == null || location.OrganizationId != organizationId)
                     throw new InvalidOperationException("No se puede actualizar una location que no existe o no pertenece a esta organización");
 
-                _mapper.Map(dto, location);
+                dto.Adapt(location);
                 location.UpdatedAt = DateTime.UtcNow;
 
                 await _dbContext.SaveChangesAsync();

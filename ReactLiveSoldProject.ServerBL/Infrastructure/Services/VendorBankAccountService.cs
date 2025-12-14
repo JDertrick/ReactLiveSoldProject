@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Vendors;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -13,12 +13,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class VendorBankAccountService : IVendorBankAccountService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public VendorBankAccountService(LiveSoldDbContext context, IMapper mapper)
+        public VendorBankAccountService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public async Task<List<VendorBankAccountDto>> GetVendorBankAccountsAsync(Guid organizationId, Guid vendorId)
@@ -30,7 +28,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .ThenBy(vba => vba.AccountNumber)
                 .ToListAsync();
 
-            return _mapper.Map<List<VendorBankAccountDto>>(accounts);
+            return accounts.Adapt<List<VendorBankAccountDto>>();
         }
 
         public async Task<VendorBankAccountDto?> GetVendorBankAccountByIdAsync(Guid accountId, Guid organizationId)
@@ -39,7 +37,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Include(vba => vba.Vendor)
                 .FirstOrDefaultAsync(vba => vba.Id == accountId && vba.Vendor.OrganizationId == organizationId);
 
-            return _mapper.Map<VendorBankAccountDto>(account);
+            return account.Adapt<VendorBankAccountDto>();
         }
 
         public async Task<VendorBankAccountDto> CreateVendorBankAccountAsync(

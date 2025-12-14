@@ -1,4 +1,4 @@
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -10,12 +10,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class NotificationService : INotificationService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public NotificationService(LiveSoldDbContext context, IMapper mapper)
+        public NotificationService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public async Task<NotificationDto> CreateNotificationAsync(Guid userId, CreateNotificationDto createDto)
@@ -36,7 +34,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<NotificationDto>(notification);
+            return notification.Adapt<NotificationDto>();
         }
 
         public async Task<IEnumerable<NotificationDto>> GetNotificationsForUserAsync(Guid userId)
@@ -46,7 +44,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<NotificationDto>>(notifications);
+            return notifications.Adapt<IEnumerable<NotificationDto>>();
         }
 
         public async Task<bool> MarkAllAsReadAsync(Guid userId)

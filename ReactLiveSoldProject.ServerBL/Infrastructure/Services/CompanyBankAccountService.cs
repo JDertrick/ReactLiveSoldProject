@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Banking;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -13,12 +13,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class CompanyBankAccountService : ICompanyBankAccountService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public CompanyBankAccountService(LiveSoldDbContext context, IMapper mapper)
+        public CompanyBankAccountService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public async Task<List<CompanyBankAccountDto>> GetCompanyBankAccountsAsync(Guid organizationId)
@@ -30,7 +28,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .ThenBy(cba => cba.AccountNumber)
                 .ToListAsync();
 
-            return _mapper.Map<List<CompanyBankAccountDto>>(accounts);
+            return accounts.Adapt<List<CompanyBankAccountDto>>();
         }
 
         public async Task<CompanyBankAccountDto?> GetCompanyBankAccountByIdAsync(Guid accountId, Guid organizationId)
@@ -39,7 +37,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Include(cba => cba.GLAccount)
                 .FirstOrDefaultAsync(cba => cba.Id == accountId && cba.OrganizationId == organizationId);
 
-            return _mapper.Map<CompanyBankAccountDto>(account);
+            return account.Adapt<CompanyBankAccountDto>();
         }
 
         public async Task<CompanyBankAccountDto> CreateCompanyBankAccountAsync(

@@ -1,4 +1,4 @@
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Accounting;
@@ -16,12 +16,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class AccountingService : IAccountingService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public AccountingService(LiveSoldDbContext context, IMapper mapper)
+        public AccountingService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public async Task<List<ChartOfAccountDto>> GetChartOfAccountsAsync(Guid organizationId)
@@ -31,7 +29,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderBy(ca => ca.AccountCode)
                 .ToListAsync();
 
-            return _mapper.Map<List<ChartOfAccountDto>>(accounts);
+            return accounts.Adapt<List<ChartOfAccountDto>>();
         }
 
         public async Task<ChartOfAccountDto> CreateChartOfAccountAsync(Guid organizationId, CreateChartOfAccountDto createDto)
@@ -45,13 +43,13 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 throw new InvalidOperationException("Ya existe una cuenta con el mismo código o nombre para esta organización.");
             }
 
-            var account = _mapper.Map<ChartOfAccount>(createDto);
+            var account = createDto.Adapt<ChartOfAccount>();
             account.OrganizationId = organizationId;
 
             await _context.ChartOfAccounts.AddAsync(account);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<ChartOfAccountDto>(account);
+            return account.Adapt<ChartOfAccountDto>();
         }
 
         public async Task<ChartOfAccountDto> UpdateChartOfAccountAsync(Guid organizationId, Guid accountId, UpdateChartOfAccountDto updateDto)
@@ -91,7 +89,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             account.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<ChartOfAccountDto>(account);
+            return account.Adapt<ChartOfAccountDto>();
         }
 
         public async Task DeleteChartOfAccountAsync(Guid organizationId, Guid accountId)
@@ -147,7 +145,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .ThenByDescending(je => je.CreatedAt)
                 .ToListAsync();
 
-            return _mapper.Map<List<JournalEntryDto>>(journalEntries);
+            return journalEntries.Adapt<List<JournalEntryDto>>();
         }
 
         public async Task<JournalEntryDto> CreateJournalEntryAsync(Guid organizationId, CreateJournalEntryDto createDto)
@@ -172,7 +170,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 throw new InvalidOperationException("Un asiento contable debe tener al menos dos líneas.");
             }
-            
+
             // Validación 4: Verificar que las AccountId existen y pertenecen a la organización
             var distinctAccountIds = createDto.Lines.Select(l => l.AccountId).Distinct();
             var existingAccounts = await _context.ChartOfAccounts
@@ -187,7 +185,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             }
 
 
-            var journalEntry = _mapper.Map<JournalEntry>(createDto);
+            var journalEntry = createDto.Adapt<JournalEntry>();
             journalEntry.OrganizationId = organizationId;
 
             await _context.JournalEntries.AddAsync(journalEntry);
@@ -204,7 +202,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .LoadAsync();
             }
 
-            return _mapper.Map<JournalEntryDto>(journalEntry);
+            return journalEntry.Adapt<JournalEntryDto>();
         }
 
         public async Task RegisterPurchaseAsync(Guid organizationId, StockMovement stockMovement)
@@ -267,13 +265,13 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 var taxPayableAccount = await GetSystemAccountAsync(organizationId, SystemAccountType.SalesTaxPayable);
                 saleEntryDto.Lines.Add(new CreateJournalEntryLineDto { AccountId = taxPayableAccount.Id, Credit = salesOrder.TotalTaxAmount });
             }
-            
+
             await CreateJournalEntryAsync(organizationId, saleEntryDto);
 
             // Asiento 2: Registro del Costo de la Mercancía Vendida (COGS)
             var cogsAccount = await GetSystemAccountAsync(organizationId, SystemAccountType.CostOfGoodsSold);
             var inventoryAccount = await GetSystemAccountAsync(organizationId, SystemAccountType.Inventory);
-            
+
             // La orden debe tener los items cargados
             var totalCost = salesOrder.Items.Sum(i => (i.UnitCost) * i.Quantity);
 

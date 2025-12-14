@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Purchases;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -14,12 +14,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class VendorInvoiceService : IVendorInvoiceService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public VendorInvoiceService(LiveSoldDbContext context, IMapper mapper)
+        public VendorInvoiceService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         /// <summary>
@@ -55,7 +53,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(vi => vi.InvoiceDate)
                 .ToListAsync();
 
-            return _mapper.Map<List<VendorInvoiceDto>>(invoices);
+            return invoices.Adapt<List<VendorInvoiceDto>>();
         }
 
         /// <summary>
@@ -69,7 +67,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .Include(vi => vi.PurchaseReceipt)
                 .FirstOrDefaultAsync(vi => vi.Id == invoiceId && vi.OrganizationId == organizationId);
 
-            return _mapper.Map<VendorInvoiceDto>(invoice);
+            return invoice.Adapt<VendorInvoiceDto>();
         }
 
         /// <summary>

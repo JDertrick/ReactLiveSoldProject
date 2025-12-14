@@ -1,5 +1,5 @@
-﻿
-using AutoMapper;
+
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -11,12 +11,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class CategoryService : ICategoryService
     {
         private readonly LiveSoldDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public CategoryService(LiveSoldDbContext dbContext, IMapper mapper)
+        public CategoryService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<List<CategoryDto>> GetCategoriesAsync(Guid organizationId)
@@ -29,7 +27,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .OrderByDescending(c => c.Name)
                     .ToListAsync();
 
-                var categoriesDto = _mapper.Map<List<CategoryDto>>(categories);
+                var categoriesDto = categories.Adapt<List<CategoryDto>>();
 
                 return categoriesDto;
             }
@@ -47,7 +45,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .Include(c => c.Children)
                     .FirstOrDefaultAsync(o => o.OrganizationId == organizationId && o.Id == id);
 
-                var categoryDto = _mapper.Map<CategoryDto>(category);
+                var categoryDto = category.Adapt<CategoryDto>();
 
                 return categoryDto;
             }
@@ -61,7 +59,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             try
             {
-                var category = _mapper.Map<Category>(categoryDto);
+                var category = categoryDto.Adapt<Category>();
                 category.OrganizationId = organizationId;
 
                 _dbContext.Categories.Add(category);
@@ -84,7 +82,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new InvalidOperationException("No se puede actualizar una categoria que no existe o no pertenece a esta organización");
                 }
 
-                _mapper.Map(dto, category);
+                dto.Adapt(category);
                 category.UpdatedAt = DateTime.UtcNow;
 
                 await _dbContext.SaveChangesAsync();

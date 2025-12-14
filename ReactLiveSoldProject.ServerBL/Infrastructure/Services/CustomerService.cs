@@ -1,4 +1,4 @@
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -12,12 +12,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class CustomerService : ICustomerService
     {
         private readonly LiveSoldDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public CustomerService(LiveSoldDbContext dbContext, IMapper mapper)
+        public CustomerService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<List<CustomerDto>> GetCustomersByOrganizationAsync(Guid organizationId)
@@ -67,58 +65,23 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         {
             try
             {
-                // Verificar que no exista un contacto con el mismo email en esta organización
-                var existingContact = await _dbContext.Contacts
-                    .FirstOrDefaultAsync(c => c.OrganizationId == organizationId && c.Email == dto.Email);
+                var contact = _dbContext.Contacts
+                    .Where(c => c.OrganizationId == organizationId && c.Email == dto.Email)
+                    .FirstOrDefault();
 
-                if (existingContact != null)
-                    throw new InvalidOperationException("Ya existe un contacto con este email en la organización");
+                if (contact == null)
+                    throw new InvalidOperationException("El contacto no existe");
 
-                // Si tiene teléfono, verificar que tampoco exista
-                if (!string.IsNullOrWhiteSpace(dto.Phone))
-                {
-                    var existingPhone = await _dbContext.Contacts
-                        .FirstOrDefaultAsync(c => c.OrganizationId == organizationId && c.Phone == dto.Phone);
+                var customer = _dbContext.Customers
+                    .Where(c => c.OrganizationId == organizationId && c.ContactId == contact.Id)
+                    .FirstOrDefault();
 
-                    if (existingPhone != null)
-                        throw new InvalidOperationException("Ya existe un contacto con este teléfono en la organización");
-                }
-
-                // Verificar que el assigned seller pertenezca a la organización (si se proporciona)
-                if (dto.AssignedSellerId.HasValue)
-                {
-                    var sellerExists = await _dbContext.OrganizationMembers
-                        .AnyAsync(om => om.OrganizationId == organizationId && om.UserId == dto.AssignedSellerId.Value);
-
-                    if (!sellerExists)
-                        throw new InvalidOperationException("El vendedor asignado no pertenece a esta organización");
-                }
-
-                // Crear el contacto primero
-                var contact = new Contact
-                {
-                    Id = Guid.NewGuid(),
-                    OrganizationId = organizationId,
-                    FirstName = dto.FirstName,
-                    LastName = dto.LastName,
-                    Email = dto.Email,
-                    Phone = dto.Phone,
-                    Address = dto.Address,
-                    City = dto.City,
-                    State = dto.State,
-                    PostalCode = dto.PostalCode,
-                    Country = dto.Country,
-                    Company = dto.Company,
-                    IsActive = dto.IsActive,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                _dbContext.Contacts.Add(contact);
+                if (customer != null)
+                    throw new InvalidOperationException($"Esta informacion de contacto ya se encuentra registrada en la organizacion");
 
                 // Crear el cliente
                 var customerId = Guid.NewGuid();
-                var customer = new Customer
+                var newCustomer = new Customer
                 {
                     Id = customerId,
                     OrganizationId = organizationId,
@@ -131,7 +94,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                _dbContext.Customers.Add(customer);
+                _dbContext.Customers.Add(newCustomer);
 
                 // Crear automáticamente el wallet para el cliente
                 var wallet = new Wallet
@@ -155,7 +118,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .Include(c => c.AssignedSeller)
                     .FirstAsync(c => c.Id == customerId);
 
-                return MapToDto(createdCustomer);
+                return createdCustomer.Adapt<CustomerDto>();
             }
             catch (Exception ex)
             {

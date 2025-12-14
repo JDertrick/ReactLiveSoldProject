@@ -1,5 +1,4 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using ReactLiveSoldProject.ServerBL.Base;
@@ -12,12 +11,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class SerieNoService : ISerieNoService
     {
         public readonly LiveSoldDbContext _dbContext;
-        public readonly IMapper _mapper;
 
-        public SerieNoService(LiveSoldDbContext dbContext, IMapper mapper)
+        public SerieNoService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<List<NoSerieDto>> GetSerieNosAsync(Guid organizationId)
@@ -27,7 +24,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 var seriesDtos = await _dbContext.NoSeries
                     .Where(n => n.OrganizationId == organizationId)
                     .Include(nl => nl.NoSerieLines)
-                    .ProjectTo<NoSerieDto>(_mapper.ConfigurationProvider).ToListAsync();
+                    .ProjectToType<NoSerieDto>().ToListAsync();
 
                 return seriesDtos;
             }
@@ -44,7 +41,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 var serieDto = await _dbContext.NoSeries
                     .Where(n => n.OrganizationId == organizationId && n.Id == id)
                     .Include(nl => nl.NoSerieLines)
-                    .ProjectTo<NoSerieDto>(_mapper.ConfigurationProvider)
+                    .ProjectToType<NoSerieDto>()
                     .FirstOrDefaultAsync();
 
                 return serieDto ?? new();
@@ -65,7 +62,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (noSerie.Any())
                     throw new InvalidOperationException("No se puede crear un numero serial con un codigo existente");
 
-                var createNoSerie = _mapper.Map<NoSerie>(dto);
+                var createNoSerie = dto.Adapt<NoSerie>();
 
                 var c = await _dbContext.NoSeries.AddAsync(createNoSerie);
                 createNoSerie = c.Entity;

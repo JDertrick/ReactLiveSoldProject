@@ -1,4 +1,4 @@
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -10,12 +10,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class VendorService : IVendorService
     {
         private readonly LiveSoldDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public VendorService(LiveSoldDbContext dbContext, IMapper mapper)
+        public VendorService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<List<VendorDto>> GetVendorsByOrganizationAsync(Guid organizationId, string? searchTerm = null, string? status = null)
@@ -118,7 +116,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             }
 
             // Crear el proveedor
-            var vendor = _mapper.Map<Vendor>(dto);
+            var vendor = dto.Adapt<Vendor>();
             vendor.Id = Guid.NewGuid();
             vendor.OrganizationId = organizationId;
 

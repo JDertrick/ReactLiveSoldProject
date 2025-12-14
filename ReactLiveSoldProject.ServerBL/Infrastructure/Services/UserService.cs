@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -13,12 +12,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class UserService : IUserService
     {
         private readonly LiveSoldDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public UserService(LiveSoldDbContext dbContext, IMapper mapper)
+        public UserService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<ICollection<UserProfileDto>> GetUserAsync(Guid organizationId)
@@ -26,7 +23,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             // Mapear desde OrganizationMember para obtener el Role
             var users = _dbContext.OrganizationMembers
                 .Where(om => om.OrganizationId == organizationId)
-                .ProjectTo<UserProfileDto>(_mapper.ConfigurationProvider);
+                .ProjectToType<UserProfileDto>();
 
             return await users.ToArrayAsync();
         }

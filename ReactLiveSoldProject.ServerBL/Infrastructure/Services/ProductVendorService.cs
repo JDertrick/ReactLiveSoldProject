@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Purchases;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -14,12 +14,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class ProductVendorService : IProductVendorService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public ProductVendorService(LiveSoldDbContext context, IMapper mapper)
+        public ProductVendorService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         /// <summary>
@@ -53,7 +51,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .ThenBy(pv => pv.Vendor.Contact.Company ?? pv.Vendor.Contact.FirstName)
                 .ToListAsync();
 
-            return _mapper.Map<List<ProductVendorDto>>(productVendors);
+            return productVendors.Adapt<List<ProductVendorDto>>();
         }
 
         /// <summary>
@@ -67,7 +65,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .ThenInclude(v => v.Contact)
                 .FirstOrDefaultAsync(pv => pv.Id == productVendorId && pv.Product.OrganizationId == organizationId);
 
-            return _mapper.Map<ProductVendorDto>(productVendor);
+            return productVendor.Adapt<ProductVendorDto>();
         }
 
         /// <summary>

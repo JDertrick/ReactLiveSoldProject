@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Purchases;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -14,12 +14,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class PaymentTermsService : IPaymentTermsService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public PaymentTermsService(LiveSoldDbContext context, IMapper mapper)
+        public PaymentTermsService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public async Task<List<PaymentTermsDto>> GetPaymentTermsAsync(Guid organizationId)
@@ -29,7 +27,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderBy(pt => pt.Description)
                 .ToListAsync();
 
-            return _mapper.Map<List<PaymentTermsDto>>(paymentTerms);
+            return paymentTerms.Adapt<List<PaymentTermsDto>>();
         }
 
         public async Task<PaymentTermsDto?> GetPaymentTermsByIdAsync(Guid paymentTermsId, Guid organizationId)
@@ -37,7 +35,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             var paymentTerms = await _context.PaymentTerms
                 .FirstOrDefaultAsync(pt => pt.Id == paymentTermsId && pt.OrganizationId == organizationId);
 
-            return _mapper.Map<PaymentTermsDto>(paymentTerms);
+            return paymentTerms.Adapt<PaymentTermsDto>();
         }
 
         public async Task<PaymentTermsDto> CreatePaymentTermsAsync(
@@ -58,7 +56,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             _context.PaymentTerms.Add(paymentTerms);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<PaymentTermsDto>(paymentTerms);
+            return paymentTerms.Adapt<PaymentTermsDto>();
         }
 
         public async Task<PaymentTermsDto> UpdatePaymentTermsAsync(
@@ -85,7 +83,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<PaymentTermsDto>(paymentTerms);
+            return paymentTerms.Adapt<PaymentTermsDto>();
         }
 
         public async Task DeletePaymentTermsAsync(Guid paymentTermsId, Guid organizationId)

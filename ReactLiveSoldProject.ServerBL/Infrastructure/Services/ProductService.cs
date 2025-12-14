@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
-using AutoMapper.QueryableExtensions;
 using System.Xml;
 
 using ReactLiveSoldProject.ServerBL.DTOs.Common;
@@ -14,12 +13,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class ProductService : IProductService
     {
         private readonly LiveSoldDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public ProductService(LiveSoldDbContext dbContext, IMapper mapper)
+        public ProductService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<PagedResult<ProductDto>> GetProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm)
@@ -30,7 +27,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .ThenInclude(pt => pt.Tag)
                 .Include(p => p.Category)
                 .Where(p => p.OrganizationId == organizationId)
-                .ProjectTo<ProductDto>(_mapper.ConfigurationProvider);
+                .ProjectToType<ProductDto>();
 
             if (!string.IsNullOrEmpty(status))
                 if (status.Equals("published", StringComparison.OrdinalIgnoreCase))
@@ -111,7 +108,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             var query = _dbContext.ProductVariants
                 .Include(pv => pv.Product)
                 .Where(pv => pv.OrganizationId == organizationId)
-                .ProjectTo<VariantProductDto>(_mapper.ConfigurationProvider);
+                .ProjectToType<VariantProductDto>();
 
             if (!string.IsNullOrEmpty(status) && string.Compare(status, "all", StringComparison.OrdinalIgnoreCase) != 0)
             {
@@ -191,7 +188,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             {
                 var product = products.FirstOrDefault(p => p.Id == dto.ProductId);
                 if (product != null)
-                    dto.Product = _mapper.Map<ProductDto>(product);
+                    dto.Product = product.Adapt<ProductDto>();
             }
         }
 
@@ -203,7 +200,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .ThenInclude(pt => pt.Tag)
                 .Include(p => p.Category)
                 .Where(p => p.Id == productId && p.OrganizationId == organizationId)
-                .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
+                .ProjectToType<ProductDto>()
                 .FirstOrDefaultAsync();
 
             return product ?? new();
@@ -224,7 +221,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return _mapper.Map<List<ProductDto>>(products);
+            return products.Adapt<List<ProductDto>>();
         }
 
         public async Task<ProductDto> CreateProductAsync(Guid organizationId, CreateProductDto dto)
@@ -238,7 +235,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 // Crear el producto
                 var productId = Guid.NewGuid();
 
-                var product = _mapper.Map<Product>(dto);
+                var product = dto.Adapt<Product>();
                 product.Id = productId;
                 product.OrganizationId = organizationId;
                 product.ProductType = productType;
@@ -255,7 +252,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                         .ThenInclude(pt => pt.Tag)
                     .FirstAsync(p => p.Id == productId);
 
-                return _mapper.Map<ProductDto>(createdProduct);
+                return createdProduct.Adapt<ProductDto>();
             }
             catch (Exception ex)
             {
@@ -282,7 +279,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new InvalidOperationException($"Tipo de producto inválido: {dto.ProductType}");
 
                 // Actualizar campos
-                _mapper.Map(dto, product);
+                dto.Adapt(product);
                 product.UpdatedAt = DateTime.UtcNow;
 
                 await _dbContext.SaveChangesAsync();
@@ -296,7 +293,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
                 await _dbContext.Entry(product).Collection(p => p.Variants).LoadAsync();
 
-                return _mapper.Map<ProductDto>(product);
+                return product.Adapt<ProductDto>();
             }
             catch (Exception ex)
             {
@@ -543,7 +540,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             await _dbContext.SaveChangesAsync();
 
-            return _mapper.Map<ProductVariantDto>(variant);
+            return variant.Adapt<ProductVariantDto>();
         }
 
         public async Task DeleteVariantAsync(Guid variantId, Guid organizationId)

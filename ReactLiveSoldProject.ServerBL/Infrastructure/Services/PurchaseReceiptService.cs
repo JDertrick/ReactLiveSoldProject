@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Purchases;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -13,12 +13,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class PurchaseReceiptService : IPurchaseReceiptService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public PurchaseReceiptService(LiveSoldDbContext context, IMapper mapper)
+        public PurchaseReceiptService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         #region CRUD Básico

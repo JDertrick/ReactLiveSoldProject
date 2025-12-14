@@ -1,4 +1,4 @@
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -10,12 +10,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class ContactService : IContactService
     {
         private readonly LiveSoldDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public ContactService(LiveSoldDbContext dbContext, IMapper mapper)
+        public ContactService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<List<ContactDto>> GetContactsByOrganizationAsync(Guid organizationId)
@@ -25,7 +23,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
 
-            return _mapper.Map<List<ContactDto>>(contacts);
+            return contacts.Adapt<List<ContactDto>>();
         }
 
         public async Task<ContactDto?> GetContactByIdAsync(Guid contactId, Guid organizationId)
@@ -33,7 +31,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             var contact = await _dbContext.Contacts
                 .FirstOrDefaultAsync(c => c.Id == contactId && c.OrganizationId == organizationId);
 
-            return contact != null ? _mapper.Map<ContactDto>(contact) : null;
+            return contact != null ? contact.Adapt<ContactDto>() : null;
         }
 
         public async Task<List<ContactDto>> SearchContactsAsync(Guid organizationId, string searchTerm)
@@ -50,7 +48,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
 
-            return _mapper.Map<List<ContactDto>>(contacts);
+            return contacts.Adapt<List<ContactDto>>();
         }
 
         public async Task<ContactDto> CreateContactAsync(Guid organizationId, CreateContactDto dto)
@@ -73,14 +71,14 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             }
 
             // Crear el contacto
-            var contact = _mapper.Map<Contact>(dto);
+            var contact = dto.Adapt<Contact>();
             contact.Id = Guid.NewGuid();
             contact.OrganizationId = organizationId;
 
             _dbContext.Contacts.Add(contact);
             await _dbContext.SaveChangesAsync();
 
-            return _mapper.Map<ContactDto>(contact);
+            return contact.Adapt<ContactDto>();
         }
 
         public async Task<ContactDto> UpdateContactAsync(Guid contactId, Guid organizationId, UpdateContactDto dto)
@@ -152,7 +150,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             await _dbContext.SaveChangesAsync();
 
-            return _mapper.Map<ContactDto>(contact);
+            return contact.Adapt<ContactDto>();
         }
 
         public async Task DeleteContactAsync(Guid contactId, Guid organizationId)

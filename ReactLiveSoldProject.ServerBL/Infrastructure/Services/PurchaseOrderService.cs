@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Purchases;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -13,12 +13,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class PurchaseOrderService : IPurchaseOrderService
     {
         private readonly LiveSoldDbContext _context;
-        private readonly IMapper _mapper;
 
-        public PurchaseOrderService(LiveSoldDbContext context, IMapper mapper)
+        public PurchaseOrderService(LiveSoldDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         /// <summary>
@@ -58,7 +56,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(po => po.OrderDate)
                 .ToListAsync();
 
-            return _mapper.Map<List<PurchaseOrderDto>>(orders);
+            return orders.Adapt<List<PurchaseOrderDto>>();
         }
 
         /// <summary>
@@ -76,7 +74,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     .ThenInclude(i => i.ProductVariant)
                 .FirstOrDefaultAsync(po => po.Id == orderId && po.OrganizationId == organizationId);
 
-            return _mapper.Map<PurchaseOrderDto>(order);
+            return order.Adapt<PurchaseOrderDto>();
         }
 
         /// <summary>

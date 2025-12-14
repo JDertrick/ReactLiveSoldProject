@@ -12,11 +12,8 @@ using ReactLiveSoldProject.ServerBL.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//AutoMapper
-builder.Services.AddAutoMapper(c =>
-{
-    c.AddProfile<MappingProfile>();
-});
+//Mapster
+MapsterConfig.Configure();
 
 // Add services to the container.
 

@@ -1,4 +1,4 @@
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
@@ -11,12 +11,10 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class WalletService : IWalletService
     {
         private readonly LiveSoldDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public WalletService(LiveSoldDbContext dbContext, IMapper mapper)
+        public WalletService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
         public async Task<WalletDto?> GetWalletByCustomerIdAsync(Guid customerId, Guid organizationId)
@@ -99,7 +97,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 // Crear la transacción
                 var transactionId = Guid.NewGuid();
 
-                var transaction = _mapper.Map<WalletTransaction>(dto);
+                var transaction = dto.Adapt<WalletTransaction>();
                 transaction.OrganizationId = organizationId;
                 transaction.WalletId = customer.Wallet.Id;
                 transaction.AuthorizedByUserId = authorizedByUserId;
@@ -115,12 +113,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 // Recargar con relaciones
                 await _dbContext.Entry(transaction).Reference(t => t.AuthorizedByUser).LoadAsync();
 
-                return _mapper.Map<WalletTransactionDto>(transaction);
+                return transaction.Adapt<WalletTransactionDto>();
             }
             catch (Exception ex)
             {
                 throw ex;
-            }            
+            }
         }
 
         public async Task<WalletTransactionDto> CreateWithdrawalAsync(Guid organizationId, Guid authorizedByUserId, CreateWalletTransactionDto dto)
@@ -356,7 +354,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 receipt.PostedAt = walletTransaction.PostedAt;
                 receipt.PostedByUserId = userId;
                 receipt.WalletTransactionId = walletTransaction.Id;
-                
+
                 await _dbContext.SaveChangesAsync();
 
                 await dbTransaction.CommitAsync();
@@ -421,7 +419,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             receipt.RejectedByUserId = userId;
 
             await _dbContext.SaveChangesAsync();
-            
+
             await _dbContext.Entry(receipt).Reference(r => r.RejectedByUser).LoadAsync();
 
             return new ReceiptDto
