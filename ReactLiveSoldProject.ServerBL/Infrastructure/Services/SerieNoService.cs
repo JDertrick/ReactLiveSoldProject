@@ -1,6 +1,5 @@
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Configuration;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
@@ -10,68 +9,491 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class SerieNoService : ISerieNoService
     {
-        public readonly LiveSoldDbContext _dbContext;
+        private readonly LiveSoldDbContext _dbContext;
 
         public SerieNoService(LiveSoldDbContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        public async Task<List<NoSerieDto>> GetSerieNosAsync(Guid organizationId)
-        {
-            try
-            {
-                var seriesDtos = await _dbContext.NoSeries
-                    .Where(n => n.OrganizationId == organizationId)
-                    .Include(nl => nl.NoSerieLines)
-                    .ProjectToType<NoSerieDto>().ToListAsync();
+        #region NoSerie CRUD Operations
 
-                return seriesDtos;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+        public async Task<List<NoSerieDto>> GetAllAsync(Guid organizationId)
+        {
+            var series = await _dbContext.NoSeries
+                .Where(n => n.OrganizationId == organizationId)
+                .Include(n => n.NoSerieLines)
+                .OrderBy(n => n.Code)
+                .ToListAsync();
+
+            return series.Select(MapToDto).ToList();
         }
 
-        public async Task<NoSerieDto> GetSerieNoAsync(Guid organizationId, Guid id)
+        public async Task<NoSerieDto?> GetByIdAsync(Guid organizationId, Guid id)
         {
-            try
-            {
-                var serieDto = await _dbContext.NoSeries
-                    .Where(n => n.OrganizationId == organizationId && n.Id == id)
-                    .Include(nl => nl.NoSerieLines)
-                    .ProjectToType<NoSerieDto>()
-                    .FirstOrDefaultAsync();
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Id == id);
 
-                return serieDto ?? new();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return serie != null ? MapToDto(serie) : null;
         }
 
-        public async Task CreateSerieNoAsync(Guid organizationId, CreateNoSerieDto dto)
+        public async Task<NoSerieDto?> GetByCodeAsync(Guid organizationId, string code)
         {
-            try
-            {
-                var noSerie = _dbContext.NoSeries
-                    .Where(n => n.OrganizationId == organizationId && n.Code == dto.Code);
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Code == code);
 
-                if (noSerie.Any())
-                    throw new InvalidOperationException("No se puede crear un numero serial con un codigo existente");
-
-                var createNoSerie = dto.Adapt<NoSerie>();
-
-                var c = await _dbContext.NoSeries.AddAsync(createNoSerie);
-                createNoSerie = c.Entity;
-
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return serie != null ? MapToDto(serie) : null;
         }
+
+        public async Task<NoSerieDto> CreateAsync(Guid organizationId, CreateNoSerieDto dto)
+        {
+            // Verificar que no exista una serie con el mismo código
+            var existingSerie = await _dbContext.NoSeries
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Code == dto.Code);
+
+            if (existingSerie != null)
+                throw new InvalidOperationException($"Ya existe una serie con el código '{dto.Code}'");
+
+            // Si se marca como DefaultNos y tiene un DocumentType, desmarcar las demás series del mismo tipo
+            if (dto.DefaultNos && dto.DocumentType.HasValue)
+            {
+                var existingDefaults = await _dbContext.NoSeries
+                    .Where(n => n.OrganizationId == organizationId && n.DocumentType == dto.DocumentType && n.DefaultNos)
+                    .ToListAsync();
+
+                foreach (var existingDefault in existingDefaults)
+                {
+                    existingDefault.DefaultNos = false;
+                }
+            }
+
+            var serie = new NoSerie
+            {
+                Id = Guid.NewGuid(),
+                OrganizationId = organizationId,
+                Code = dto.Code,
+                Description = dto.Description,
+                DocumentType = dto.DocumentType,
+                DefaultNos = dto.DefaultNos,
+                ManualNos = dto.ManualNos,
+                DateOrder = dto.DateOrder,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.NoSeries.Add(serie);
+
+            // Agregar las líneas si vienen
+            if (dto.NoSerieLines != null && dto.NoSerieLines.Any())
+            {
+                foreach (var lineDto in dto.NoSerieLines)
+                {
+                    var line = new NoSerieLine
+                    {
+                        Id = Guid.NewGuid(),
+                        NoSerieId = serie.Id,
+                        StartingDate = lineDto.StartingDate,
+                        StartingNo = lineDto.StartingNo,
+                        EndingNo = lineDto.EndingNo,
+                        LastNoUsed = string.Empty,
+                        IncrementBy = lineDto.IncrementBy,
+                        WarningNo = lineDto.WarningNo ?? string.Empty,
+                        Open = lineDto.Open
+                    };
+
+                    _dbContext.NoSerieLines.Add(line);
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            // Recargar para incluir las líneas
+            var createdSerie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstAsync(n => n.Id == serie.Id);
+
+            return MapToDto(createdSerie);
+        }
+
+        public async Task<NoSerieDto> UpdateAsync(Guid organizationId, Guid id, UpdateNoSerieDto dto)
+        {
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Id == id);
+
+            if (serie == null)
+                throw new KeyNotFoundException("Serie numérica no encontrada");
+
+            // Si se marca como DefaultNos y tiene un DocumentType, desmarcar las demás series del mismo tipo
+            if (dto.DefaultNos.HasValue && dto.DefaultNos.Value)
+            {
+                var docType = dto.DocumentType ?? serie.DocumentType;
+                if (docType.HasValue)
+                {
+                    var existingDefaults = await _dbContext.NoSeries
+                        .Where(n => n.OrganizationId == organizationId && n.DocumentType == docType && n.DefaultNos && n.Id != id)
+                        .ToListAsync();
+
+                    foreach (var existingDefault in existingDefaults)
+                    {
+                        existingDefault.DefaultNos = false;
+                    }
+                }
+            }
+
+            // Actualizar campos
+            if (dto.Description != null)
+                serie.Description = dto.Description;
+
+            if (dto.DocumentType.HasValue)
+                serie.DocumentType = dto.DocumentType;
+
+            if (dto.DefaultNos.HasValue)
+                serie.DefaultNos = dto.DefaultNos.Value;
+
+            if (dto.ManualNos.HasValue)
+                serie.ManualNos = dto.ManualNos.Value;
+
+            if (dto.DateOrder.HasValue)
+                serie.DateOrder = dto.DateOrder.Value;
+
+            serie.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+
+            return MapToDto(serie);
+        }
+
+        public async Task DeleteAsync(Guid organizationId, Guid id)
+        {
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Id == id);
+
+            if (serie == null)
+                throw new KeyNotFoundException("Serie numérica no encontrada");
+
+            // Eliminar las líneas primero
+            _dbContext.NoSerieLines.RemoveRange(serie.NoSerieLines);
+
+            // Eliminar la serie
+            _dbContext.NoSeries.Remove(serie);
+
+            await _dbContext.SaveChangesAsync();
+        }
+
+        #endregion
+
+        #region NoSerieLine Operations
+
+        public async Task<NoSerieLineDto> AddLineAsync(Guid organizationId, Guid noSerieId, CreateNoSerieLineDto dto)
+        {
+            var serie = await _dbContext.NoSeries
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Id == noSerieId);
+
+            if (serie == null)
+                throw new KeyNotFoundException("Serie numérica no encontrada");
+
+            // Validar que no haya solapamiento de fechas
+            var overlappingLine = await _dbContext.NoSerieLines
+                .Where(l => l.NoSerieId == noSerieId && l.Open && l.StartingDate == dto.StartingDate)
+                .FirstOrDefaultAsync();
+
+            if (overlappingLine != null)
+                throw new InvalidOperationException($"Ya existe una línea abierta con la fecha {dto.StartingDate:yyyy-MM-dd}");
+
+            var line = new NoSerieLine
+            {
+                Id = Guid.NewGuid(),
+                NoSerieId = noSerieId,
+                StartingDate = dto.StartingDate,
+                StartingNo = dto.StartingNo,
+                EndingNo = dto.EndingNo,
+                LastNoUsed = string.Empty,
+                IncrementBy = dto.IncrementBy,
+                WarningNo = dto.WarningNo ?? string.Empty,
+                Open = dto.Open
+            };
+
+            _dbContext.NoSerieLines.Add(line);
+            await _dbContext.SaveChangesAsync();
+
+            return line.Adapt<NoSerieLineDto>();
+        }
+
+        public async Task<NoSerieLineDto> UpdateLineAsync(Guid organizationId, Guid lineId, UpdateNoSerieLineDto dto)
+        {
+            var line = await _dbContext.NoSerieLines
+                .Include(l => l.NoSerie)
+                .FirstOrDefaultAsync(l => l.Id == lineId && l.NoSerie.OrganizationId == organizationId);
+
+            if (line == null)
+                throw new KeyNotFoundException("Línea de serie no encontrada");
+
+            // Actualizar campos
+            if (dto.StartingDate.HasValue)
+                line.StartingDate = dto.StartingDate.Value;
+
+            if (dto.StartingNo != null)
+                line.StartingNo = dto.StartingNo;
+
+            if (dto.EndingNo != null)
+                line.EndingNo = dto.EndingNo;
+
+            if (dto.IncrementBy.HasValue)
+                line.IncrementBy = dto.IncrementBy.Value;
+
+            if (dto.WarningNo != null)
+                line.WarningNo = dto.WarningNo;
+
+            if (dto.Open.HasValue)
+                line.Open = dto.Open.Value;
+
+            await _dbContext.SaveChangesAsync();
+
+            return line.Adapt<NoSerieLineDto>();
+        }
+
+        public async Task DeleteLineAsync(Guid organizationId, Guid lineId)
+        {
+            var line = await _dbContext.NoSerieLines
+                .Include(l => l.NoSerie)
+                .FirstOrDefaultAsync(l => l.Id == lineId && l.NoSerie.OrganizationId == organizationId);
+
+            if (line == null)
+                throw new KeyNotFoundException("Línea de serie no encontrada");
+
+            _dbContext.NoSerieLines.Remove(line);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        #endregion
+
+        #region Number Generation (Core Functionality)
+
+        public async Task<string> GetNextNumberAsync(Guid organizationId, string serieCode, DateTime? date = null)
+        {
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Code == serieCode);
+
+            if (serie == null)
+                throw new KeyNotFoundException($"Serie numérica '{serieCode}' no encontrada");
+
+            return await GetNextNumberFromSerieAsync(serie, date ?? DateTime.UtcNow);
+        }
+
+        public async Task<string> GetNextNumberByTypeAsync(Guid organizationId, DocumentType documentType, DateTime? date = null)
+        {
+            // Buscar la serie por defecto para este tipo de documento
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.DocumentType == documentType && n.DefaultNos);
+
+            if (serie == null)
+                throw new KeyNotFoundException($"No hay una serie por defecto configurada para el tipo de documento '{documentType}'");
+
+            return await GetNextNumberFromSerieAsync(serie, date ?? DateTime.UtcNow);
+        }
+
+        public async Task<List<NoSerieDto>> GetByDocumentTypeAsync(Guid organizationId, DocumentType documentType)
+        {
+            var series = await _dbContext.NoSeries
+                .Where(n => n.OrganizationId == organizationId && n.DocumentType == documentType)
+                .Include(n => n.NoSerieLines)
+                .OrderBy(n => n.Code)
+                .ToListAsync();
+
+            return series.Select(MapToDto).ToList();
+        }
+
+        public async Task<NoSerieDto?> GetDefaultSerieByTypeAsync(Guid organizationId, DocumentType documentType)
+        {
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.DocumentType == documentType && n.DefaultNos);
+
+            return serie != null ? MapToDto(serie) : null;
+        }
+
+        private async Task<string> GetNextNumberFromSerieAsync(NoSerie serie, DateTime date)
+        {
+            // Buscar la línea apropiada para esta fecha
+            var line = serie.NoSerieLines
+                .Where(l => l.Open && l.StartingDate <= date)
+                .OrderByDescending(l => l.StartingDate)
+                .FirstOrDefault();
+
+            if (line == null)
+                throw new InvalidOperationException($"No hay ninguna línea abierta disponible para la fecha {date:yyyy-MM-dd} en la serie '{serie.Code}'");
+
+            // Determinar el siguiente número
+            string nextNumber;
+            if (string.IsNullOrEmpty(line.LastNoUsed))
+            {
+                // Primera vez, usar el StartingNo
+                nextNumber = line.StartingNo;
+            }
+            else
+            {
+                // Incrementar desde el último número usado
+                nextNumber = IncrementNumber(line.LastNoUsed, line.IncrementBy);
+            }
+
+            // Validar que no exceda el EndingNo
+            if (CompareNumbers(nextNumber, line.EndingNo) > 0)
+            {
+                throw new InvalidOperationException($"Se ha alcanzado el número final ({line.EndingNo}) de la serie '{serie.Code}'. Por favor, cree una nueva línea o ajuste el rango.");
+            }
+
+            // Verificar si estamos cerca del WarningNo
+            if (!string.IsNullOrEmpty(line.WarningNo) && CompareNumbers(nextNumber, line.WarningNo) >= 0)
+            {
+                // Podríamos loguear o notificar aquí
+                // Por ahora solo continúa
+            }
+
+            // Actualizar LastNoUsed
+            line.LastNoUsed = nextNumber;
+            await _dbContext.SaveChangesAsync();
+
+            return nextNumber;
+        }
+
+        #endregion
+
+        #region Validation
+
+        public async Task<bool> ValidateNumberAsync(Guid organizationId, string serieCode, string number)
+        {
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Code == serieCode);
+
+            if (serie == null)
+                return false;
+
+            // Verificar si el número está dentro de algún rango válido
+            foreach (var line in serie.NoSerieLines.Where(l => l.Open))
+            {
+                if (CompareNumbers(number, line.StartingNo) >= 0 && CompareNumbers(number, line.EndingNo) <= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public async Task<bool> IsNumberAvailableAsync(Guid organizationId, string serieCode, string number)
+        {
+            var serie = await _dbContext.NoSeries
+                .Include(n => n.NoSerieLines)
+                .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.Code == serieCode);
+
+            if (serie == null)
+                return false;
+
+            foreach (var line in serie.NoSerieLines.Where(l => l.Open))
+            {
+                if (CompareNumbers(number, line.StartingNo) >= 0 && CompareNumbers(number, line.EndingNo) <= 0)
+                {
+                    // El número está en el rango, verificar si ya fue usado
+                    if (string.IsNullOrEmpty(line.LastNoUsed))
+                    {
+                        // No se ha usado ningún número todavía
+                        return CompareNumbers(number, line.StartingNo) >= 0;
+                    }
+                    else
+                    {
+                        // Verificar que sea mayor al último usado
+                        return CompareNumbers(number, line.LastNoUsed) > 0;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private static NoSerieDto MapToDto(NoSerie serie)
+        {
+            var dto = serie.Adapt<NoSerieDto>();
+            dto.DocumentTypeName = serie.DocumentType?.ToString();
+            return dto;
+        }
+
+        /// <summary>
+        /// Incrementa un número alfanumérico (ej: "INV-0001" -> "INV-0002")
+        /// </summary>
+        private static string IncrementNumber(string number, int incrementBy)
+        {
+            // Separar prefijo (letras y caracteres especiales) del número
+            int numStartIndex = number.Length - 1;
+            while (numStartIndex >= 0 && char.IsDigit(number[numStartIndex]))
+            {
+                numStartIndex--;
+            }
+            numStartIndex++;
+
+            if (numStartIndex >= number.Length)
+            {
+                // No hay parte numérica, no se puede incrementar
+                throw new InvalidOperationException($"El número '{number}' no contiene una parte numérica que se pueda incrementar");
+            }
+
+            string prefix = number.Substring(0, numStartIndex);
+            string numericPart = number.Substring(numStartIndex);
+            int length = numericPart.Length;
+
+            // Convertir a entero, incrementar y volver a formatear
+            if (!int.TryParse(numericPart, out int numericValue))
+            {
+                throw new InvalidOperationException($"No se pudo parsear la parte numérica de '{number}'");
+            }
+
+            numericValue += incrementBy;
+
+            // Formatear con ceros a la izquierda para mantener la longitud
+            string newNumericPart = numericValue.ToString().PadLeft(length, '0');
+
+            return prefix + newNumericPart;
+        }
+
+        /// <summary>
+        /// Compara dos números alfanuméricos
+        /// Retorna: -1 si num1 < num2, 0 si son iguales, 1 si num1 > num2
+        /// </summary>
+        private static int CompareNumbers(string num1, string num2)
+        {
+            // Extraer la parte numérica de ambos
+            int GetNumericPart(string number)
+            {
+                int numStartIndex = number.Length - 1;
+                while (numStartIndex >= 0 && char.IsDigit(number[numStartIndex]))
+                {
+                    numStartIndex--;
+                }
+                numStartIndex++;
+
+                if (numStartIndex >= number.Length)
+                    return 0;
+
+                string numericPart = number.Substring(numStartIndex);
+                return int.TryParse(numericPart, out int result) ? result : 0;
+            }
+
+            int value1 = GetNumericPart(num1);
+            int value2 = GetNumericPart(num2);
+
+            return value1.CompareTo(value2);
+        }
+
+        #endregion
     }
 }

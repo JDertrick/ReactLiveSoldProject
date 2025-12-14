@@ -43,6 +43,7 @@ import {
   Calendar,
   Link as LinkIcon,
   Settings2,
+  Hash,
 } from "lucide-react";
 import { OrganizationSettingsModal } from "./OrganizationSettingsModal";
 import { CustomizationSettings } from "../../types/organization.types";
@@ -309,6 +310,11 @@ const AppLayout = () => {
           name: "Impuestos",
           path: "/app/tax-settings",
           icon: <Receipt size={20} />,
+        },
+        {
+          name: "Series Numéricas",
+          path: "/app/no-series",
+          icon: <Hash size={20} />,
         },
       ],
     },

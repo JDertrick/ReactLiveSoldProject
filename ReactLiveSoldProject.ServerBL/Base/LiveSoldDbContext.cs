@@ -101,7 +101,12 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(o => o.Slug).HasColumnName("slug").IsRequired();
                 e.Property(o => o.LogoUrl).HasColumnName("logo_url");
                 e.Property(o => o.PrimaryContactEmail).HasColumnName("primary_contact_email").IsRequired();
-                e.Property(o => o.PlanType).HasColumnName("plan_type").HasConversion<string>().IsRequired().HasDefaultValue(PlanType.Standard);
+                e.Property(o => o.PlanType)
+                    .HasColumnName("plan_type")
+                    .HasConversion<string>()
+                    .IsRequired()
+                    .HasDefaultValue(PlanType.Free)
+                    .HasSentinel(PlanType.None);
                 e.Property(o => o.IsActive).HasColumnName("is_active").IsRequired().HasDefaultValue(true);
                 e.Property(o => o.CustomizationSettings).HasColumnName("custom_settings").IsRequired().HasDefaultValue(true);
                 e.Property(o => o.TaxEnabled).HasColumnName("tax_enabled").HasDefaultValue(false);
@@ -1146,6 +1151,9 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(n => n.DefaultNos).HasColumnName("default_nos").IsRequired();
                 e.Property(n => n.ManualNos).HasColumnName("manual_nos").IsRequired();
                 e.Property(n => n.DateOrder).HasColumnName("date_order").IsRequired();
+                e.Property(n => n.DocumentType).HasColumnName("document_type").IsRequired();
+                e.Property(n => n.CreatedAt).HasColumnName("created_at").IsRequired();
+                e.Property(n => n.UpdatedAt).HasColumnName("updated_at").IsRequired();
             });
 
             modelBuilder.Entity<NoSerieLine>(e =>

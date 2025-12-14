@@ -97,7 +97,9 @@
         /// <summary>
         /// Plan empresarial
         /// </summary>
-        Enterprise
+        Enterprise,
+
+        None
     }
 
     /// <summary>

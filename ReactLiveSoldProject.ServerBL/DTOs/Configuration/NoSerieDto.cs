@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.DTOs.Configuration
 {
@@ -9,10 +10,14 @@ namespace ReactLiveSoldProject.ServerBL.DTOs.Configuration
         public Guid OrganizationId { get; set; }
 
         [StringLength(20)]
-        public string Code { get; set; }
+        public string Code { get; set; } = string.Empty;
 
         [StringLength(1000)]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
+
+        public DocumentType? DocumentType { get; set; }
+
+        public string? DocumentTypeName { get; set; }
 
         public bool DefaultNos { get; set; }
 
@@ -20,6 +25,10 @@ namespace ReactLiveSoldProject.ServerBL.DTOs.Configuration
 
         public bool DateOrder { get; set; }
 
-        public ICollection<NoSerieLineDto> NoSerieLines { get; set; }
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
+
+        public ICollection<NoSerieLineDto> NoSerieLines { get; set; } = new List<NoSerieLineDto>();
     }
 }

@@ -56,6 +56,7 @@ import AllReceiptsPage from "../pages/app/AllReceiptsPage";
 import AccountingPage from "@/pages/app/Accounting";
 import ChartOfAccountsPage from "../pages/app/ChartOfAccounts";
 import AccountConfigurationPage from "../pages/app/AccountConfigurationPage";
+import NoSeriesPage from "../pages/app/NoSeriesPage";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -200,6 +201,10 @@ export const router = createBrowserRouter([
       {
         path: "account-configuration",
         element: <AccountConfigurationPage />,
+      },
+      {
+        path: "no-series",
+        element: <NoSeriesPage />,
       },
       // Purchase Module Routes
       {

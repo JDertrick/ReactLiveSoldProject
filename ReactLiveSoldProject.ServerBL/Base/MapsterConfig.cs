@@ -357,14 +357,30 @@ namespace ReactLiveSoldProject.ServerBL.Base
             // NoSerie Mappings
             TypeAdapterConfig<NoSerie, NoSerieDto>
                 .NewConfig()
-                .Map(dest => dest.NoSerieLines, src => src.NoSerieLines);
+                .Map(dest => dest.NoSerieLines, src => src.NoSerieLines)
+                .Map(dest => dest.DocumentTypeName, src => src.DocumentType != null ? src.DocumentType.ToString() : null);
 
             TypeAdapterConfig<NoSerieDto, NoSerie>
                 .NewConfig()
                 .Map(dest => dest.NoSerieLines, src => src.NoSerieLines);
 
+            TypeAdapterConfig<CreateNoSerieDto, NoSerie>
+                .NewConfig()
+                .Ignore(dest => dest.Id)
+                .Ignore(dest => dest.OrganizationId)
+                .Ignore(dest => dest.CreatedAt)
+                .Ignore(dest => dest.UpdatedAt)
+                .Ignore(dest => dest.NoSerieLines);
+
             TypeAdapterConfig<NoSerieLine, NoSerieLineDto>.NewConfig();
             TypeAdapterConfig<NoSerieLineDto, NoSerieLine>.NewConfig();
+
+            TypeAdapterConfig<CreateNoSerieLineDto, NoSerieLine>
+                .NewConfig()
+                .Ignore(dest => dest.Id)
+                .Ignore(dest => dest.NoSerieId)
+                .Ignore(dest => dest.NoSerie)
+                .Map(dest => dest.LastNoUsed, src => string.Empty);
         }
     }
 }

@@ -119,6 +119,7 @@ builder.Services.AddScoped<IPaymentTermsService, PaymentTermsService>();
 builder.Services.AddScoped<ICompanyBankAccountService, CompanyBankAccountService>();
 builder.Services.AddScoped<IVendorBankAccountService, VendorBankAccountService>();
 builder.Services.AddScoped<IProductVendorService, ProductVendorService>();
+builder.Services.AddScoped<ISerieNoService, SerieNoService>();
 
 // Helpers
 builder.Services.AddScoped<ReactLiveSoldProject.ServerBL.Helpers.JwtHelper>();
