@@ -4,6 +4,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
     {
         public Guid Id { get; set; }
         public Guid OrganizationId { get; set; }
+        public string? ContactNo { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string Email { get; set; } = string.Empty;

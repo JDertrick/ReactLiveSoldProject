@@ -1,6 +1,7 @@
 export interface Contact {
   id: string;
   organizationId: string;
+  contactNo?: string; // Auto-generated number
   firstName?: string;
   lastName?: string;
   email: string;

@@ -12,7 +12,7 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    [Migration("20251215051434_1")]
+    [Migration("20251215134715_1")]
     partial class _1
     {
         /// <inheritdoc />

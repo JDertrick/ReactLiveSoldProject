@@ -304,12 +304,16 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             _dbContext.Contacts.Add(contact);
 
+            // Generar número de cliente usando series numéricas
+            var customerNo = await _serieNoService.GetNextNumberByTypeAsync(organization.Id, DocumentType.Customer);
+
             // Crear el cliente
             var customerId = Guid.NewGuid();
             var customer = new Customer
             {
                 Id = customerId,
                 OrganizationId = organization.Id,
+                CustomerNo = customerNo,
                 ContactId = contact.Id,
                 PasswordHash = PasswordHelper.HashPassword(dto.Password),
                 AssignedSellerId = null, // No hay vendedor asignado en registro público
@@ -352,6 +356,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Id = customer.Id,
                 OrganizationId = customer.OrganizationId,
                 ContactId = customer.ContactId,
+                CustomerNo = customer.CustomerNo,
                 FirstName = customer.Contact?.FirstName,
                 LastName = customer.Contact?.LastName,
                 Email = customer.Contact?.Email ?? string.Empty,

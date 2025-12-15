@@ -9,6 +9,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
+import { AutoNumberInput } from "../common/AutoNumberInput";
+import { Separator } from "../ui/separator";
 
 interface ContactFormProps {
   contact?: Contact;
@@ -50,6 +52,17 @@ export function ContactForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Número de Contacto */}
+      <AutoNumberInput
+        label="No. Contacto"
+        value={contact?.contactNo || ""}
+        allowManualEntry={false}
+        isEditing={!!contact}
+        placeholder="Se generará automáticamente"
+      />
+
+      <Separator />
+
       {/* Información básica */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Información de Contacto</h3>

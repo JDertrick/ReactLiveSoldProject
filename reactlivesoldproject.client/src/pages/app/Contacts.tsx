@@ -131,6 +131,14 @@ const ContactsPage = () => {
   };
 
   const columns = [
+    columnHelper.accessor("contactNo", {
+      header: "No. Contacto",
+      cell: (info) => (
+        <div className="text-sm font-mono text-muted-foreground">
+          {info.getValue() || "-"}
+        </div>
+      ),
+    }),
     columnHelper.accessor("firstName", {
       header: "Nombre",
       cell: (info) => {
