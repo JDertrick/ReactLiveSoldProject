@@ -56,7 +56,7 @@ const NoSerieFormDialog = ({
       setFormData({
         code: serie.code,
         description: serie.description,
-        documentType: serie.documentType?.toString() || "",
+        documentType: serie.documentType as string || "",
         defaultNos: serie.defaultNos,
         manualNos: serie.manualNos,
         dateOrder: serie.dateOrder,
@@ -89,9 +89,7 @@ const NoSerieFormDialog = ({
         // Update
         const updateData: UpdateNoSerieDto = {
           description: formData.description,
-          documentType: formData.documentType
-            ? parseInt(formData.documentType)
-            : undefined,
+          documentType: formData.documentType as any,
           defaultNos: formData.defaultNos,
           manualNos: formData.manualNos,
           dateOrder: formData.dateOrder,
@@ -104,7 +102,7 @@ const NoSerieFormDialog = ({
         const createData: CreateNoSerieDto = {
           code: formData.code,
           description: formData.description,
-          documentType: parseInt(formData.documentType),
+          documentType: formData.documentType as any,
           defaultNos: formData.defaultNos,
           manualNos: formData.manualNos,
           dateOrder: formData.dateOrder,

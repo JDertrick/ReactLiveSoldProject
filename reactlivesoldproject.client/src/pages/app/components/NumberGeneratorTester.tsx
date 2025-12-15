@@ -38,7 +38,7 @@ const NumberGeneratorTester = () => {
           toast.error('Selecciona un tipo de documento');
           return;
         }
-        result = await getNextNumberByType(parseInt(documentType));
+        result = await getNextNumberByType(documentType as DocumentType);
       }
 
       setGeneratedNumber(result.nextNumber);
