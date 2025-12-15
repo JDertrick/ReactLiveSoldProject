@@ -19,9 +19,12 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
                     code = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    document_type = table.Column<int>(type: "integer", nullable: false),
                     default_nos = table.Column<bool>(type: "boolean", nullable: false),
                     manual_nos = table.Column<bool>(type: "boolean", nullable: false),
-                    date_order = table.Column<bool>(type: "boolean", nullable: false)
+                    date_order = table.Column<bool>(type: "boolean", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
                 constraints: table =>
                 {
@@ -37,7 +40,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     logo_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     primary_contact_email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    plan_type = table.Column<string>(type: "text", nullable: false, defaultValue: "Standard"),
+                    plan_type = table.Column<string>(type: "text", nullable: false, defaultValue: "Free"),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     custom_settings = table.Column<string>(type: "text", nullable: false, defaultValue: "True"),
                     tax_enabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
@@ -81,7 +84,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     starting_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     starting_no = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     ending_no = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    last_no_used = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    last_no_used = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    last_date_used = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     manual_nos = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     warning_no = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     open = table.Column<bool>(type: "boolean", nullable: false)
@@ -448,8 +452,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     current_balance = table.Column<decimal>(type: "numeric", nullable: false),
                     gl_account_id = table.Column<Guid>(type: "uuid", nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
                 constraints: table =>
                 {
@@ -874,8 +878,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     account_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     is_primary = table.Column<bool>(type: "boolean", nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
                 constraints: table =>
                 {
@@ -1116,8 +1120,8 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     status = table.Column<string>(type: "text", nullable: false),
                     payment_journal_entry_id = table.Column<Guid>(type: "uuid", nullable: true),
                     created_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')"),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
                 constraints: table =>
                 {
@@ -1603,7 +1607,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     amount_applied = table.Column<decimal>(type: "numeric", nullable: false),
                     DiscountTaken = table.Column<decimal>(type: "numeric", nullable: false),
                     ApplicationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "(now() at time zone 'utc')")
                 },
                 constraints: table =>
                 {

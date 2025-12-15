@@ -20,13 +20,21 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
         public async Task<List<NoSerieDto>> GetAllAsync(Guid organizationId)
         {
-            var series = await _dbContext.NoSeries
+            try
+            {
+                var series = await _dbContext.NoSeries
                 .Where(n => n.OrganizationId == organizationId)
                 .Include(n => n.NoSerieLines)
                 .OrderBy(n => n.Code)
                 .ToListAsync();
 
-            return series.Select(MapToDto).ToList();
+                var seriest = series.Adapt<List<NoSerieDto>>();
+                return seriest;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task<NoSerieDto?> GetByIdAsync(Guid organizationId, Guid id)

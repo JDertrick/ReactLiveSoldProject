@@ -1043,8 +1043,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(cba => cba.CurrentBalance).HasColumnName("current_balance");
                 e.Property(cba => cba.GLAccountId).HasColumnName("gl_account_id");
                 e.Property(cba => cba.IsActive).HasColumnName("is_active");
-                e.Property(cba => cba.CreatedAt).HasColumnName("created_at");
-                e.Property(cba => cba.UpdatedAt).HasColumnName("updated_at");
+                e.Property(cba => cba.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(cba => cba.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
                 e.HasOne(cba => cba.GLAccount)
                     .WithMany()
@@ -1065,8 +1065,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(vba => vba.AccountType).HasColumnName("account_type");
                 e.Property(vba => vba.IsPrimary).HasColumnName("is_primary");
                 e.Property(vba => vba.IsActive).HasColumnName("is_active");
-                e.Property(vba => vba.CreatedAt).HasColumnName("created_at");
-                e.Property(vba => vba.UpdatedAt).HasColumnName("updated_at");
+                e.Property(vba => vba.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(vba => vba.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
                 e.HasOne(vba => vba.Vendor)
                     .WithMany(v => v.BankAccounts)
@@ -1094,8 +1094,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(p => p.Status).HasColumnName("status").HasConversion<string>();
                 e.Property(p => p.PaymentJournalEntryId).HasColumnName("payment_journal_entry_id");
                 e.Property(p => p.CreatedBy).HasColumnName("created_by_user_id");
-                e.Property(p => p.CreatedAt).HasColumnName("created_at");
-                e.Property(p => p.UpdatedAt).HasColumnName("updated_at");
+                e.Property(p => p.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(p => p.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
                 e.HasOne(p => p.Vendor)
                     .WithMany()
@@ -1127,7 +1127,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(pa => pa.PaymentId).HasColumnName("payment_id");
                 e.Property(pa => pa.VendorInvoiceId).HasColumnName("vendor_invoice_id");
                 e.Property(pa => pa.AmountApplied).HasColumnName("amount_applied");
-                e.Property(pa => pa.CreatedAt).HasColumnName("created_at");
+                e.Property(pa => pa.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("(now() at time zone 'utc')");
 
                 e.HasOne(pa => pa.Payment)
                     .WithMany(p => p.Applications)
@@ -1152,8 +1152,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(n => n.ManualNos).HasColumnName("manual_nos").IsRequired();
                 e.Property(n => n.DateOrder).HasColumnName("date_order").IsRequired();
                 e.Property(n => n.DocumentType).HasColumnName("document_type").IsRequired();
-                e.Property(n => n.CreatedAt).HasColumnName("created_at").IsRequired();
-                e.Property(n => n.UpdatedAt).HasColumnName("updated_at").IsRequired();
+                e.Property(n => n.CreatedAt).HasColumnName("created_at").IsRequired().HasDefaultValueSql("(now() at time zone 'utc')");
+                e.Property(n => n.UpdatedAt).HasColumnName("updated_at").IsRequired().HasDefaultValueSql("(now() at time zone 'utc')");
             });
 
             modelBuilder.Entity<NoSerieLine>(e =>
@@ -1163,7 +1163,8 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.Property(n => n.StartingDate).HasColumnName("starting_date").IsRequired();
                 e.Property(n => n.StartingNo).HasColumnName("starting_no").IsRequired();
                 e.Property(n => n.EndingNo).HasColumnName("ending_no").IsRequired();
-                e.Property(n => n.LastNoUsed).HasColumnName("last_no_used").IsRequired();
+                e.Property(n => n.LastNoUsed).HasColumnName("last_no_used");
+                e.Property(n => n.LastDateUsed).HasColumnName("last_date_used");
                 e.Property(n => n.IncrementBy).HasColumnName("manual_nos").IsRequired().HasDefaultValue(1);
                 e.Property(n => n.WarningNo).HasColumnName("warning_no");
                 e.Property(n => n.Open).HasColumnName("open");

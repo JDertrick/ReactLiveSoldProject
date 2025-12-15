@@ -17,7 +17,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.Configuration
         public string EndingNo { get; set; } = string.Empty;
 
         [StringLength(20)]
-        public string LastNoUsed { get; set; } = string.Empty;
+        public string? LastNoUsed { get; set; } = string.Empty;
+
+        public DateTime? LastDateUsed { get; set; }
 
         public int IncrementBy { get; set; } = 1;
 

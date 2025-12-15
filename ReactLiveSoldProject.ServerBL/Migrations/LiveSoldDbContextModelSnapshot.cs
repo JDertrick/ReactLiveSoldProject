@@ -627,8 +627,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("bank_name");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -653,8 +655,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("organization_id");
 
                     b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.HasKey("Id");
 
@@ -679,8 +683,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("code");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<bool>("DateOrder")
                         .HasColumnType("boolean")
@@ -709,8 +715,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("organization_id");
 
                     b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.HasKey("Id");
 
@@ -736,8 +744,11 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasDefaultValue(1)
                         .HasColumnName("manual_nos");
 
+                    b.Property<DateTime?>("LastDateUsed")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_date_used");
+
                     b.Property<string>("LastNoUsed")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("last_no_used");
@@ -1938,8 +1949,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("company_bank_account_id");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid")
@@ -1994,8 +2007,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("status");
 
                     b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<Guid?>("VendorBankAccountId")
                         .HasColumnType("uuid")
@@ -2037,8 +2052,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<decimal>("DiscountTaken")
                         .HasColumnType("numeric");
@@ -2890,8 +2907,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("clabe_iban");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -2902,8 +2921,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("is_primary");
 
                     b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(now() at time zone 'utc')");
 
                     b.Property<Guid>("VendorId")
                         .HasColumnType("uuid")

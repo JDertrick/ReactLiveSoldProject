@@ -76,11 +76,15 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             await _dbContext.SaveChangesAsync();
 
             // Crear catálogo de cuentas por defecto
-            var seeder = new DefaultChartOfAccountsSeeder(_dbContext);
-            await seeder.SeedDefaultChartOfAccountsAsync(organization.Id);
+            var accountSeeder = new DefaultChartOfAccountsSeeder(_dbContext);
+            await accountSeeder.SeedDefaultChartOfAccountsAsync(organization.Id);
 
             // Crear configuración de cuentas por defecto
-            await seeder.CreateDefaultAccountConfigurationAsync(organization.Id);
+            await accountSeeder.CreateDefaultAccountConfigurationAsync(organization.Id);
+
+            // Crear series numéricas por defecto
+            var noSeriesSeeder = new DefaultNoSeriesSeeder(_dbContext);
+            await noSeriesSeeder.SeedDefaultNoSeriesAsync(organization.Id);
 
             return MapToDto(organization);
         }

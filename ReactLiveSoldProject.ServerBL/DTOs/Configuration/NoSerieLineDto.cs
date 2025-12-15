@@ -25,7 +25,5 @@ namespace ReactLiveSoldProject.ServerBL.DTOs.Configuration
         public string WarningNo { get; set; } = string.Empty;
 
         public bool Open { get; set; } = true;
-
-        public NoSerieDto NoSerie { get; set; }
     }
 }
