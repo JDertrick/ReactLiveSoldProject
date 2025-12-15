@@ -118,6 +118,14 @@ const CustomersPage = () => {
   };
 
   const columns = [
+    columnHelper.accessor("customerNo", {
+      header: "No. Cliente",
+      cell: (info) => (
+        <div className="text-sm font-mono text-muted-foreground">
+          {info.getValue() || "-"}
+        </div>
+      ),
+    }),
     columnHelper.accessor((row) => `${row.firstName} ${row.lastName}`, {
       id: "customer",
       header: "Cliente",

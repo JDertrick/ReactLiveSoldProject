@@ -34,6 +34,7 @@ const ProductFormModal = ({
   onClose,
   onSubmit,
 }: ProductFormModalProps) => {
+  const [productNo, setProductNo] = useState<string>("");
   const [formData, setFormData] = useState<CreateProductDto | UpdateProductDto>(
     {
       name: "",
@@ -48,6 +49,7 @@ const ProductFormModal = ({
   // Actualizar formData cuando editingProduct cambie
   useEffect(() => {
     if (editingProduct) {
+      setProductNo(editingProduct.productNo || "");
       setFormData({
         name: editingProduct.name,
         description: editingProduct.description || "",
@@ -57,6 +59,7 @@ const ProductFormModal = ({
         productType: editingProduct.productType,
       });
     } else {
+      setProductNo("");
       setFormData({
         name: "",
         description: "",
@@ -115,7 +118,13 @@ const ProductFormModal = ({
             </div>
           </DialogHeader>
           <div className="p-6 space-y-6">
-            <ProductForm formData={formData} onFormChange={handleChange} />
+            <ProductForm
+              formData={formData}
+              onFormChange={handleChange}
+              editingProduct={editingProduct}
+              productNo={productNo}
+              onProductNoChange={setProductNo}
+            />
           </div>
           <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
             <button

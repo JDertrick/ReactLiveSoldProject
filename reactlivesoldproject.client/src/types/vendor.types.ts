@@ -8,6 +8,7 @@ export interface Vendor {
   contact?: Contact;
   assignedBuyerId?: string;
   assignedBuyerName?: string;
+  vendorNo?: string; // Auto-generated number
   vendorCode?: string;
   notes?: string;
   paymentTerms?: string;

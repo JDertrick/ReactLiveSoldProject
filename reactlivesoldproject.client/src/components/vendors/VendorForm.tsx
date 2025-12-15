@@ -22,6 +22,7 @@ import { ContactCombobox } from "../common/ContactCombobox";
 import { ContactForm } from "../contacts/ContactForm";
 import { Separator } from "../ui/separator";
 import { toast } from "sonner";
+import { AutoNumberInput } from "../common/AutoNumberInput";
 import {
   Select,
   SelectContent,
@@ -59,6 +60,7 @@ const VendorForm = ({
     null
   );
   const [showContactForm, setShowContactForm] = useState(false);
+  const [vendorNo, setVendorNo] = useState<string>("");
   const [vendorCode, setVendorCode] = useState("");
   const [assignedBuyerId, setAssignedBuyerId] = useState<string>("");
   const [notes, setNotes] = useState("");
@@ -78,6 +80,7 @@ const VendorForm = ({
       if (editingVendor.contact) {
         setSelectedContact(editingVendor.contact);
       }
+      setVendorNo(editingVendor.vendorNo || "");
       setVendorCode(editingVendor.vendorCode || "");
       setAssignedBuyerId(editingVendor.assignedBuyerId || "");
       setNotes(editingVendor.notes || "");
@@ -87,6 +90,7 @@ const VendorForm = ({
     } else {
       // Limpiar al crear nuevo
       setSelectedContact(null);
+      setVendorNo("");
       setVendorCode("");
       setAssignedBuyerId("");
       setNotes("");
@@ -166,6 +170,7 @@ const VendorForm = ({
     handleCloseModal();
     setShowContactForm(false);
     setSelectedContact(null);
+    setVendorNo("");
     setVendorCode("");
     setAssignedBuyerId("");
     setNotes("");
@@ -210,6 +215,18 @@ const VendorForm = ({
             </DialogHeader>
 
             <div className="space-y-6 py-4">
+              {/* Número de Proveedor */}
+              <AutoNumberInput
+                label="No. Proveedor"
+                value={vendorNo}
+                onChange={setVendorNo}
+                allowManualEntry={false} // TODO: Obtener desde configuración de serie
+                isEditing={!!editingVendor}
+                placeholder="Se generará automáticamente"
+              />
+
+              <Separator />
+
               {/* Selección de contacto */}
               <div className="space-y-2">
                 <Label>Contacto *</Label>

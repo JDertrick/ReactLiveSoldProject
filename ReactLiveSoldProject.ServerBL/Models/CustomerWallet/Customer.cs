@@ -14,6 +14,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.CustomerWallet
 
         public virtual Organization Organization { get; set; }
 
+        [MaxLength(50, ErrorMessage = "El número de cliente no puede exceder los 50 caracteres")]
+        public string? CustomerNo { get; set; } // CUST-2025-0001
+
         [Required(ErrorMessage = "El ID del contacto es obligatorio")]
         public Guid ContactId { get; set; }
 

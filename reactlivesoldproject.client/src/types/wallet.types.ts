@@ -11,6 +11,7 @@ export interface Wallet {
 export interface WalletTransaction {
   id: string;
   walletId: string;
+  transactionNo?: string; // Auto-generated number
   type: string;
   amount: number;
   relatedSalesOrderId?: string;

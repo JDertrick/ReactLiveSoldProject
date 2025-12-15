@@ -13,6 +13,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
 
         public virtual Organization Organization { get; set; }
 
+        [MaxLength(50, ErrorMessage = "El número de producto no puede exceder los 50 caracteres")]
+        public string? ProductNo { get; set; } // PROD-0001
+
         [Required(ErrorMessage = "El nombre del producto es obligatorio")]
         [MaxLength(255, ErrorMessage = "El nombre no puede exceder los 255 caracteres")]
         public string Name { get; set; }

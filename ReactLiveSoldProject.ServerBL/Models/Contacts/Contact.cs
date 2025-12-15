@@ -12,6 +12,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.Contacts
 
         public virtual Organization Organization { get; set; }
 
+        [MaxLength(50, ErrorMessage = "El número de contacto no puede exceder los 50 caracteres")]
+        public string? ContactNo { get; set; } // CONT-0001
+
         [MaxLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres")]
         public string? FirstName { get; set; }
 

@@ -3,6 +3,7 @@ using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
@@ -10,11 +11,13 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     {
         private readonly LiveSoldDbContext _dbContext;
         private readonly IAccountingService _accountingService;
+        private readonly ISerieNoService _serieNoService;
 
-        public StockMovementService(LiveSoldDbContext dbContext, IAccountingService accountingService)
+        public StockMovementService(LiveSoldDbContext dbContext, IAccountingService accountingService, ISerieNoService serieNoService)
         {
             _dbContext = dbContext;
             _accountingService = accountingService;
+            _serieNoService = serieNoService;
         }
 
         public async Task<List<StockMovementDto>> GetMovementsByVariantAsync(Guid productVariantId, Guid organizationId)
@@ -112,6 +115,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new InvalidOperationException("Una o ambas ubicaciones no existen");
             }
 
+            // Generar número de movimiento usando series numéricas
+            var movementNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.StockMovement);
+
             // Crear el movimiento en estado borrador (IsPosted = false)
             var movement = new StockMovement
             {
@@ -120,6 +126,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 ProductVariantId = dto.ProductVariantId,
                 MovementType = movementType,
                 Quantity = dto.Quantity,
+                MovementNo = movementNumber,
                 StockBefore = stockBefore,
                 StockAfter = stockAfter,
                 CreatedByUserId = userId,
@@ -163,6 +170,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (stockAfter < 0)
                 throw new InvalidOperationException($"Stock insuficiente. Stock actual: {stockBefore}, Cantidad solicitada: {quantity}");
 
+            // Generar número de movimiento usando series numéricas
+            var movementNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.StockMovement);
+
             var movement = new StockMovement
             {
                 Id = Guid.NewGuid(),
@@ -170,6 +180,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 ProductVariantId = productVariantId,
                 MovementType = StockMovementType.Sale,
                 Quantity = -quantity, // Negativo para ventas
+                MovementNo = movementNumber,
                 StockBefore = stockBefore,
                 StockAfter = stockAfter,
                 RelatedSalesOrderId = salesOrderId,
@@ -201,6 +212,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             var stockBefore = variant.StockQuantity;
             var stockAfter = stockBefore + quantity; // Suma para devoluciones
 
+            // Generar número de movimiento usando series numéricas
+            var movementNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.StockMovement);
+
             var movement = new StockMovement
             {
                 Id = Guid.NewGuid(),
@@ -208,6 +222,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 ProductVariantId = productVariantId,
                 MovementType = StockMovementType.SaleCancellation,
                 Quantity = quantity, // Positivo para cancelaciones
+                MovementNo = movementNumber,
                 StockBefore = stockBefore,
                 StockAfter = stockAfter,
                 RelatedSalesOrderId = salesOrderId,

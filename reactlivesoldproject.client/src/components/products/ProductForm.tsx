@@ -1,9 +1,10 @@
 import React from "react";
-import { CreateProductDto, UpdateProductDto } from "../../types/product.types";
+import { CreateProductDto, UpdateProductDto, Product } from "../../types/product.types";
 import { useCategories } from "../../hooks/useCategories";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { AutoNumberInput } from "../common/AutoNumberInput";
 import {
   Select,
   SelectTrigger,
@@ -19,9 +20,12 @@ interface ProductFormProps {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => void;
+  editingProduct?: Product | null;
+  productNo?: string;
+  onProductNoChange?: (value: string) => void;
 }
 
-const ProductForm = ({ formData, onFormChange }: ProductFormProps) => {
+const ProductForm = ({ formData, onFormChange, editingProduct, productNo, onProductNoChange }: ProductFormProps) => {
   const { categories, isLoading: isLoadingCategories } = useCategories();
 
   const renderCategoryOptions = (categories: any[], depth = 0) => {
@@ -39,6 +43,18 @@ const ProductForm = ({ formData, onFormChange }: ProductFormProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Número de Producto */}
+      {onProductNoChange && (
+        <AutoNumberInput
+          label="No. Producto"
+          value={productNo}
+          onChange={onProductNoChange}
+          allowManualEntry={false}
+          isEditing={!!editingProduct}
+          placeholder="Se generará automáticamente"
+        />
+      )}
+
       <div>
         <Label className="text-xs font-semibold text-gray-500 tracking-wider">
           NOMBRE DEL PRODUCTO

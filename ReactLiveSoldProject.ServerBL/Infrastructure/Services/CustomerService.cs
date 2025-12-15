@@ -6,16 +6,19 @@ using ReactLiveSoldProject.ServerBL.Helpers;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Contacts;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class CustomerService : ICustomerService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly ISerieNoService _serieNoService;
 
-        public CustomerService(LiveSoldDbContext dbContext)
+        public CustomerService(LiveSoldDbContext dbContext, ISerieNoService serieNoService)
         {
             _dbContext = dbContext;
+            _serieNoService = serieNoService;
         }
 
         public async Task<List<CustomerDto>> GetCustomersByOrganizationAsync(Guid organizationId)
@@ -79,12 +82,16 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (customer != null)
                     throw new InvalidOperationException($"Esta informacion de contacto ya se encuentra registrada en la organizacion");
 
+                // Generar número de cliente usando series numéricas
+                var customerNo = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.Customer);
+
                 // Crear el cliente
                 var customerId = Guid.NewGuid();
                 var newCustomer = new Customer
                 {
                     Id = customerId,
                     OrganizationId = organizationId,
+                    CustomerNo = customerNo,
                     ContactId = contact.Id,
                     PasswordHash = PasswordHelper.HashPassword(dto.Password),
                     AssignedSellerId = dto.AssignedSellerId,

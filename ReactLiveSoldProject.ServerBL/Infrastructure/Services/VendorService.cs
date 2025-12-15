@@ -4,16 +4,19 @@ using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Vendors;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class VendorService : IVendorService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly ISerieNoService _serieNoService;
 
-        public VendorService(LiveSoldDbContext dbContext)
+        public VendorService(LiveSoldDbContext dbContext, ISerieNoService serieNoService)
         {
             _dbContext = dbContext;
+            _serieNoService = serieNoService;
         }
 
         public async Task<List<VendorDto>> GetVendorsByOrganizationAsync(Guid organizationId, string? searchTerm = null, string? status = null)
@@ -115,10 +118,14 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new InvalidOperationException("El comprador asignado no pertenece a esta organización");
             }
 
+            // Generar número de proveedor usando series numéricas
+            var vendorNo = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.Vendor);
+
             // Crear el proveedor
             var vendor = dto.Adapt<Vendor>();
             vendor.Id = Guid.NewGuid();
             vendor.OrganizationId = organizationId;
+            vendor.VendorNo = vendorNo;
 
             _dbContext.Vendors.Add(vendor);
             await _dbContext.SaveChangesAsync();

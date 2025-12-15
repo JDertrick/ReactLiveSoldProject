@@ -21,6 +21,7 @@ import { ContactCombobox } from "../common/ContactCombobox";
 import { ContactForm } from "../contacts/ContactForm";
 import { Separator } from "../ui/separator";
 import { toast } from "sonner";
+import { AutoNumberInput } from "../common/AutoNumberInput";
 
 interface CustomerFormProps {
   isModalOpen: boolean;
@@ -48,6 +49,7 @@ const CustomerForm = ({
     null
   );
   const [showContactForm, setShowContactForm] = useState(false);
+  const [customerNo, setCustomerNo] = useState<string>("");
   const [password, setPassword] = useState("");
   const [notes, setNotes] = useState("");
   const [isActive, setIsActive] = useState(true);
@@ -64,11 +66,13 @@ const CustomerForm = ({
       if (editingCustomer.contact) {
         setSelectedContact(editingCustomer.contact);
       }
+      setCustomerNo(editingCustomer.customerNo || "");
       setNotes(editingCustomer.notes || "");
       setIsActive(editingCustomer.isActive);
     } else {
       // Limpiar al crear nuevo
       setSelectedContact(null);
+      setCustomerNo("");
       setPassword("");
       setNotes("");
       setIsActive(true);
@@ -161,6 +165,7 @@ const CustomerForm = ({
     handleCloseModal();
     setShowContactForm(false);
     setSelectedContact(null);
+    setCustomerNo("");
     setPassword("");
     setNotes("");
     setIsActive(true);
@@ -202,6 +207,18 @@ const CustomerForm = ({
             </DialogHeader>
 
             <div className="space-y-6 py-4">
+              {/* Número de Cliente */}
+              <AutoNumberInput
+                label="No. Cliente"
+                value={customerNo}
+                onChange={setCustomerNo}
+                allowManualEntry={false} // TODO: Obtener desde configuración de serie
+                isEditing={!!editingCustomer}
+                placeholder="Se generará automáticamente"
+              />
+
+              <Separator />
+
               {/* Selección de contacto */}
               <div className="space-y-2">
                 <Label>Contacto *</Label>

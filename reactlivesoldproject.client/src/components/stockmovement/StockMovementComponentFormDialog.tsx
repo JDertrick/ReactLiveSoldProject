@@ -54,6 +54,7 @@ import { cn } from "@/lib/utils";
 import { useCreateStockMovement } from "@/hooks/useStockMovements";
 import { useLocations } from "@/hooks/useLocations";
 import { Textarea } from "../ui/textarea";
+import { AutoNumberInput } from "../common/AutoNumberInput";
 
 interface StockMovementComponentFormDialogProps {
   isAddModalOpen: boolean;
@@ -71,6 +72,7 @@ const StockMovementComponentFormDialog = ({
   const createMovement = useCreateStockMovement();
   const { locations } = useLocations();
 
+  const [movementNumber, setMovementNumber] = useState<string>('');
   const [openCombobox, setOpenCombobox] = useState(false);
   const [formData, setFormData] = useState<CreateStockMovementDto>({
     productVariantId: "",
@@ -140,6 +142,16 @@ const StockMovementComponentFormDialog = ({
             </DialogHeader>
 
             <div className="p-6 space-y-6">
+              {/* Número de Movimiento */}
+              <AutoNumberInput
+                label="No. Movimiento"
+                value={movementNumber}
+                onChange={setMovementNumber}
+                allowManualEntry={false}
+                isEditing={false}
+                placeholder="Se generará automáticamente"
+              />
+
               {/* Product Variant Search */}
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-gray-500 tracking-wider">

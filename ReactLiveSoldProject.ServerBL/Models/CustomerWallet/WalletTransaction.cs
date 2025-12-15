@@ -14,6 +14,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.CustomerWallet
 
         public virtual Organization Organization { get; set; }
 
+        [MaxLength(50, ErrorMessage = "El número de transacción no puede exceder los 50 caracteres")]
+        public string? TransactionNo { get; set; } // WT-2025-0001
+
         [Required(ErrorMessage = "El ID de la billetera es obligatorio")]
         public Guid WalletId { get; set; }
 

@@ -5,16 +5,19 @@ using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Authentication;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class WalletService : IWalletService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly ISerieNoService _serieNoService;
 
-        public WalletService(LiveSoldDbContext dbContext)
+        public WalletService(LiveSoldDbContext dbContext, ISerieNoService serieNoService)
         {
             _dbContext = dbContext;
+            _serieNoService = serieNoService;
         }
 
         public async Task<WalletDto?> GetWalletByCustomerIdAsync(Guid customerId, Guid organizationId)
@@ -94,6 +97,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (!userBelongsToOrg)
                     throw new UnauthorizedAccessException("El usuario no pertenece a esta organización");
 
+                // Generar número de transacción usando series numéricas
+                var transactionNo = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.WalletTransaction);
+
                 // Crear la transacción
                 var transactionId = Guid.NewGuid();
 
@@ -101,6 +107,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 transaction.OrganizationId = organizationId;
                 transaction.WalletId = customer.Wallet.Id;
                 transaction.AuthorizedByUserId = authorizedByUserId;
+                transaction.TransactionNo = transactionNo;
 
                 _dbContext.WalletTransactions.Add(transaction);
 
@@ -150,6 +157,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (!userBelongsToOrg)
                 throw new UnauthorizedAccessException("El usuario no pertenece a esta organización");
 
+            // Generar número de transacción usando series numéricas
+            var transactionNo = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.WalletTransaction);
+
             // Crear la transacción
             var transaction = new WalletTransaction
             {
@@ -159,6 +169,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Type = TransactionType.Withdrawal,
                 Amount = dto.Amount,
                 AuthorizedByUserId = authorizedByUserId,
+                TransactionNo = transactionNo,
                 Notes = dto.Notes,
                 CreatedAt = DateTime.UtcNow
             };
@@ -316,6 +327,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (wallet == null)
                     throw new InvalidOperationException("El cliente no tiene una wallet asociada.");
 
+                // Generar número de transacción usando series numéricas
+                var transactionNo = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.WalletTransaction);
+
                 // Create Wallet Transaction
                 var walletTransaction = new WalletTransaction
                 {
@@ -323,6 +337,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     WalletId = wallet.Id,
                     Type = receipt.Type,
                     Amount = receipt.TotalAmount,
+                    TransactionNo = transactionNo,
                     Notes = $"Transacción generada por recibo ID: {receipt.Id}",
                     AuthorizedByUserId = receipt.CreatedByUserId,
                     ReceiptId = receipt.Id,

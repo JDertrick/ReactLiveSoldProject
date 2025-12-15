@@ -16,6 +16,7 @@ export interface StockMovementDto {
   productVariantId: string;
   productName: string;
   variantSku: string;
+  movementNo?: string; // Auto-generated number
   movementType: string;
   quantity: number;
   stockBefore: number;

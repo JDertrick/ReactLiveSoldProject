@@ -16,7 +16,8 @@ namespace ReactLiveSoldProject.ServerBL.DTOs.Configuration
         /// <summary>
         /// Tipo de documento (Customer, Vendor, Invoice, etc.)
         /// </summary>
-        public DocumentType? DocumentType { get; set; }
+        [Required(ErrorMessage = "El tipo de documento es requerido")]
+        public DocumentType DocumentType { get; set; }
 
         public bool DefaultNos { get; set; } = false;
 

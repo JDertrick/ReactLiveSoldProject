@@ -6,6 +6,7 @@ using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Accounting;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,10 +17,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class AccountingService : IAccountingService
     {
         private readonly LiveSoldDbContext _context;
+        private readonly ISerieNoService _serieNoService;
 
-        public AccountingService(LiveSoldDbContext context)
+        public AccountingService(LiveSoldDbContext context, ISerieNoService serieNoService)
         {
             _context = context;
+            _serieNoService = serieNoService;
         }
 
         public async Task<List<ChartOfAccountDto>> GetChartOfAccountsAsync(Guid organizationId)
@@ -184,9 +187,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 throw new KeyNotFoundException($"Una o más cuentas contables no existen o no pertenecen a esta organización: {string.Join(", ", missingAccountIds)}");
             }
 
+            // Generar número de asiento usando series numéricas
+            var entryNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.JournalEntry);
 
             var journalEntry = createDto.Adapt<JournalEntry>();
             journalEntry.OrganizationId = organizationId;
+            journalEntry.EntryNumber = entryNumber;
 
             await _context.JournalEntries.AddAsync(journalEntry);
             await _context.SaveChangesAsync();

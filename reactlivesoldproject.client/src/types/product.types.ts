@@ -30,6 +30,7 @@ export interface ProductVariant {
 export interface Product {
   id: string;
   organizationId: string;
+  productNo?: string; // Auto-generated number
   name: string;
   description?: string;
   productType: string;

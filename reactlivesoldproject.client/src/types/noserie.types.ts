@@ -62,7 +62,7 @@ export interface NoSerie {
 export interface CreateNoSerieDto {
   code: string;
   description: string;
-  documentType?: DocumentType;
+  documentType: DocumentType; // REQUIRED: El tipo de documento es obligatorio
   defaultNos: boolean;
   manualNos: boolean;
   dateOrder: boolean;

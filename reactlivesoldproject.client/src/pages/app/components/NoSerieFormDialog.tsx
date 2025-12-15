@@ -75,6 +75,13 @@ const NoSerieFormDialog = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar que el tipo de documento esté seleccionado al crear
+    if (!serie && !formData.documentType) {
+      toast.error("Debe seleccionar un tipo de documento");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -97,9 +104,7 @@ const NoSerieFormDialog = ({
         const createData: CreateNoSerieDto = {
           code: formData.code,
           description: formData.description,
-          documentType: formData.documentType
-            ? parseInt(formData.documentType)
-            : undefined,
+          documentType: parseInt(formData.documentType),
           defaultNos: formData.defaultNos,
           manualNos: formData.manualNos,
           dateOrder: formData.dateOrder,
@@ -171,18 +176,20 @@ const NoSerieFormDialog = ({
 
           {/* Document Type */}
           <div>
-            <Label htmlFor="documentType">Tipo de Documento</Label>
+            <Label htmlFor="documentType">
+              Tipo de Documento <span className="text-red-500">*</span>
+            </Label>
             <Select
               value={formData.documentType}
               onValueChange={(value) =>
                 setFormData({ ...formData, documentType: value })
               }
+              required
             >
-              <SelectTrigger>
+              <SelectTrigger className={!formData.documentType ? "border-red-300" : ""}>
                 <SelectValue placeholder="Seleccionar tipo..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="undefine">Sin tipo específico</SelectItem>
                 {Object.entries(DocumentTypeLabels).map(([key, label]) => (
                   <SelectItem key={key} value={key}>
                     {label}
@@ -191,7 +198,7 @@ const NoSerieFormDialog = ({
               </SelectContent>
             </Select>
             <p className="text-xs text-gray-500 mt-1">
-              Asociar esta serie a un tipo de documento
+              Tipo de documento al que aplica esta serie (requerido)
             </p>
           </div>
 

@@ -14,6 +14,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.Sales
 
         public virtual Organization Organization { get; set; }
 
+        [MaxLength(50, ErrorMessage = "El número de orden no puede exceder los 50 caracteres")]
+        public string? OrderNo { get; set; } // SO-2025-0001
+
         [Required(ErrorMessage = "El ID del cliente es obligatorio")]
         public Guid CustomerId { get; set; }
 

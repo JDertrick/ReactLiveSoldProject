@@ -4,16 +4,19 @@ using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Contacts;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class ContactService : IContactService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly ISerieNoService _serieNoService;
 
-        public ContactService(LiveSoldDbContext dbContext)
+        public ContactService(LiveSoldDbContext dbContext, ISerieNoService serieNoService)
         {
             _dbContext = dbContext;
+            _serieNoService = serieNoService;
         }
 
         public async Task<List<ContactDto>> GetContactsByOrganizationAsync(Guid organizationId)
@@ -70,10 +73,14 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new InvalidOperationException("Ya existe un contacto con este teléfono en la organización");
             }
 
+            // Generar número de contacto usando series numéricas
+            var contactNo = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.Contact);
+
             // Crear el contacto
             var contact = dto.Adapt<Contact>();
             contact.Id = Guid.NewGuid();
             contact.OrganizationId = organizationId;
+            contact.ContactNo = contactNo;
 
             _dbContext.Contacts.Add(contact);
             await _dbContext.SaveChangesAsync();

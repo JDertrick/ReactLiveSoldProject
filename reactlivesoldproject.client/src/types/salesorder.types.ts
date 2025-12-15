@@ -27,7 +27,7 @@ export interface SalesOrder {
   status: string;
   totalAmount: number;
   notes?: string;
-  orderNumber?: string;
+  orderNo?: string; // Auto-generated number
   items: SalesOrderItem[];
   createdAt: string;
   updatedAt: string;

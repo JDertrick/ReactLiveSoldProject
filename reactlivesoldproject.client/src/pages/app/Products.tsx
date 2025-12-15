@@ -251,6 +251,7 @@ const ProductsPage = () => {
                   <TableHead className="w-[40px]">
                     <Checkbox />
                   </TableHead>
+                  <TableHead>No. Producto</TableHead>
                   <TableHead>Producto</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Estado</TableHead>
@@ -263,7 +264,7 @@ const ProductsPage = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       <div className="flex items-center justify-center h-64">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                       </div>
@@ -277,6 +278,11 @@ const ProductsPage = () => {
                       <TableRow key={`${variant.productId}-${variant.id}`}>
                         <TableCell>
                           <Checkbox />
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm font-mono text-muted-foreground">
+                            {variant.product?.productNo || "-"}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
@@ -376,7 +382,7 @@ const ProductsPage = () => {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={9}
                       className="text-center py-8 text-gray-500"
                     >
                       No se encontraron productos.

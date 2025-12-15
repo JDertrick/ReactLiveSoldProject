@@ -4,6 +4,7 @@ using ReactLiveSoldProject.ServerBL.DTOs;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.CustomerWallet;
 using ReactLiveSoldProject.ServerBL.Models.Sales;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
@@ -13,13 +14,15 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
         private readonly IStockMovementService _stockMovementService;
         private readonly ITaxService _taxService;
         private readonly IAccountingService _accountingService;
+        private readonly ISerieNoService _serieNoService;
 
-        public SalesOrderService(LiveSoldDbContext dbContext, IStockMovementService stockMovementService, ITaxService taxService, IAccountingService accountingService)
+        public SalesOrderService(LiveSoldDbContext dbContext, IStockMovementService stockMovementService, ITaxService taxService, IAccountingService accountingService, ISerieNoService serieNoService)
         {
             _dbContext = dbContext;
             _stockMovementService = stockMovementService;
             _taxService = taxService;
             _accountingService = accountingService;
+            _serieNoService = serieNoService;
         }
 
         public async Task<List<SalesOrderDto>> GetSalesOrdersByOrganizationAsync(Guid organizationId, string? status = null)
@@ -96,6 +99,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (!dto.Items.Any())
                 throw new InvalidOperationException("La orden debe tener al menos un item");
 
+            // Generar número de orden usando series numéricas
+            var orderNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.SalesOrder);
+
             // Crear la orden
             var orderId = Guid.NewGuid();
             var order = new SalesOrder
@@ -103,6 +109,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 Id = orderId,
                 OrganizationId = organizationId,
                 CustomerId = dto.CustomerId,
+                OrderNo = orderNumber,
                 CreatedByUserId = createdByUserId,
                 Status = OrderStatus.Draft,
                 TotalAmount = 0m,
@@ -457,6 +464,9 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     salesOrderId);
             }
 
+            // Generar número de transacción usando series numéricas
+            var transactionNo = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.WalletTransaction);
+
             // Descontar del wallet y crear transacción
             order.Customer.Wallet.Balance -= order.TotalAmount;
             order.Customer.Wallet.UpdatedAt = DateTime.UtcNow;
@@ -468,6 +478,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 WalletId = order.Customer.Wallet.Id,
                 Type = TransactionType.Withdrawal,
                 Amount = order.TotalAmount,
+                TransactionNo = transactionNo,
                 RelatedSalesOrderId = salesOrderId,
                 AuthorizedByUserId = order.CreatedByUserId,
                 Notes = $"Compra - Orden #{salesOrderId.ToString()[..8]}",

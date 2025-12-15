@@ -7,6 +7,7 @@ using ReactLiveSoldProject.ServerBL.Models.Vendors;
 using ReactLiveSoldProject.ServerBL.Models.Purchases;
 using ReactLiveSoldProject.ServerBL.Models.Banking;
 using ReactLiveSoldProject.ServerBL.Models.Payments;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
@@ -21,10 +22,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class PaymentService : IPaymentService
     {
         private readonly LiveSoldDbContext _context;
+        private readonly ISerieNoService _serieNoService;
 
-        public PaymentService(LiveSoldDbContext context)
+        public PaymentService(LiveSoldDbContext context, ISerieNoService serieNoService)
         {
             _context = context;
+            _serieNoService = serieNoService;
         }
 
         #region CRUD Básico
@@ -131,8 +134,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 // 4. Validar las aplicaciones de pago a facturas
                 await ValidatePaymentApplications(dto.InvoiceApplications, dto.VendorId, dto.AmountPaid, organizationId);
 
-                // 5. Generar número de pago
-                var paymentNumber = await GeneratePaymentNumberAsync(organizationId);
+                // 5. Generar número de pago usando series numéricas
+                var paymentNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.Payment);
 
                 // 6. Crear el registro Payment con estado Pending
                 var payment = new Payment

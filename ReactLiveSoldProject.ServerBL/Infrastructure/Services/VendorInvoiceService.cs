@@ -4,6 +4,7 @@ using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Purchases;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Purchases;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
@@ -14,10 +15,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class VendorInvoiceService : IVendorInvoiceService
     {
         private readonly LiveSoldDbContext _context;
+        private readonly ISerieNoService _serieNoService;
 
-        public VendorInvoiceService(LiveSoldDbContext context)
+        public VendorInvoiceService(LiveSoldDbContext context, ISerieNoService serieNoService)
         {
             _context = context;
+            _serieNoService = serieNoService;
         }
 
         /// <summary>
@@ -100,8 +103,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     throw new Exception("La recepción de compra no pertenece al proveedor especificado");
             }
 
-            // Generar número de factura
-            var invoiceNumber = await GenerateInvoiceNumberAsync(organizationId);
+            // Generar número de factura usando series numéricas
+            var invoiceNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.PurchaseInvoice);
 
             var invoice = new VendorInvoice
             {

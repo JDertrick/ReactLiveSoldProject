@@ -7,16 +7,19 @@ using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using System.Xml;
 
 using ReactLiveSoldProject.ServerBL.DTOs.Common;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class ProductService : IProductService
     {
         private readonly LiveSoldDbContext _dbContext;
+        private readonly ISerieNoService _serieNoService;
 
-        public ProductService(LiveSoldDbContext dbContext)
+        public ProductService(LiveSoldDbContext dbContext, ISerieNoService serieNoService)
         {
             _dbContext = dbContext;
+            _serieNoService = serieNoService;
         }
 
         public async Task<PagedResult<ProductDto>> GetProductsAsync(Guid organizationId, int page, int pageSize, string? status, string? searchTerm)
@@ -232,12 +235,16 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (!Enum.TryParse<ProductType>(dto.ProductType, out var productType))
                     throw new InvalidOperationException($"Tipo de producto inválido: {dto.ProductType}");
 
+                // Generar número de producto usando series numéricas
+                var productNo = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.Product);
+
                 // Crear el producto
                 var productId = Guid.NewGuid();
 
                 var product = dto.Adapt<Product>();
                 product.Id = productId;
                 product.OrganizationId = organizationId;
+                product.ProductNo = productNo;
                 product.ProductType = productType;
                 product.CategoryId = dto.CategoryId;
 

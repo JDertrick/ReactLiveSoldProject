@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import { Trash2, Plus, ArrowLeft } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { AutoNumberInput } from '@/components/common/AutoNumberInput';
 
 const PurchaseOrderForm = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const PurchaseOrderForm = () => {
   const products = productsData?.items || [];
 
   const [loading, setLoading] = useState(false);
+  const [poNumber, setPoNumber] = useState<string>('');
   const [formData, setFormData] = useState<CreatePurchaseOrderDto>({
     vendorId: '',
     orderDate: new Date().toISOString().split('T')[0],
@@ -49,6 +51,7 @@ const PurchaseOrderForm = () => {
       getPurchaseOrderById(id)
         .then((order) => {
           if (order) {
+            setPoNumber(order.poNumber || '');
             setFormData({
               vendorId: order.vendorId,
               orderDate: order.orderDate.split('T')[0],
@@ -174,6 +177,16 @@ const PurchaseOrderForm = () => {
               <CardTitle>Información General</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Número de Orden de Compra */}
+              <AutoNumberInput
+                label="No. Orden de Compra"
+                value={poNumber}
+                onChange={setPoNumber}
+                allowManualEntry={false}
+                isEditing={isEditing}
+                placeholder="Se generará automáticamente"
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="vendorId">Proveedor *</Label>

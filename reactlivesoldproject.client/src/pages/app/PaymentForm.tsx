@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { AutoNumberInput } from '@/components/common/AutoNumberInput';
 
 const PaymentForm = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const PaymentForm = () => {
   const { companyBankAccounts, fetchCompanyBankAccounts } = useCompanyBankAccounts();
   const { vendorBankAccounts, fetchVendorBankAccounts } = useVendorBankAccounts();
 
+  const [paymentNumber, setPaymentNumber] = useState<string>('');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | undefined>(invoiceIdFromUrl || undefined);
 
   const [formData, setFormData] = useState<CreatePaymentDto>({
@@ -151,6 +153,16 @@ const PaymentForm = () => {
               <CardTitle>Información General</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Número de Pago */}
+              <AutoNumberInput
+                label="No. Pago"
+                value={paymentNumber}
+                onChange={setPaymentNumber}
+                allowManualEntry={false}
+                isEditing={isEditing}
+                placeholder="Se generará automáticamente"
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="vendorId">Proveedor *</Label>

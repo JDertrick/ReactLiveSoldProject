@@ -4,6 +4,7 @@ using ReactLiveSoldProject.ServerBL.Base;
 using ReactLiveSoldProject.ServerBL.DTOs.Purchases;
 using ReactLiveSoldProject.ServerBL.Infrastructure.Interfaces;
 using ReactLiveSoldProject.ServerBL.Models.Purchases;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
@@ -13,10 +14,12 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
     public class PurchaseOrderService : IPurchaseOrderService
     {
         private readonly LiveSoldDbContext _context;
+        private readonly ISerieNoService _serieNoService;
 
-        public PurchaseOrderService(LiveSoldDbContext context)
+        public PurchaseOrderService(LiveSoldDbContext context, ISerieNoService serieNoService)
         {
             _context = context;
+            _serieNoService = serieNoService;
         }
 
         /// <summary>
@@ -103,8 +106,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (products.Count != productIds.Count)
                     throw new Exception("Uno o más productos no existen");
 
-                // Generar número de orden
-                var poNumber = await GeneratePONumberAsync(organizationId);
+                // Generar número de orden usando series numéricas
+                var poNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.PurchaseOrder);
 
                 var order = new PurchaseOrder
                 {

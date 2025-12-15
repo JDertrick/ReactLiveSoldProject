@@ -7,16 +7,19 @@ using ReactLiveSoldProject.ServerBL.Models.Purchases;
 using ReactLiveSoldProject.ServerBL.Models.Inventory;
 using ReactLiveSoldProject.ServerBL.Models.Accounting;
 using ReactLiveSoldProject.ServerBL.Models.Vendors;
+using ReactLiveSoldProject.ServerBL.Models.Configuration;
 
 namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 {
     public class PurchaseReceiptService : IPurchaseReceiptService
     {
         private readonly LiveSoldDbContext _context;
+        private readonly ISerieNoService _serieNoService;
 
-        public PurchaseReceiptService(LiveSoldDbContext context)
+        public PurchaseReceiptService(LiveSoldDbContext context, ISerieNoService serieNoService)
         {
             _context = context;
+            _serieNoService = serieNoService;
         }
 
         #region CRUD Básico
@@ -100,8 +103,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 if (vendor == null)
                     throw new InvalidOperationException("El proveedor no existe o no pertenece a esta organización");
 
-                // Generar número de recepción
-                var receiptNumber = await GenerateReceiptNumberAsync(organizationId);
+                // Generar número de recepción usando series numéricas
+                var receiptNumber = await _serieNoService.GetNextNumberByTypeAsync(organizationId, DocumentType.PurchaseReceipt);
 
                 // Crear recepción
                 var receipt = new PurchaseReceipt

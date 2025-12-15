@@ -118,6 +118,14 @@ const VendorsPage = () => {
   };
 
   const columns = [
+    columnHelper.accessor("vendorNo", {
+      header: "No. Proveedor",
+      cell: (info) => (
+        <div className="text-sm font-mono text-muted-foreground">
+          {info.getValue() || "-"}
+        </div>
+      ),
+    }),
     columnHelper.accessor(
       (row) => `${row.contact?.firstName || ""} ${row.contact?.lastName || ""}`,
       {

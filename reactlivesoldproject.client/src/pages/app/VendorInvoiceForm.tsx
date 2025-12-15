@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { AutoNumberInput } from '@/components/common/AutoNumberInput';
 
 const VendorInvoiceForm = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const VendorInvoiceForm = () => {
   const { purchaseReceipts, fetchPurchaseReceipts } = usePurchaseReceipts();
   const { data: vendors } = useGetVendors();
   const [loading, setLoading] = useState(false);
+  const [invoiceNumber, setInvoiceNumber] = useState<string>('');
 
   const [formData, setFormData] = useState<CreateVendorInvoiceDto>({
     vendorId: '',
@@ -47,6 +49,7 @@ const VendorInvoiceForm = () => {
       getVendorInvoiceById(id)
         .then((invoice) => {
           if (invoice) {
+            setInvoiceNumber(invoice.invoiceNumber || '');
             setFormData({
               vendorId: invoice.vendorId || '',
               purchaseReceiptId: invoice.purchaseReceiptId || undefined,
@@ -131,6 +134,16 @@ const VendorInvoiceForm = () => {
               <CardTitle>Información General</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Número de Factura */}
+              <AutoNumberInput
+                label="No. Factura"
+                value={invoiceNumber}
+                onChange={setInvoiceNumber}
+                allowManualEntry={false}
+                isEditing={isEditing}
+                placeholder="Se generará automáticamente"
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="vendorId">Proveedor *</Label>

@@ -169,6 +169,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ContactNo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     first_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     last_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
@@ -546,6 +547,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CustomerNo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     contact_id = table.Column<Guid>(type: "uuid", nullable: false),
                     password_hash = table.Column<string>(type: "text", nullable: false),
                     assigned_seller_id = table.Column<Guid>(type: "uuid", nullable: true),
@@ -583,6 +585,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VendorNo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     contact_id = table.Column<Guid>(type: "uuid", nullable: false),
                     assigned_buyer_id = table.Column<Guid>(type: "uuid", nullable: true),
                     vendor_code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
@@ -709,6 +712,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProductNo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
                     product_type = table.Column<string>(type: "text", nullable: false, defaultValue: "Simple"),
@@ -753,6 +757,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrderNo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     customer_id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
                     status = table.Column<string>(type: "text", nullable: false, defaultValue: "Draft"),
@@ -923,6 +928,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
                     product_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VariantNo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     sku = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     price = table.Column<decimal>(type: "numeric(10,2)", nullable: false, defaultValue: 0.00m),
                     stock_quantity = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
@@ -994,6 +1000,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TransactionNo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     wallet_id = table.Column<Guid>(type: "uuid", nullable: false),
                     type = table.Column<string>(type: "text", nullable: false),
                     amount = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
@@ -1260,6 +1267,7 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     organization_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    MovementNo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     product_variant_id = table.Column<Guid>(type: "uuid", nullable: false),
                     movement_type = table.Column<string>(type: "text", nullable: false),
                     quantity = table.Column<int>(type: "integer", nullable: false),

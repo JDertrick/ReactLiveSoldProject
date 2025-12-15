@@ -18,6 +18,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
 
         public virtual Product Product { get; set; }
 
+        [MaxLength(50, ErrorMessage = "El número de variante no puede exceder los 50 caracteres")]
+        public string? VariantNo { get; set; } // VAR-0001
+
         [MaxLength(100, ErrorMessage = "El SKU no puede exceder los 100 caracteres")]
         public string? Sku { get; set; }
 

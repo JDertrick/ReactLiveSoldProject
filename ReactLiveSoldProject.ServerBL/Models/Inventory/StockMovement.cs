@@ -18,6 +18,9 @@ namespace ReactLiveSoldProject.ServerBL.Models.Inventory
 
         public virtual Organization Organization { get; set; }
 
+        [MaxLength(50, ErrorMessage = "El número de movimiento no puede exceder los 50 caracteres")]
+        public string? MovementNo { get; set; } // SM-2025-0001
+
         [Required(ErrorMessage = "El ID de la variante del producto es obligatorio")]
         public Guid ProductVariantId { get; set; }
 

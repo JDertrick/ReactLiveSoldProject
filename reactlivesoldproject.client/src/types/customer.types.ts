@@ -4,6 +4,7 @@ import { Wallet } from "./wallet.types";
 export interface Customer {
   id: string;
   organizationId: string;
+  customerNo?: string; // Auto-generated number
   firstName?: string;
   lastName?: string;
   email: string;

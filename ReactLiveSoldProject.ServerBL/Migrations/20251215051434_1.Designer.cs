@@ -12,7 +12,7 @@ using ReactLiveSoldProject.ServerBL.Base;
 namespace ReactLiveSoldProject.ServerBL.Migrations
 {
     [DbContext(typeof(LiveSoldDbContext))]
-    [Migration("20251215004728_1")]
+    [Migration("20251215051434_1")]
     partial class _1
     {
         /// <inheritdoc />
@@ -809,6 +809,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("company");
 
+                    b.Property<string>("ContactNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Country")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -905,6 +909,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(now() at time zone 'utc')");
+
+                    b.Property<string>("CustomerNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -1177,6 +1185,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                     b.Property<Guid?>("RelatedSalesOrderId")
                         .HasColumnType("uuid")
                         .HasColumnName("related_sales_order_id");
+
+                    b.Property<string>("TransactionNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -1554,6 +1566,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
 
+                    b.Property<string>("ProductNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("ProductType")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1678,6 +1694,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("(now() at time zone 'utc')");
 
+                    b.Property<string>("VariantNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<decimal?>("WholesalePrice")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("wholesale_price");
@@ -1775,6 +1795,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_rejected");
+
+                    b.Property<string>("MovementNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("MovementType")
                         .IsRequired()
@@ -2592,6 +2616,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("notes");
 
+                    b.Property<string>("OrderNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
@@ -2860,6 +2888,10 @@ namespace ReactLiveSoldProject.ServerBL.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("vendor_code");
+
+                    b.Property<string>("VendorNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 

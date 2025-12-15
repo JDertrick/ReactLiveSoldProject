@@ -64,8 +64,8 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (existingSerie != null)
                 throw new InvalidOperationException($"Ya existe una serie con el código '{dto.Code}'");
 
-            // Si se marca como DefaultNos y tiene un DocumentType, desmarcar las demás series del mismo tipo
-            if (dto.DefaultNos && dto.DocumentType.HasValue)
+            // Si se marca como DefaultNos, desmarcar las demás series del mismo tipo
+            if (dto.DefaultNos)
             {
                 var existingDefaults = await _dbContext.NoSeries
                     .Where(n => n.OrganizationId == organizationId && n.DocumentType == dto.DocumentType && n.DefaultNos)
@@ -76,6 +76,19 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                     existingDefault.DefaultNos = false;
                 }
             }
+            // Si no se marca como DefaultNos, verificar si es la primera serie para este tipo
+            else
+            {
+                var existingSeriesForType = await _dbContext.NoSeries
+                    .Where(n => n.OrganizationId == organizationId && n.DocumentType == dto.DocumentType)
+                    .CountAsync();
+
+                // Si es la primera serie para este tipo, forzar DefaultNos = true
+                if (existingSeriesForType == 0)
+                {
+                    dto.DefaultNos = true;
+                }
+            }
 
             var serie = new NoSerie
             {
@@ -83,7 +96,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 OrganizationId = organizationId,
                 Code = dto.Code,
                 Description = dto.Description,
-                DocumentType = dto.DocumentType,
+                DocumentType = dto.DocumentType, // Ahora es requerido
                 DefaultNos = dto.DefaultNos,
                 ManualNos = dto.ManualNos,
                 DateOrder = dto.DateOrder,
@@ -134,6 +147,43 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
             if (serie == null)
                 throw new KeyNotFoundException("Serie numérica no encontrada");
 
+            // Validar cambio de DocumentType
+            if (dto.DocumentType.HasValue && dto.DocumentType != serie.DocumentType)
+            {
+                // Verificar si ya se han usado números de esta serie
+                var hasUsedNumbers = serie.NoSerieLines.Any(l => !string.IsNullOrEmpty(l.LastNoUsed));
+                if (hasUsedNumbers)
+                {
+                    throw new InvalidOperationException("No se puede cambiar el tipo de documento de una serie que ya ha generado números. Cree una nueva serie en su lugar.");
+                }
+            }
+
+            // Si se intenta desmarcar DefaultNos, verificar que no sea la única serie activa para ese tipo
+            if (dto.DefaultNos.HasValue && !dto.DefaultNos.Value && serie.DefaultNos)
+            {
+                var docType = dto.DocumentType ?? serie.DocumentType;
+                if (docType.HasValue)
+                {
+                    var otherActiveSeriesCount = await _dbContext.NoSeries
+                        .Where(n => n.OrganizationId == organizationId && n.DocumentType == docType && n.Id != id)
+                        .CountAsync();
+
+                    if (otherActiveSeriesCount == 0)
+                    {
+                        throw new InvalidOperationException($"No se puede desmarcar como serie por defecto porque es la única serie activa para el tipo '{docType}'. Debe existir al menos una serie por defecto para cada tipo de documento.");
+                    }
+
+                    // Si hay otras series, asegurarse de que al menos una esté marcada como DefaultNos
+                    var hasOtherDefault = await _dbContext.NoSeries
+                        .AnyAsync(n => n.OrganizationId == organizationId && n.DocumentType == docType && n.DefaultNos && n.Id != id);
+
+                    if (!hasOtherDefault)
+                    {
+                        throw new InvalidOperationException($"No se puede desmarcar como serie por defecto porque no hay otra serie marcada como predeterminada para el tipo '{docType}'. Primero marque otra serie como predeterminada.");
+                    }
+                }
+            }
+
             // Si se marca como DefaultNos y tiene un DocumentType, desmarcar las demás series del mismo tipo
             if (dto.DefaultNos.HasValue && dto.DefaultNos.Value)
             {
@@ -182,6 +232,26 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
 
             if (serie == null)
                 throw new KeyNotFoundException("Serie numérica no encontrada");
+
+            // Verificar si ya se han usado números de esta serie
+            var hasUsedNumbers = serie.NoSerieLines.Any(l => !string.IsNullOrEmpty(l.LastNoUsed));
+            if (hasUsedNumbers)
+            {
+                throw new InvalidOperationException("No se puede eliminar una serie que ya ha generado números. Esta serie debe mantenerse para mantener la trazabilidad de los documentos.");
+            }
+
+            // Si es la serie por defecto, verificar que no sea la única para su tipo de documento
+            if (serie.DefaultNos && serie.DocumentType.HasValue)
+            {
+                var otherSeriesCount = await _dbContext.NoSeries
+                    .Where(n => n.OrganizationId == organizationId && n.DocumentType == serie.DocumentType && n.Id != id)
+                    .CountAsync();
+
+                if (otherSeriesCount == 0)
+                {
+                    throw new InvalidOperationException($"No se puede eliminar la única serie configurada para el tipo de documento '{serie.DocumentType}'. Debe existir al menos una serie para cada tipo de documento.");
+                }
+            }
 
             // Eliminar las líneas primero
             _dbContext.NoSerieLines.RemoveRange(serie.NoSerieLines);
@@ -301,7 +371,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .FirstOrDefaultAsync(n => n.OrganizationId == organizationId && n.DocumentType == documentType && n.DefaultNos);
 
             if (serie == null)
-                throw new KeyNotFoundException($"No hay una serie por defecto configurada para el tipo de documento '{documentType}'");
+                throw new InvalidOperationException($"No se puede crear el documento: No hay una serie numérica configurada como predeterminada para el tipo '{documentType}'. Por favor, configure una serie numérica en la sección de Configuración antes de crear este tipo de documento.");
 
             return await GetNextNumberFromSerieAsync(serie, date ?? DateTime.UtcNow);
         }

@@ -468,6 +468,7 @@ const StockMovementsPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>NO. MOVIMIENTO</TableHead>
                   <TableHead>PRODUCTO / SKU</TableHead>
                   <TableHead>ESTADO</TableHead>
                   <TableHead>TIPO</TableHead>
@@ -482,6 +483,11 @@ const StockMovementsPage = () => {
                 {filteredMovements && filteredMovements.length > 0 ? (
                   filteredMovements.map((movement) => (
                     <TableRow key={movement.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="text-sm font-mono text-muted-foreground">
+                          {movement.movementNumber || "-"}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="bg-muted p-2 rounded-md">
@@ -627,7 +633,7 @@ const StockMovementsPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
+                    <TableCell colSpan={9} className="h-24 text-center">
                       No se encontraron movimientos.
                     </TableCell>
                   </TableRow>
