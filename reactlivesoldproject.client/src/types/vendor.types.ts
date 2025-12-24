@@ -9,7 +9,6 @@ export interface Vendor {
   assignedBuyerId?: string;
   assignedBuyerName?: string;
   vendorNo?: string; // Auto-generated number
-  vendorCode?: string;
   notes?: string;
   paymentTerms?: string;
   creditLimit?: number;
@@ -21,7 +20,6 @@ export interface Vendor {
 export interface CreateVendorDto {
   contactId: string;
   assignedBuyerId?: string;
-  vendorCode?: string;
   notes?: string;
   paymentTerms?: string;
   creditLimit: number;
@@ -31,7 +29,6 @@ export interface CreateVendorDto {
 export interface UpdateVendorDto {
   contactId?: string;
   assignedBuyerId?: string;
-  vendorCode?: string;
   notes?: string;
   paymentTerms?: string;
   creditLimit?: number;

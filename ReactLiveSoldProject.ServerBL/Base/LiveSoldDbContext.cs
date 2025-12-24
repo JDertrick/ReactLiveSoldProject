@@ -229,6 +229,7 @@ namespace ReactLiveSoldProject.ServerBL.Base
                 e.HasKey(v => v.Id);
                 e.Property(v => v.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 e.Property(v => v.OrganizationId).HasColumnName("organization_id").IsRequired();
+                e.Property(v => v.VendorNo).HasColumnName("vendor_no").IsRequired();
                 e.Property(v => v.ContactId).HasColumnName("contact_id").IsRequired();
                 e.Property(v => v.AssignedBuyerId).HasColumnName("assigned_buyer_id");
                 e.Property(v => v.VendorCode).HasColumnName("vendor_code");

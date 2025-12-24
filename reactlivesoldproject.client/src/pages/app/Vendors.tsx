@@ -141,11 +141,6 @@ const VendorsPage = () => {
               <div className="text-sm text-muted-foreground">
                 {info.row.original.contact?.email}
               </div>
-              {info.row.original.vendorCode && (
-                <div className="text-xs text-muted-foreground">
-                  Código: {info.row.original.vendorCode}
-                </div>
-              )}
             </div>
           </div>
         ),

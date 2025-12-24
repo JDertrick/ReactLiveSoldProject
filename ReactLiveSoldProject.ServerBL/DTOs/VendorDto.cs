@@ -5,6 +5,7 @@ namespace ReactLiveSoldProject.ServerBL.DTOs
         public Guid Id { get; set; }
         public Guid OrganizationId { get; set; }
         public Guid ContactId { get; set; }
+        public string VendorNo { get; set; }
         public ContactDto? Contact { get; set; }
         public Guid? AssignedBuyerId { get; set; }
         public string? AssignedBuyerName { get; set; }

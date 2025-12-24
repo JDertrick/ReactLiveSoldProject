@@ -50,7 +50,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 .OrderByDescending(v => v.CreatedAt)
                 .ToListAsync();
 
-            return vendors.Select(v => MapToDto(v)).ToList();
+            return vendors.Adapt<List<VendorDto>>();
         }
 
         public async Task<VendorDto?> GetVendorByIdAsync(Guid vendorId, Guid organizationId)
@@ -268,7 +268,7 @@ namespace ReactLiveSoldProject.ServerBL.Infrastructure.Services
                 AssignedBuyerName = vendor.AssignedBuyer != null
                     ? $"{vendor.AssignedBuyer.FirstName} {vendor.AssignedBuyer.LastName}".Trim()
                     : null,
-                VendorCode = vendor.VendorCode,
+                VendorNo = vendor.VendorNo,
                 Notes = vendor.Notes,
                 PaymentTerms = vendor.PaymentTerms,
                 CreditLimit = vendor.CreditLimit,

@@ -61,7 +61,6 @@ const VendorForm = ({
   );
   const [showContactForm, setShowContactForm] = useState(false);
   const [vendorNo, setVendorNo] = useState<string>("");
-  const [vendorCode, setVendorCode] = useState("");
   const [assignedBuyerId, setAssignedBuyerId] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
@@ -81,7 +80,6 @@ const VendorForm = ({
         setSelectedContact(editingVendor.contact);
       }
       setVendorNo(editingVendor.vendorNo || "");
-      setVendorCode(editingVendor.vendorCode || "");
       setAssignedBuyerId(editingVendor.assignedBuyerId || "");
       setNotes(editingVendor.notes || "");
       setPaymentTerms(editingVendor.paymentTerms || "");
@@ -91,7 +89,6 @@ const VendorForm = ({
       // Limpiar al crear nuevo
       setSelectedContact(null);
       setVendorNo("");
-      setVendorCode("");
       setAssignedBuyerId("");
       setNotes("");
       setPaymentTerms("");
@@ -124,8 +121,10 @@ const VendorForm = ({
         // Actualizar proveedor existente
         const updateData: UpdateVendorDto = {
           contactId: selectedContact.id,
-          vendorCode: vendorCode || undefined,
-          assignedBuyerId: assignedBuyerId && assignedBuyerId !== "null" ? assignedBuyerId : undefined,
+          assignedBuyerId:
+            assignedBuyerId && assignedBuyerId !== "null"
+              ? assignedBuyerId
+              : undefined,
           notes: notes || undefined,
           paymentTerms: paymentTerms || undefined,
           creditLimit: creditLimit ? parseFloat(creditLimit) : undefined,
@@ -142,8 +141,10 @@ const VendorForm = ({
         // Crear nuevo proveedor
         const createData: CreateVendorDto = {
           contactId: selectedContact.id,
-          vendorCode: vendorCode || undefined,
-          assignedBuyerId: assignedBuyerId && assignedBuyerId !== "null" ? assignedBuyerId : undefined,
+          assignedBuyerId:
+            assignedBuyerId && assignedBuyerId !== "null"
+              ? assignedBuyerId
+              : undefined,
           notes: notes || undefined,
           paymentTerms: paymentTerms || undefined,
           creditLimit: creditLimit ? parseFloat(creditLimit) : 0,
@@ -171,7 +172,6 @@ const VendorForm = ({
     setShowContactForm(false);
     setSelectedContact(null);
     setVendorNo("");
-    setVendorCode("");
     setAssignedBuyerId("");
     setNotes("");
     setPaymentTerms("");
@@ -268,17 +268,6 @@ const VendorForm = ({
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="vendorCode">Código de Proveedor</Label>
-                    <Input
-                      id="vendorCode"
-                      type="text"
-                      value={vendorCode}
-                      onChange={(e) => setVendorCode(e.target.value)}
-                      placeholder="VEN-001"
-                    />
-                  </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="assignedBuyer">Comprador Asignado</Label>
                     <Select
